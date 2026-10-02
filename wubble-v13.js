@@ -1,7 +1,7 @@
 /* wubble V13 for Webflow — runs the exact Claude Design V13 logic on native Webflow elements.
    Layout/styling lives in Webflow (w13-* classes). Elements the animation drives carry data-w / data-* hooks. */
 (function () {
-if (window.__wubbleV13) return; window.__wubbleV13 = true;
+if (window.__wubbleV13) return; window.__wubbleV13 = true; console.info('wubble: build 2026-10-02 / V14 focus-pull');
 var BASE = (document.currentScript && document.currentScript.dataset.base) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/site/';
 var DEFAULTS = {"displayFont":"Oswald","heroTitleSize":1,"sectionTitleSize":1,"workTitleSize":1,"bodySize":1,"labelSize":11,"ctaScene":"Ascent","transitionSeconds":2.6,"sectionBleed":true,"soundtrack":"","hero3D":true,"handModel":"","sectionRotate":true,"sectionZoom":1,"smoothScroll":true,"scrollLerp":0.08,"bgMode":"Silk","lightIntensity":1,"relief":1,"grain":1.4,"bgSpeed":1,"viewCursor":true,"customCursor":true,"inkLinger":0.6,"curvature":0.11,"ribbonTilt":1.7,"velocityBend":1.4,"hoverDistortion":1.7,"cornerRadius":0.11,"reflections":true,"reflectionStrength":0.1,"showGrid":false,"image1":"","video1":"","image2":"","video2":"https://threejs.org/examples/textures/sintel.mp4","image3":"","video3":"","image4":"","video4":"","image5":"","video5":"","image6":"","video6":""};
 // ---------- head: fonts, base css, lenis, 3D viewer ----------
@@ -27,7 +27,7 @@ html.lenis.lenis-smooth body{overscroll-behavior:none;touch-action:pan-y}
 function loadScript(src, mod) { return new Promise(function (r) { var e = document.createElement('script'); if (mod) e.type = 'module'; e.src = src; e.onload = r; e.onerror = r; document.head.appendChild(e); }); }
 var lenisReady = window.Lenis ? Promise.resolve() : loadScript('https://unpkg.com/lenis@1.1.13/dist/lenis.min.js');
 var VQ = (document.currentScript && document.currentScript.dataset.v) ? '?v=' + document.currentScript.dataset.v : '';
-loadScript(BASE + 'dither-viewer.js' + VQ, true);
+if (!window.__wubbleViewerPreloaded) loadScript(BASE + 'dither-viewer.js' + VQ, true);
 // ---------- hooks: data-w="name" → data-wh (V13 uses empty data-w for word reveals) ----------
 function prepHooks(scope) { scope.querySelectorAll('[data-w]').forEach(function (el) { var v = el.getAttribute('data-w'); if (v) { el.setAttribute('data-wh', v); el.removeAttribute('data-w'); } }); }
 function boot() {
