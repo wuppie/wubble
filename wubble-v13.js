@@ -26,7 +26,8 @@ html.lenis.lenis-smooth body{overscroll-behavior:none;touch-action:pan-y}
 [data-wh="root"]{min-height:100vh}`; document.head.appendChild(st);
 function loadScript(src, mod) { return new Promise(function (r) { var e = document.createElement('script'); if (mod) e.type = 'module'; e.src = src; e.onload = r; e.onerror = r; document.head.appendChild(e); }); }
 var lenisReady = window.Lenis ? Promise.resolve() : loadScript('https://unpkg.com/lenis@1.1.13/dist/lenis.min.js');
-loadScript(BASE + 'dither-viewer.js', true);
+var VQ = (document.currentScript && document.currentScript.dataset.v) ? '?v=' + document.currentScript.dataset.v : '';
+loadScript(BASE + 'dither-viewer.js' + VQ, true);
 // ---------- hooks: data-w="name" → data-wh (V13 uses empty data-w for word reveals) ----------
 function prepHooks(scope) { scope.querySelectorAll('[data-w]').forEach(function (el) { var v = el.getAttribute('data-w'); if (v) { el.setAttribute('data-wh', v); el.removeAttribute('data-w'); } }); }
 function boot() {
@@ -704,12 +705,11 @@ class Component extends DCLogic {
         const want = vis && !this.state.page;
         if (want !== handOn) { handOn = want; this.hand.renderer.setAnimationLoop(want ? this.hand.frame : null); }
       }
-      if (!sec.dataset.st && rc.top < vh * 0.3) sec.dataset.st = String(now);
-      if (sec.dataset.st && rc.top > vh) delete sec.dataset.st;
-      const st = +sec.dataset.st || 0;
+      const intoR = (vh * 0.15 - rc.top) / vh;
       sec.querySelectorAll('[data-rw]').forEach((w, j) => {
-        const t = st ? Math.max(0, Math.min(1, (now - st - 250 - j * 90) / 1400)) : 0, e = expo(t);
+        const t = Math.max(0, Math.min(1, (intoR - j * 0.1) / 0.5)), e = 1 - Math.pow(1 - t, 3);
         w.style.transform = t >= 1 ? 'none' : 'translate3d(0,' + ((1 - e) * 110) + '%,0) rotate(' + ((1 - e) * 4) + 'deg)';
+        w.style.filter = t >= 1 || t <= 0 ? '' : 'blur(' + ((1 - e) * 14).toFixed(2) + 'px)'; w.style.opacity = (0.15 + 0.85 * e).toFixed(3);
       });
       if (!vis) return;
       const tp = Math.max(0, Math.min(1, (vh - rc.top) / (rc.height)));
@@ -773,13 +773,13 @@ class Component extends DCLogic {
       {
         const ss = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
         const rp = this.rp || 0, rq = this.rq || 0, r3 = this.r3 || 0;
-        const heroD = ss(0.1, 0.7, rp), handD = 1 - ss(0.3, 0.9, r3), astroD = Math.max(1 - ss(0.35, 0.95, rq), ss(0.1, 0.7, r3));
+        const heroD = ss(0.1, 0.7, rp), handD = 1 - ss(0.3, 0.9, r3), astroD = ss(0.1, 0.7, r3);
         this.astroD = astroD;
         if (this.portrait && this.portrait.post && this.portrait.post.uDissolve) this.portrait.post.uDissolve.value = heroD;
         if (this.hand && this.hand.post && this.hand.post.uDissolve) this.hand.post.uDissolve.value = handD;
       }
       const on = (this.props.sectionBleed ?? true) && (this.props.sectionRotate ?? true);
-      const ts = [[this.rp, 1.3], [this.rq, 4.7], [this.r3, 8.1]];
+      const ts = [[this.rp, 1.3], [this.r3, 8.1]];
       let best = null, bb = 0;
       for (const [q, sd] of ts) { if (q == null) continue; const b = Math.sin(Math.PI * Math.max(0, Math.min(1, q))); if (b > bb) { bb = b; best = [q, sd]; } }
       if (!on || bb < 0.01 || this.state.page) { if (box.style.display !== 'none') box.style.display = 'none'; if (r && performance.now() - lastOn > 2500) drop(); return; }
@@ -1016,19 +1016,19 @@ class Component extends DCLogic {
         const tw = v0 ? Math.min(1, dy / (vh0 * 0.035)) : 0;
         warp += (tw - warp) * (tw > warp ? 0.12 : 0.045);
       }
-      const rc = this.logRect(sec, 100, 320, 465), vh = (window.__svh || innerHeight);
+      const rc = this.logRect(sec, 100, 820, 965), vh = (window.__svh || innerHeight);
       const vis = rc.top < vh && rc.bottom > 0;
       const now = performance.now();
-      sec.querySelectorAll('[data-cg]').forEach((g) => {
-        const gr = g.getBoundingClientRect();
-        if (!g.dataset.st && gr.top < vh * 0.85 && rc.top < vh * 0.35) g.dataset.st = String(now);
-        if (g.dataset.st && rc.top > vh) delete g.dataset.st;
-        const st = +g.dataset.st || 0;
-        g.querySelectorAll('[data-cw]').forEach((w, j) => {
-          const t = st ? Math.max(0, Math.min(1, (now - st - j * 45) / 1300)) : 0, e = expo(t);
-          w.style.transform = t >= 1 ? 'none' : 'translate3d(0,' + ((1 - e) * 110) + '%,0) rotate(' + ((1 - e) * 4) + 'deg)';
+      {
+        const into = -rc.top / vh;
+        sec.querySelectorAll('[data-cg]').forEach((g, gi) => {
+          g.querySelectorAll('[data-cw]').forEach((w, j) => {
+            const t = Math.max(0, Math.min(1, (into - 1.25 - gi * 0.3 - j * 0.07) / 0.55)), e = 1 - Math.pow(1 - t, 3);
+            w.style.transform = t >= 1 ? 'none' : 'translate3d(0,' + ((1 - e) * 110).toFixed(2) + '%,0) rotate(' + ((1 - e) * 4).toFixed(2) + 'deg)';
+            w.style.filter = t >= 1 || t <= 0 ? '' : 'blur(' + ((1 - e) * 14).toFixed(2) + 'px)'; w.style.opacity = (0.15 + 0.85 * e).toFixed(3);
+          });
         });
-      });
+      }
       if (!vis) return;
       const tp = Math.max(0, Math.min(1, -rc.top / Math.max(1, rc.height - vh) * 0.7 + 0.3 * Math.max(0, Math.min(1, (vh - rc.top) / vh))));
       sp += (tp - sp) * 0.06;
@@ -1042,9 +1042,9 @@ class Component extends DCLogic {
         if (AS.rt.width !== W1 || AS.rt.height !== H1) AS.rt.setSize(W1, H1);
         AS.cam.aspect = asp; AS.cam.updateProjectionMatrix();
         const halfH = Math.tan(12 * Math.PI / 180) * 4.2;
-        AS.model.position.set(halfH * asp * 0.42 - (1 - ee) * 0.15, -halfH * 1.6 + re * halfH * 1.62 + Math.sin(tt * 0.6) * 0.03, 0);
+        AS.model.position.set(halfH * asp * (0.42 - ee * 0.14) - (1 - ee) * 0.15, -halfH * 1.6 + re * halfH * 1.62 + Math.sin(tt * 0.6) * 0.03, 0);
         AS.model.rotation.set(0.25 + Math.sin(tt * 0.3) * 0.08 - ee * 0.2, -0.6 + Math.sin(tt * 0.18) * 0.25 + ee * 0.5, Math.sin(tt * 0.35) * 0.1 - ee * 0.25);
-        AS.model.scale.setScalar(0.62 + ee * 0.14);
+        AS.model.scale.setScalar(0.55 + ee * 0.5);
         r.setRenderTarget(AS.rt); r.setClearColor(0x000000, 0); r.clear(true, true, true); r.render(AS.scene, AS.cam); r.setRenderTarget(null);
         U.uAstroOn.value = 1; U.uADis.value = this.astroD || 0;
         { const vp = AS.visor.clone(); AS.model.updateMatrixWorld(); AS.model.localToWorld(vp); vp.project(AS.cam);
@@ -1780,7 +1780,7 @@ class Component extends DCLogic {
       const P = this.props;
       const vh = (window.__svh || window.innerHeight);
       const sec = this.logRect(this.workRef.current, 100, 565, 710);
-      const ctaRect0 = this.ctaRef.current ? this.logRect(this.ctaRef.current, 100, 320, 465) : null;
+      const ctaRect0 = this.ctaRef.current ? this.logRect(this.ctaRef.current, 100, 820, 965) : null;
       const reachRect0 = this.reachRef.current ? this.logRect(this.reachRef.current, 100, 300, 300) : null;
       const sY = (window.__scrollY ? window.__scrollY() : window.scrollY);
       const p = Math.max(0, Math.min(1, (vh * 0.85 - sec.top) / (vh * 1.15)));
@@ -1868,12 +1868,18 @@ class Component extends DCLogic {
           const b2 = Math.sin(Math.PI * e2);
           const act2 = rot && this.rq > 0.0004 && this.rq < 0.9996;
           const pre2 = 'perspective(' + Pp + 'px) translateZ(' + (-b2 * vh * 0.55 * Z) + 'px) rotateY(' + (-b2 * 6 * Z) + 'deg) rotateZ(' + (b2 * 2 * Z) + 'deg) translateZ(' + (-D) + 'px) rotateX(';
-          if (act2) {
-            if (cct) cct.style.transform = pre2 + (ANG * e2 - ANG) + post;
-            this.ctaTilt = 1 - e2; this.ctaZoom = b2; this.e2 = e2;
-            cpn.style.opacity = String(sst(0.52, 0.94, e2));
-            outOp = 1 - sst(0.06, 0.48, e2);
+          if (act2 && !this.state.page) {
+            // focus pull: full-screen crossfade, Work drifts past the lens and defocuses, space pulls into focus — no edges, nothing cut off
+            const k = e2, blurOK = !this.coarse;
+            const inA = sst(0.22, 0.88, k), outA = 1 - sst(0.08, 0.72, k);
+            cpn.style.opacity = inA.toFixed(4); cpn.style.transform = 'none'; cpn.style.clipPath = '';
+            cpn.style.filter = blurOK && k < 0.995 ? 'blur(' + ((1 - inA) * 16).toFixed(2) + 'px)' : '';
+            if (cct) cct.style.transform = 'translate3d(0,' + ((1 - k) * 5).toFixed(3) + 'vh,0) scale(' + (1.06 - 0.06 * k).toFixed(4) + ')';
+            if (stk) { stk.style.transform = 'scale(' + (1 + 0.07 * k).toFixed(4) + ')'; stk.style.filter = blurOK && k > 0.005 ? 'blur(' + (k * 12).toFixed(2) + 'px)' : ''; }
+            this.ctaTilt = 0; this.ctaZoom = (1 - k) * 0.55; this.e2 = e2;
+            outOp = outA;
           } else {
+            cpn.style.clipPath = ''; cpn.style.filter = ''; if (stk) { stk.style.transform = ''; stk.style.filter = ''; }
             cpn.style.transform = 'none'; if (cct) cct.style.transform = 'none';
             cpn.style.opacity = (rot && this.rq <= 0.0004) ? '0' : '1';
             this.ctaTilt = 0; this.ctaZoom = 0; this.e2 = this.rq >= 0.9996 ? 1 : 0;
