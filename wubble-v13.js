@@ -36,9 +36,10 @@ function boot() {
   var off = document.querySelector('[data-w-if="soundOff"]'); if (off && !off.innerHTML.trim()) off.innerHTML = "<svg width=\"14\" height=\"12\" viewBox=\"0 0 14 12\" fill=\"none\" style=\"display:block;\"><path d=\"M1 4h2.5L7 1v10L3.5 8H1z\" fill=\"currentColor\"></path><path d=\"M9.5 4l3 4M12.5 4l-3 4\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linecap=\"round\"></path></svg>";
   // ---------- CMS projects ----------
   var items = Array.prototype.map.call(document.querySelectorAll('[data-wubble="project"]'), function (el) {
-    var img = el.querySelector('img'); var a = function (k) { return (el.getAttribute('data-' + k) || '').trim(); };
-    return { title: a('title'), slug: a('slug'), client: a('client'), type: a('services'), year: a('year'), blurb: a('description'), video: a('video'), bg: a('color'), cover: img ? (img.currentSrc || img.src || '') : '' };
+    var img = el.querySelector('[data-wubble="cover"] img, img[data-wubble="cover"], img'); var a = function (k) { return (el.getAttribute('data-' + k) || '').trim(); };
+    return { title: a('title'), slug: a('slug'), client: a('client'), type: a('services'), year: a('year'), blurb: a('description'), video: a('video'), bg: a('color'), cover: (img && !img.classList.contains('w-dyn-bind-empty') && !/placeholder/i.test(img.getAttribute('src') || '')) ? (img.getAttribute('src') || img.currentSrc || '') : '' };
   }).filter(function (p) { return p.title; });
+  console.info('[wubble] CMS projects found: ' + items.length); try { console.table(items.map(function (p) { return { title: p.title, cover: p.cover || '(none)', video: p.video || '(none)' }; })); } catch (e) {}
   var lum = function (h) { var m = /^#?([0-9a-f]{6})$/i.exec(h || ''); if (!m) return 0.5; var n = parseInt(m[1], 16); return ((n >> 16 & 255) * 0.299 + (n >> 8 & 255) * 0.587 + (n & 255) * 0.114) / 255; };
   window.__wubbleMerge = function (defs) {
     if (!items.length) return defs;
@@ -60,7 +61,7 @@ function boot() {
   var Component = (new Function('DCLogic', 'React', `
 class Component extends DCLogic {
   state = { active: 0, time: '', page: null, soundOn: false };
-  rollRef = React.createRef(); bleedRef = React.createRef(); bgRef = React.createRef(); gooRef = React.createRef(); inkRef = React.createRef(); closeRef = React.createRef(); loaderRef = React.createRef(); chromeRef = React.createRef(); curtainRef = React.createRef(); hero3dRef = React.createRef(); ctaRef = React.createRef(); ctaGlRef = React.createRef(); reachRef = React.createRef(); rayRef = React.createRef(); handRef = React.createRef(); hostRef = React.createRef(); heroRef = React.createRef(); workRef = React.createRef();
+  rollRef = React.createRef(); bleedRef = React.createRef(); bgRef = React.createRef(); gooRef = React.createRef(); inkRef = React.createRef(); closeRef = React.createRef(); loaderRef = React.createRef(); chromeRef = React.createRef(); curtainRef = React.createRef(); hero3dRef = React.createRef(); ctaRef = React.createRef(); ctaGlRef = React.createRef(); reachRef = React.createRef(); rayRef = React.createRef(); handRef = React.createRef(); astroRef = React.createRef(); hostRef = React.createRef(); heroRef = React.createRef(); workRef = React.createRef();
   uiRef = React.createRef(); headlineRef = React.createRef(); portraitRef = React.createRef(); pageRef = React.createRef();
   projects = window.__wubbleMerge([
     { title: 'Tidewater Atlas', mark: 'TIDE/ WATER', type: 'Interactive atlas', year: '2026', client: 'Coastal Trust', bg: '#d8d3c6', ink: '#151412', accent: '#c9542f', blurb: 'A living map of a changing coastline — tides, erosion and stories layered into one explorable surface.' },
@@ -737,11 +738,11 @@ class Component extends DCLogic {
     let r = null, lastOn = 0;
     const mk = () => { r = new THREE.WebGLRenderer({ alpha: true, premultipliedAlpha: false }); r.setClearColor(0, 0); r.domElement.style.cssText = 'display:block;width:100%;height:100%;'; box.appendChild(r.domElement); size(); };
     const drop = () => { if (!r) return; r.dispose(); try { r.forceContextLoss(); } catch (e) {} r.domElement.remove(); r = null; };
-    const U = { uP: { value: 0 }, uB: { value: 0 }, uT: { value: 0 }, uA: { value: 1 }, uS: { value: 0 } };
+    const U = { uP: { value: 0 }, uB: { value: 0 }, uT: { value: 0 }, uA: { value: 1 }, uS: { value: 0 }, uTint: { value: 0 } };
     const mat = new THREE.ShaderMaterial({ uniforms: U, transparent: true,
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
       fragmentShader: \`
-        uniform float uP; uniform float uB; uniform float uT; uniform float uA; uniform float uS; varying vec2 vUv;
+        uniform float uP; uniform float uB; uniform float uT; uniform float uA; uniform float uS; uniform float uTint; varying vec2 vUv;
         float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
           return mix(mix(h(i), h(i+vec2(1,0)), f.x), mix(h(i+vec2(0,1)), h(i+vec2(1,1)), f.x), f.y); }
@@ -756,8 +757,8 @@ class Component extends DCLogic {
           float ink = smoothstep(0.38, 0.0, abs(d));
           float core = smoothstep(0.16, 0.0, abs(d));
           float a = clamp(ink * 0.85 + core * 0.15, 0.0, 1.0) * uB;
-          vec3 col = vec3(0.012, 0.011, 0.011);
-          col += vec3(0.42, 0.38, 0.34) * smoothstep(0.05, 0.0, abs(d - 0.02)) * 0.12 * uB;
+          vec3 col = mix(vec3(0.028, 0.028, 0.029), vec3(0.06, 0.06, 0.062), core * 0.6);
+          col += vec3(0.11, 0.11, 0.115) * smoothstep(0.05, 0.0, abs(d - 0.02)) * 0.25 * uB;
           col += (h(gl_FragCoord.xy + fract(uT) * 77.0) - 0.5) * 0.03;
           gl_FragColor = vec4(col, a);
         }\` });
@@ -769,13 +770,21 @@ class Component extends DCLogic {
     const loop = () => {
       if (this.dead) return;
       this.bleedRaf = requestAnimationFrame(loop);
+      {
+        const ss = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+        const rp = this.rp || 0, rq = this.rq || 0, r3 = this.r3 || 0;
+        const heroD = ss(0.1, 0.7, rp), handD = 1 - ss(0.3, 0.9, r3), astroD = Math.max(1 - ss(0.35, 0.95, rq), ss(0.1, 0.7, r3));
+        this.astroD = astroD;
+        if (this.portrait && this.portrait.post && this.portrait.post.uDissolve) this.portrait.post.uDissolve.value = heroD;
+        if (this.hand && this.hand.post && this.hand.post.uDissolve) this.hand.post.uDissolve.value = handD;
+      }
       const on = (this.props.sectionBleed ?? true) && (this.props.sectionRotate ?? true);
       const ts = [[this.rp, 1.3], [this.rq, 4.7], [this.r3, 8.1]];
       let best = null, bb = 0;
       for (const [q, sd] of ts) { if (q == null) continue; const b = Math.sin(Math.PI * Math.max(0, Math.min(1, q))); if (b > bb) { bb = b; best = [q, sd]; } }
       if (!on || bb < 0.01 || this.state.page) { if (box.style.display !== 'none') box.style.display = 'none'; if (r && performance.now() - lastOn > 2500) drop(); return; }
       box.style.display = 'block'; lastOn = performance.now(); if (!r) mk();
-      U.uP.value = best[0]; U.uS.value = best[1]; U.uB.value = Math.min(1, bb * 1.4); U.uT.value = (performance.now() - t0) / 1000;
+      U.uP.value = best[0]; U.uS.value = best[1]; { const tgt = best[1] > 2 ? 1 : 0; U.uTint.value += (tgt - U.uTint.value) * 0.15; } U.uB.value = Math.min(1, bb * 1.4); U.uT.value = (performance.now() - t0) / 1000;
       r.render(scene, cam);
     };
     loop();
@@ -787,7 +796,7 @@ class Component extends DCLogic {
     const r = new THREE.WebGLRenderer({ antialias: false, alpha: false });
     r.domElement.style.cssText = 'display:block;width:100%;height:100%;';
     box.appendChild(r.domElement);
-    const U = { uRes: { value: new THREE.Vector2(1, 1) }, uT: { value: 0 }, uP: { value: 0 }, uM: { value: new THREE.Vector2() }, uIn: { value: 0 }, uTilt: { value: 0 }, uZoom: { value: 0 }, uDith: { value: 0 } };
+    const U = { uRes: { value: new THREE.Vector2(1, 1) }, uT: { value: 0 }, uP: { value: 0 }, uM: { value: new THREE.Vector2() }, uIn: { value: 0 }, uTilt: { value: 0 }, uZoom: { value: 0 }, uDith: { value: 0 }, uWarp: { value: 0 }, uAstro: { value: null }, uAstroOn: { value: 0 }, uFlare: { value: new THREE.Vector3(0, 0, 0) }, uADis: { value: 0 } };
     const mat = new THREE.ShaderMaterial({ uniforms: U, depthTest: false,
       vertexShader: 'void main(){ gl_Position = vec4(position.xy, 0.0, 1.0); }',
       fragmentShader: (this.props.ctaScene || 'Ascent') === 'Mountains' ? \`
@@ -853,7 +862,7 @@ class Component extends DCLogic {
           gl_FragColor = vec4(max(col, 0.0), 1.0);
         }\` : \`
         precision highp float;
-        uniform vec2 uRes; uniform float uT; uniform float uP; uniform vec2 uM; uniform float uIn; uniform float uTilt; uniform float uZoom; uniform float uDith;
+        uniform vec2 uRes; uniform float uT; uniform float uP; uniform vec2 uM; uniform float uIn; uniform float uTilt; uniform float uZoom; uniform float uDith; uniform float uWarp; uniform sampler2D uAstro; uniform float uAstroOn; uniform vec3 uFlare; uniform float uADis;
         float h(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
         float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
           return mix(mix(h(i), h(i+vec2(1,0)), f.x), mix(h(i+vec2(0,1)), h(i+vec2(1,1)), f.x), f.y); }
@@ -872,13 +881,40 @@ class Component extends DCLogic {
           float band = exp(-pow((p.y * 0.9 - p.x * 0.45 + 0.05) * 3.2, 2.0));
           float mw = fbm(p * 3.5 + 11.0) * fbm(p * 9.0 - 3.0);
           col += vec3(0.05, 0.05, 0.065) * band * smoothstep(0.15, 0.55, mw) * smoothstep(0.3, 0.8, alt);
-          float sf = stars(fc, 3.0, 0.992) * 0.55 + stars(fc, 7.0, 0.985) * 0.8 + stars(fc, 17.0, 0.975) * 1.0;
+          vec2 cen = 0.5 * uRes, dv = fc - cen;
+          float fly = 1.0 / (1.0 + alt * 0.55);
+          float sf = 0.0;
+          for (int i = 0; i < 7; i++) {
+            float k = float(i) / 6.0;
+            vec2 f2 = cen + dv * fly * (1.0 - k * uWarp * 0.16);
+            float w = 1.0 - k * 0.55;
+            sf += (stars(f2, 3.0, 0.992) * 0.55 + stars(f2, 7.0, 0.985) * 0.8 + stars(f2, 17.0, 0.975) * 1.0) * w;
+          }
+          sf /= 1.0 + 3.2 * (1.0 - uWarp * 0.55);
+          sf *= 1.0 + uWarp * 0.8;
           sf *= 0.75 + 0.25 * sin(uT * 1.3 + h(floor(fc / 7.0)) * 40.0);
           col += vec3(0.82, 0.86, 1.0) * sf * 0.55 * smoothstep(0.25, 0.75, alt);
           // sun, small and hot, soft bloom
           vec2 sp = vec2(0.78, 0.36);
           float sd = length(p - sp);
           col += vec3(1.0, 0.94, 0.86) * (0.9 * exp(-sd * 90.0) + 0.06 * exp(-sd * 9.0) + 0.012 * exp(-sd * 2.0)) * smoothstep(0.2, 0.7, alt);
+          if (uAstroOn > 0.5) {
+            vec4 asx = texture2D(uAstro, uv);
+            vec3 ac = asx.rgb * 1.15; ac = clamp((ac * (2.51 * ac + 0.03)) / (ac * (2.43 * ac + 0.59) + 0.14), 0.0, 1.0); ac = pow(ac, vec3(1.0 / 2.2));
+            float adn = fbm(uv * vec2(uRes.x / uRes.y, 1.0) * 3.2 + vec2(0.0, uT * 0.04));
+            float adk = uADis * 1.15 - 0.05;
+            float akeep = smoothstep(adk - 0.04, adk + 0.04, adn);
+            float arim = smoothstep(0.07, 0.0, abs(adn - adk)) * step(0.001, uADis) * (1.0 - smoothstep(0.9, 1.0, uADis));
+            float aa = clamp(asx.a, 0.0, 1.0);
+            col = mix(col, ac, aa * akeep);
+            col = mix(col, vec3(0.07, 0.07, 0.073), arim * aa * 0.8);
+          }
+          if (uFlare.z > 0.0) {
+            vec2 fd = (fc - uFlare.xy * uRes) / uRes.y;
+            float fl = exp(-length(fd) * 120.0) * 1.4 + exp(-length(fd) * 22.0) * 0.12;
+            fl += (exp(-abs(fd.y) * 900.0) * exp(-abs(fd.x) * 28.0) + exp(-abs(fd.x) * 900.0) * exp(-abs(fd.y) * 28.0)) * 0.7;
+            col += vec3(1.0, 0.97, 0.92) * fl * uFlare.z * (1.0 - uADis);
+          }
           // planet as a real sphere
           float R0 = 2.4;
           vec2 pc = vec2(-0.15, -R0 - mix(-0.6, 0.38, alt));
@@ -887,31 +923,32 @@ class Component extends DCLogic {
           float pd = (sqrt(r2) - 1.0) * R0;
           if (r2 < 1.0) {
             vec3 nn = vec3(dq, sqrt(1.0 - r2));
-            float lon = atan(nn.x, nn.z) * 2.2 + uT * 0.004, lat = asin(nn.y) * 2.2;
+            float lon = atan(nn.x, nn.z) * 2.2 + uT * 0.004 + uP * 3.2, lat = asin(nn.y) * 2.2;
             vec2 gp = vec2(lon, lat) * 2.2;
             float landN = fbm(gp + 5.0);
             float land = smoothstep(0.5, 0.56, landN);
-            vec3 ocean = vec3(0.006, 0.018, 0.04);
-            vec3 ground = mix(vec3(0.03, 0.035, 0.022), vec3(0.06, 0.05, 0.035), fbm(gp * 4.0));
+            vec3 ocean = mix(vec3(0.004, 0.014, 0.034), vec3(0.008, 0.03, 0.06), fbm(gp * 2.0));
+            vec3 ground = mix(vec3(0.032, 0.04, 0.022), vec3(0.075, 0.06, 0.04), fbm(gp * 4.0));
+            ground = mix(ground, vec3(0.11, 0.1, 0.09), smoothstep(0.62, 0.8, landN) * 0.5);
             vec3 sc = mix(ocean, ground, land);
             float cl = smoothstep(0.48, 0.78, fbm(gp * 1.6 - vec2(uT * 0.006, 0.0) + fbm(gp * 3.0) * 0.6));
             float dif = dot(nn, L);
             float day = smoothstep(-0.08, 0.25, dif);
-            vec3 lit = sc * max(dif, 0.0) * 0.9 + vec3(0.32, 0.33, 0.34) * cl * max(dif, 0.0) * 0.55;
+            vec3 lit = sc * max(dif, 0.0) * 0.9 + vec3(0.34, 0.35, 0.37) * cl * max(dif, 0.0) * 0.6;
             float spec = pow(max(dot(reflect(-L, nn), vec3(0.0, 0.0, 1.0)), 0.0), 40.0) * (1.0 - land) * (1.0 - cl);
-            lit += vec3(0.55, 0.5, 0.42) * spec * 0.18;
+            lit += vec3(0.6, 0.55, 0.45) * spec * 0.22;
             float cityN = step(0.93, h(floor(gp * 60.0))) * land * (1.0 - cl);
-            vec3 night = vec3(1.0, 0.62, 0.3) * cityN * 0.35 * (1.0 - day);
+            vec3 night = vec3(1.0, 0.62, 0.3) * cityN * 0.4 * (1.0 - day);
             vec3 pcol = mix(night + sc * 0.03, lit, day);
             float limb = pow(1.0 - nn.z, 3.0);
-            pcol += vec3(0.12, 0.24, 0.55) * limb * smoothstep(-0.25, 0.4, dif) * 0.7;
+            pcol += vec3(0.12, 0.26, 0.6) * limb * smoothstep(-0.25, 0.4, dif) * 0.75;
             col = mix(col, pcol, smoothstep(0.0, 0.004, -pd));
           }
-          // thin atmosphere above the limb, brightest on the day side
           vec2 ndir = normalize(dq);
           float dayRim = smoothstep(-0.35, 0.5, dot(vec3(ndir, 0.0), L));
           float atm = exp(-max(pd, 0.0) * 55.0) * step(0.0, pd) + exp(-abs(pd) * 160.0);
-          col += vec3(0.16, 0.32, 0.75) * atm * dayRim * 0.55;
+          col += vec3(0.16, 0.34, 0.8) * atm * dayRim * 0.6;
+          col += vec3(0.08, 0.16, 0.38) * exp(-max(pd, 0.0) * 12.0) * step(0.0, pd) * dayRim * 0.12;
           col += vec3(0.5, 0.35, 0.25) * exp(-abs(pd) * 260.0) * smoothstep(-0.2, 0.15, dot(vec3(ndir, 0.0), L)) * smoothstep(0.25, -0.05, dot(vec3(ndir, 0.0), L)) * 0.25;
           // night cloud deck you climb out of
           for (int i = 0; i < 3; i++) {
@@ -926,7 +963,6 @@ class Component extends DCLogic {
           }
           col = col * 1.1 / (1.0 + col * 0.9);
           float lg = dot(col, vec3(0.299, 0.587, 0.114));
-          col = mix(vec3(lg), col, 0.85);
           col += (h(fc + fract(uT * 6.1) * 117.0) - 0.5) * 0.02 * (0.3 + lg * 4.0);
           vec2 vu = uv - 0.5; col *= 1.0 - 1.0 * dot(vu, vu);
           col *= uIn;
@@ -940,11 +976,46 @@ class Component extends DCLogic {
     const mm = { x: 0, y: 0, sx: 0, sy: 0 };
     const onMove = (e) => { mm.x = e.clientX / innerWidth * 2 - 1; mm.y = -(e.clientY / innerHeight * 2 - 1); };
     window.addEventListener('pointermove', onMove);
-    let sp = 0, inS = 0; const t0 = performance.now();
+    let sp = 0, inS = 0, warp = 0, lastTop = null, astroLoading = false, astroOn = false; const t0 = performance.now();
     const expo = (t) => t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
+    const AS = { scene: null, cam: null, model: null, rt: null };
+    const loadAstro = async () => {
+      astroLoading = true;
+      try {
+        const [T3, GL, MO] = await Promise.all([import('https://esm.sh/three@0.160.0'), import('https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js'), import('https://esm.sh/three@0.160.0/examples/jsm/libs/meshopt_decoder.module.js')]);
+        if (this.dead) return;
+        const loader = new GL.GLTFLoader(); loader.setMeshoptDecoder(MO.MeshoptDecoder);
+        const url = (this.props.astroModel || '').trim() || 'https://raw.githubusercontent.com/wuppie/wubble/main/astro.glb';
+        const g = await loader.loadAsync(url); if (this.dead) return;
+        const m = g.scene;
+        m.traverse((o) => { if (o.isMesh) { (Array.isArray(o.material) ? o.material : [o.material]).forEach((mt) => { mt.envMapIntensity = 0.55; }); } });
+        const bb = new T3.Box3().setFromObject(m), sz = bb.getSize(new T3.Vector3()), cn = bb.getCenter(new T3.Vector3());
+        const k = 1 / Math.max(sz.x, sz.y, sz.z); m.position.sub(cn.multiplyScalar(k)); m.scale.setScalar(k);
+        const pivot = new T3.Group(); pivot.add(m);
+        const sc = new T3.Scene(); sc.add(pivot);
+        const key = new T3.DirectionalLight(0xfff6ee, 2.6); key.position.set(-1.6, 2.4, 2.4); sc.add(key);
+        const rim = new T3.DirectionalLight(0xdfe8ff, 2.0); rim.position.set(2.4, 1.4, -2.2); sc.add(rim);
+        const fillL = new T3.DirectionalLight(0x8fa6c8, 0.35); fillL.position.set(0, -2, 1.5); sc.add(fillL);
+        sc.add(new T3.HemisphereLight(0xcfd8e8, 0x050506, 0.25));
+        try { const RE = await import('https://esm.sh/three@0.160.0/examples/jsm/environments/RoomEnvironment.js'); const pm = new T3.PMREMGenerator(r); sc.environment = pm.fromScene(new RE.RoomEnvironment(), 0.04).texture; } catch (e) {}
+        const bb2 = new T3.Box3().setFromObject(pivot), s2 = bb2.getSize(new T3.Vector3()); AS.visor = new T3.Vector3(-s2.x * 0.08, bb2.max.y - s2.y * 0.12, bb2.max.z * 0.9); AS.T3 = T3;
+        const cam = new T3.PerspectiveCamera(24, 1, 0.1, 50); cam.position.set(0, 0, 4.2);
+        AS.scene = sc; AS.cam = cam; AS.model = pivot;
+        AS.rt = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, depthBuffer: true });
+        U.uAstro.value = AS.rt.texture;
+      } catch (e) { console.warn('astronaut failed', e); }
+    };
     const loop = () => {
       if (this.dead) return;
       this.ctaRaf = requestAnimationFrame(loop);
+      {
+        const r0 = sec.getBoundingClientRect(), vh0 = (window.__svh || innerHeight);
+        if (!astroLoading && r0.top < vh0 * 2.5) loadAstro();
+        const v0 = r0.top < vh0 && r0.bottom > 0;
+        const dy = lastTop == null ? 0 : Math.abs(r0.top - lastTop); lastTop = r0.top;
+        const tw = v0 ? Math.min(1, dy / (vh0 * 0.035)) : 0;
+        warp += (tw - warp) * (tw > warp ? 0.12 : 0.045);
+      }
       const rc = this.logRect(sec, 100, 320, 465), vh = (window.__svh || innerHeight);
       const vis = rc.top < vh && rc.bottom > 0;
       const now = performance.now();
@@ -963,7 +1034,22 @@ class Component extends DCLogic {
       sp += (tp - sp) * 0.06;
       inS += (Math.max(0, Math.min(1, (vh - rc.top) / (vh * 0.7))) - inS) * 0.08;
       mm.sx += (mm.x - mm.sx) * 0.04; mm.sy += (mm.y - mm.sy) * 0.04;
-      U.uP.value = sp; U.uIn.value = inS; U.uTilt.value = this.ctaTilt || 0; U.uZoom.value = this.ctaZoom || 0; U.uM.value.set(mm.sx, mm.sy); U.uT.value = (now - t0) / 1000;
+      U.uP.value = sp; U.uIn.value = inS; U.uWarp.value = warp;
+      if (AS.model) {
+        const tt = (now - t0) / 1000, ee = sp * sp * (3 - 2 * sp);
+        const rise = Math.max(0, Math.min(1, (sp - 0.08) / 0.6)), re = 1 - Math.pow(1 - rise, 3);
+        const W1 = U.uRes.value.x, H1 = U.uRes.value.y, asp = W1 / Math.max(1, H1);
+        if (AS.rt.width !== W1 || AS.rt.height !== H1) AS.rt.setSize(W1, H1);
+        AS.cam.aspect = asp; AS.cam.updateProjectionMatrix();
+        const halfH = Math.tan(12 * Math.PI / 180) * 4.2;
+        AS.model.position.set(halfH * asp * 0.42 - (1 - ee) * 0.15, -halfH * 1.6 + re * halfH * 1.62 + Math.sin(tt * 0.6) * 0.03, 0);
+        AS.model.rotation.set(0.25 + Math.sin(tt * 0.3) * 0.08 - ee * 0.2, -0.6 + Math.sin(tt * 0.18) * 0.25 + ee * 0.5, Math.sin(tt * 0.35) * 0.1 - ee * 0.25);
+        AS.model.scale.setScalar(0.62 + ee * 0.14);
+        r.setRenderTarget(AS.rt); r.setClearColor(0x000000, 0); r.clear(true, true, true); r.render(AS.scene, AS.cam); r.setRenderTarget(null);
+        U.uAstroOn.value = 1; U.uADis.value = this.astroD || 0;
+        { const vp = AS.visor.clone(); AS.model.updateMatrixWorld(); AS.model.localToWorld(vp); vp.project(AS.cam);
+          U.uFlare.value.set(vp.x * 0.5 + 0.5, vp.y * 0.5 + 0.5, re * (0.55 + 0.45 * Math.max(0, Math.sin(tt * 0.7 + 1.0)))); }
+      } U.uTilt.value = this.ctaTilt || 0; U.uZoom.value = this.ctaZoom || 0; U.uM.value.set(mm.sx, mm.sy); U.uT.value = (now - t0) / 1000;
       r.render(scene, cam);
     };
     loop();
@@ -990,7 +1076,7 @@ class Component extends DCLogic {
         float d = v - k;
         float cover = smoothstep(-0.02, 0.22, d);
         float rim = smoothstep(0.1, 0.0, abs(d - 0.04)) * (1.0 - smoothstep(0.85, 1.0, uP));
-        vec3 col = vec3(0.02, 0.019, 0.018) + vec3(0.42, 0.38, 0.34) * rim * 0.14;
+        vec3 col = vec3(0.03, 0.03, 0.031) + vec3(0.12, 0.12, 0.125) * rim * 0.25;
         col += (h(gl_FragCoord.xy + fract(uT) * 77.0) - 0.5) * 0.03;
         gl_FragColor = vec4(col, clamp(cover + rim * 0.25, 0.0, 1.0));
       }\`;
@@ -1937,8 +2023,8 @@ class Component extends DCLogic {
         let x = i * STEP - cur;
         x = ((x + LEN / 2) % LEN + LEN) % LEN - LEN / 2;
         c.mesh.position.x = x; c.rmesh.position.x = x;
-        const iu = (P['image' + (i + 1)] || '').trim();
-        const vu = (P['video' + (i + 1)] ?? (i === 1 ? 'https://threejs.org/examples/textures/sintel.mp4' : '')).trim();
+        const iu = (c.p.cover || P['image' + (i + 1)] || '').trim();
+        const vu = (c.p.videoUrl != null ? c.p.videoUrl : (P['video' + (i + 1)] ?? (i === 1 ? 'https://threejs.org/examples/textures/sintel.mp4' : ''))).trim();
         const key = iu + '|' + vu;
         if (key !== c.url) loadMedia(c, key, iu, vu);
         if (onScreen && c.video && c.video.readyState >= 2 && Math.abs(x) < 9) {
@@ -1980,7 +2066,7 @@ class Component extends DCLogic {
       activeType: p.type + ' — ' + p.year,
       pageOpen: !!pg,
       overlayPE: pg ? 'auto' : 'none',
-      closeRef: this.closeRef, loaderRef: this.loaderRef, soundOn: !!this.state.soundOn, soundOff: !this.state.soundOn, soundLabel: this.state.soundOn ? 'sound on' : 'sound off', toggleSound: () => this.toggleSound(), chromeRef: this.chromeRef, curtainRef: this.curtainRef, hero3dRef: this.hero3dRef, ctaRef: this.ctaRef, ctaGlRef: this.ctaGlRef, reachRef: this.reachRef, rayRef: this.rayRef, handRef: this.handRef, heroImage: !(this.props.hero3D ?? true),
+      closeRef: this.closeRef, loaderRef: this.loaderRef, soundOn: !!this.state.soundOn, soundOff: !this.state.soundOn, soundLabel: this.state.soundOn ? 'sound on' : 'sound off', toggleSound: () => this.toggleSound(), chromeRef: this.chromeRef, curtainRef: this.curtainRef, hero3dRef: this.hero3dRef, ctaRef: this.ctaRef, ctaGlRef: this.ctaGlRef, reachRef: this.reachRef, rayRef: this.rayRef, astroRef: this.astroRef, handRef: this.handRef, heroImage: !(this.props.hero3D ?? true),
       pageBg: pg && pg.src ? 'url(' + pg.src + ')' : 'none',
       pageVideo: pg ? pg.video : '',
       titleWords: pp.title.split(' '),
@@ -2025,11 +2111,11 @@ class Component extends DCLogic {
     queued = false; vals = inst.renderVals();
     var open = !!vals.pageOpen;
     if (overlay && open && !wasOpen) { var fresh = pristine.cloneNode(true); prepHooks(fresh); overlay.replaceWith(fresh); overlay = fresh; }
-    if (overlay) { overlay.classList.remove('w13-hidden'); overlay.style.display = open ? 'block' : 'none'; overlay.style.pointerEvents = vals.overlayPE || 'none'; }
+    if (overlay) { overlay.classList.remove('w13-hidden', 'is-hidden'); overlay.style.display = open ? 'block' : 'none'; overlay.style.pointerEvents = vals.overlayPE || 'none'; }
     Object.keys(vals).forEach(function (k) { if (!/Ref$/.test(k) || !vals[k] || typeof vals[k] !== 'object') return; var n = k.slice(0, -3); vals[k].current = (POPUP_REFS[n] && !open) ? null : (n === 'root' ? root : q(n)); });
     var t = document.querySelector('[data-w-text="time"]'); if (t && vals.time != null) t.textContent = vals.time;
     var on = document.querySelector('[data-w-if="soundOn"]'), offEl = document.querySelector('[data-w-if="soundOff"]');
-    if (on) { on.classList.remove('w13-hidden'); on.style.display = vals.soundOn ? '' : 'none'; } if (offEl) offEl.style.display = vals.soundOff ? '' : 'none';
+    if (on) { on.classList.remove('w13-hidden', 'is-hidden'); on.style.display = vals.soundOn ? '' : 'none'; } if (offEl) offEl.style.display = vals.soundOff ? '' : 'none';
     if (open && overlay) {
       var bg = overlay.querySelector('[data-wh="pageBg"]'); if (bg) bg.style.backgroundImage = vals.pageBg || 'none';
       var v = overlay.querySelector('[data-wh="pageVideo"]'); if (v) { if (vals.pageVideo) { v.style.display = ''; if (v.getAttribute('data-src') !== vals.pageVideo) v.setAttribute('data-src', vals.pageVideo); } else v.style.display = 'none'; }

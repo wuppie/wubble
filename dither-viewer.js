@@ -162,7 +162,7 @@ void main(){
     float dk = uDissolve * 1.25 - 0.12;
     float keep = smoothstep(dk - 0.04, dk + 0.04, dn);
     float rim = smoothstep(0.09, 0.0, abs(dn - dk)) * step(0.001, uDissolve) * (1.0 - smoothstep(0.85, 1.0, uDissolve));
-    col = col * keep + vec3(0.85, 0.8, 0.72) * rim * 0.35;
+    col = col * keep + vec3(0.07, 0.07, 0.072) * rim * 0.6;
   }
   float bgA = 1.0;
   if (uCutout > 0.5) { float dd = texture2D(tDepth, vUv).r; bgA = 1.0 - step(0.99995, dd); }
