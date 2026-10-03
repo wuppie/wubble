@@ -2,8 +2,8 @@
    Layout/styling lives in Webflow (w13-* classes). Elements the animation drives carry data-w / data-* hooks. */
 (function () {
 if (window.__wubbleV13) return; window.__wubbleV13 = true; console.info('wubble: build 2026-10-02 / V14 focus-pull');
-var BASE = (document.currentScript && document.currentScript.dataset.base) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/site/';
-var DEFAULTS = {"displayFont":"Oswald","heroTitleSize":1,"sectionTitleSize":1,"workTitleSize":1,"bodySize":1,"labelSize":11,"ctaScene":"Ascent","transitionSeconds":2.6,"sectionBleed":true,"soundtrack":"","hero3D":true,"handModel":"","sectionRotate":true,"sectionZoom":1,"smoothScroll":true,"scrollLerp":0.08,"bgMode":"Silk","lightIntensity":1,"relief":1,"grain":1.4,"bgSpeed":1,"viewCursor":true,"customCursor":true,"inkLinger":0.6,"curvature":0.11,"ribbonTilt":1.7,"velocityBend":1.4,"hoverDistortion":1.7,"cornerRadius":0.11,"reflections":true,"reflectionStrength":0.1,"showGrid":false,"image1":"","video1":"","image2":"","video2":"https://threejs.org/examples/textures/sintel.mp4","image3":"","video3":"","image4":"","video4":"","image5":"","video5":"","image6":"","video6":""};
+var BASE = (document.currentScript && document.currentScript.dataset.base) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/';
+var DEFAULTS = {"displayFont":"Oswald","heroTitleSize":1,"sectionTitleSize":1,"workTitleSize":1,"bodySize":1,"labelSize":11,"ctaScene":"Ascent","transitionSeconds":2.6,"sectionBleed":true,"soundtrack":"","hero3D":true,"handModel":"","sectionRotate":true,"sectionZoom":1,"smoothScroll":true,"scrollLerp":0.08,"bgMode":"Silk","lightIntensity":1,"relief":1,"grain":1.4,"bgSpeed":1,"viewCursor":true,"customCursor":true,"inkLinger":0.6,"curvature":0.11,"ribbonTilt":1.7,"velocityBend":1.4,"hoverDistortion":1.7,"cornerRadius":0.11,"reflections":true,"reflectionStrength":0.1,"showGrid":false,"image1":"","video1":"","image2":"","video2":"https://threejs.org/examples/textures/sintel.mp4","image3":"","video3":"","image4":"","video4":"","image5":"","video5":"","image6":"","video6":"","ribbonS":1,"bgHero":"#000000","bgWork":"#000000","bgServices":"#000000","bgReach":"#000000","shading":"Photoreal"};
 // ---------- head: fonts, base css, lenis, 3D viewer ----------
 var lk = document.createElement('link'); lk.rel = 'stylesheet'; lk.href = "https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Anton&family=Bebas+Neue&family=Syne:wght@500;700;800&family=Space+Grotesk:wght@500;700&family=Unbounded:wght@500;700&family=Inter+Tight:wght@500;700;800&family=Archivo:wght@500;700;900&family=Big+Shoulders+Display:wght@600;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400&display=swap"; document.head.appendChild(lk);
 var st = document.createElement('style'); st.textContent = `
@@ -104,6 +104,50 @@ class Component extends DCLogic {
     this.initLoader();
     this.applyFont();
     this.applySizes();
+    this.autoSplit();
+    this.syncBg();
+  }
+  bgColor(THREE, k) {
+    const C = this._bgc || (this._bgc = {});
+    if (!C[k]) { C[k] = new THREE.Color(0, 0, 0); if (k !== 'pageBlend') C[k].set(this.props[k] || '#000000'); else C[k].set(this.props.bgHero || '#000000'); }
+    return C[k];
+  }
+  blendBg(rp, rq, r3) {
+    const C = this._bgc; if (!C || !C.pageBlend) return;
+    const T = C.pageBlend, tmp = this._bgTmp || (this._bgTmp = T.clone()), P = this.props;
+    T.set(P.bgHero || '#000000');
+    tmp.set(P.bgWork || '#000000'); T.lerp(tmp, Math.max(0, Math.min(1, rp)));
+    tmp.set(P.bgServices || '#000000'); T.lerp(tmp, Math.max(0, Math.min(1, rq)));
+    tmp.set(P.bgReach || '#000000'); T.lerp(tmp, Math.max(0, Math.min(1, r3)));
+  }
+  syncBg() {
+    const P = this.props, d = document.documentElement.style;
+    d.setProperty('--bg-hero', P.bgHero || '#000000'); d.setProperty('--bg-work', P.bgWork || '#000000');
+    d.setProperty('--bg-services', P.bgServices || '#000000'); d.setProperty('--bg-reach', P.bgReach || '#000000');
+    if (this._bgc && this._bgc.bgServices) this._bgc.bgServices.set(P.bgServices || '#000000');
+  }
+  autoSplit() {
+    // titles rebuild their animated word/line spans from plain text, so they can be edited freely (Webflow)
+    const OUT = 'display:inline-block;overflow:hidden;padding:0.03em 0 0.06em;';
+    const IN = 'display:inline-block;transform:translate3d(0,110%,0) rotate(4deg);transform-origin:0 100%;';
+    const strip = (h) => { const d = document.createElement('div'); d.innerHTML = h; return (d.textContent || '').trim(); };
+    const jobs = [];
+    document.querySelectorAll('h1[data-cg],h2[data-cg],h3[data-cg]').forEach((el) => jobs.push([el, 'cw']));
+    document.querySelectorAll('[data-wh="reach"] h2').forEach((el) => jobs.push([el, 'rw']));
+    document.querySelectorAll('[data-wh="headline"]').forEach((el) => jobs.push([el, 'lines']));
+    document.querySelectorAll('[data-split]').forEach((el) => jobs.push([el, el.getAttribute('data-split')]));
+    jobs.forEach(([el, a]) => {
+      if (a === 'lines') {
+        if (el.children.length && Array.prototype.every.call(el.children, (c) => c.tagName === 'SPAN')) return;
+        const ls = el.innerHTML.split(/<br\\s*\\/?>/i).map(strip).filter(Boolean);
+        el.innerHTML = ''; ls.forEach((l) => { const sp = document.createElement('span'); sp.style.display = 'block'; sp.textContent = l; el.appendChild(sp); });
+        return;
+      }
+      if (el.querySelector('[data-' + a + ']')) return;
+      const parts = /<br/i.test(el.innerHTML) ? el.innerHTML.split(/<br\\s*\\/?>/i).map(strip).filter(Boolean) : strip(el.innerHTML).split(/\\s+/).filter(Boolean);
+      el.innerHTML = '';
+      parts.forEach((t) => { const o = document.createElement('span'); o.setAttribute('style', OUT); const i = document.createElement('span'); i.setAttribute('data-' + a, ''); i.setAttribute('style', IN); i.textContent = t; o.appendChild(i); el.appendChild(o); });
+    });
   }
   applyFont() {
     const f = this.props.displayFont || 'Oswald';
@@ -120,7 +164,7 @@ class Component extends DCLogic {
     st.setProperty('--bs', String(P.bodySize ?? 1));
     st.setProperty('--ms', (P.labelSize ?? 11) + 'px');
   }
-  componentDidUpdate() { this.applyFont && this.applyFont(); this.applySizes(); }
+  componentDidUpdate() { this.applyFont && this.applyFont(); this.applySizes(); this.syncBg && this.syncBg(); }
   entranceTargets() {
     const ch = this.chromeRef.current, hr = this.heroRef.current;
     const hdr = ch ? Array.from(ch.querySelectorAll('header > *')) : [];
@@ -294,7 +338,7 @@ class Component extends DCLogic {
     try {
       const mod = (window.DitherViewer || await new Promise((res) => { const t = setInterval(() => { if (window.DitherViewer) { clearInterval(t); res(window.DitherViewer); } }, 50); }));
       if (this.dead) return;
-      this.portrait = await mod.createPortrait(el, { model: 'https://raw.githubusercontent.com/wuppie/wubble/main/wubble.glb', eyes: null, neck: -0.6, fit: innerWidth < 820 ? 0.92 : 0.78, maxPR: this.lowPower ? 0.9 : 2, shadowSize: this.lowPower ? 512 : 2048, textureAmount: 0, clay: { color: 0x57504a, roughness: 0.8, sheen: 0.55, sheenColor: 0xb7a99a }, post: { dither: 0, grain: 0.03, saturation: 0.28, contrast: 0.32, bloom: 0.05, vignette: 1.25, stipple: 0, tint: 0.6 , exposure: 0.62 } });
+      this.portrait = await mod.createPortrait(el, { model: 'https://raw.githubusercontent.com/wuppie/wubble/main/wubble.glb', eyes: null, neck: -0.6, fit: innerWidth < 820 ? 0.92 : 0.78, maxPR: this.lowPower ? 0.9 : 2, shadowSize: this.lowPower ? 512 : 2048, textureAmount: 0, toon: (this.props.shading || 'Photoreal') === 'Toon', clay: { color: 0x57504a, roughness: 0.8, sheen: 0.55, sheenColor: 0xb7a99a }, post: { dither: 0, grain: 0.03, saturation: 0.28, contrast: 0.32, bloom: 0.05, vignette: 1.25, stipple: 0, tint: 0.6 , exposure: 0.62 } });
       if (this.dead) { this.portrait.renderer.setAnimationLoop(null); return; }
       const c = this.portrait.renderer.domElement; c.style.position = 'absolute'; c.style.inset = '0'; c.style.width = '100%'; c.style.height = '100%'; c.style.opacity = '0'; c.style.transition = 'opacity 1.4s ease';
       requestAnimationFrame(() => { c.style.opacity = '1'; });
@@ -308,7 +352,7 @@ class Component extends DCLogic {
       if (this.coarse) return;
       if (!W.Lenis) { this.lenisWait = setTimeout(start, 100); return; }
       if (W.__sliderLenis) { try { W.__sliderLenis.destroy(); } catch (e) {} cancelAnimationFrame(W.__sliderLenisRaf); W.__sliderLenis = null; }
-      const L = new W.Lenis({ lerp: 0.085, smoothWheel: true, wheelMultiplier: 0.9, autoRaf: false, syncTouch: false });
+      const L = new W.Lenis({ lerp: 0.085, smoothWheel: true, wheelMultiplier: 0.7, autoRaf: false, syncTouch: false });
       W.__sliderLenis = L;
       const raf = (t) => {
         if (W.__sliderLenis !== L) return;
@@ -390,7 +434,14 @@ class Component extends DCLogic {
     const step = () => { const t = Math.min(1, (performance.now() - t0) / dur); window.scrollTo(0, y0 + (y - y0) * ease(t)); if (t < 1 && !this.dead) requestAnimationFrame(step); };
     step();
   }
-  sceneTween(k, q) { return q; }
+  sceneTween(k, q) {
+    const T = this._tw || (this._tw = {}), now = performance.now();
+    const o = T[k] || (T[k] = { v: q, t: now });
+    const dt = Math.min(0.05, Math.max(0.001, (now - o.t) / 1000)); o.t = now;
+    const a = 1 - Math.exp(-dt * (this.props.sceneSmooth ?? 4));
+    let d = (q - o.v) * a; const mx = dt * 0.5; d = Math.max(-mx, Math.min(mx, d));
+    o.v += d; if (Math.abs(q - o.v) < 0.0004) o.v = q; return o.v;
+  }
   logRect(el, a, b, tot) { const r = el.getBoundingClientRect(), u = r.height / tot; return { top: r.top + a * u, bottom: r.top + b * u, height: (b - a) * u, left: r.left, width: r.width }; }
   springTo(to, k, c, done, v0) { this.anim = { to, k, c, done }; if (v0 !== undefined) this.openV = v0; }
   openProject(i, uv) {
@@ -630,11 +681,11 @@ class Component extends DCLogic {
     const r = new THREE.WebGLRenderer({ antialias: false, alpha: false });
     r.domElement.style.cssText = 'display:block;width:100%;height:100%;';
     box.appendChild(r.domElement);
-    const U = { uRes: { value: new THREE.Vector2(1, 1) }, uT: { value: 0 }, uP: { value: 0 }, uM: { value: new THREE.Vector2() }, uTilt: { value: 0 }, uZoom: { value: 0 } };
+    const U = { uRes: { value: new THREE.Vector2(1, 1) }, uT: { value: 0 }, uP: { value: 0 }, uM: { value: new THREE.Vector2() }, uTilt: { value: 0 }, uZoom: { value: 0 }, uBase: { value: this.bgColor(THREE, 'pageBlend') } };
     const mat = new THREE.ShaderMaterial({ uniforms: U, depthTest: false,
       vertexShader: 'void main(){ gl_Position = vec4(position.xy, 0.0, 1.0); }',
       fragmentShader: \`
-        precision highp float;
+        precision highp float; uniform vec3 uBase;
         uniform vec2 uRes; uniform float uT; uniform float uP; uniform vec2 uM; uniform float uTilt; uniform float uZoom;
         float h(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
         float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
@@ -671,7 +722,7 @@ class Component extends DCLogic {
           float l = dot(col, vec3(0.333));
           col += (h(fc + fract(uT * 5.7) * 101.0) - 0.5) * 0.05 * (0.3 + l * 3.0);
           vec2 vu = uv - 0.5; col *= 1.0 - 1.35 * dot(vu, vu);
-          gl_FragColor = vec4(max(col, 0.0), 1.0);
+          gl_FragColor = vec4(max(col, 0.0) + uBase * (1.0 - smoothstep(0.0, 0.3, dot(col, vec3(0.333)))), 1.0);
         }\` });
     const scene = new THREE.Scene(), cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat));
@@ -689,7 +740,7 @@ class Component extends DCLogic {
         const mod = (window.DitherViewer || await new Promise((res) => { const t = setInterval(() => { if (window.DitherViewer) { clearInterval(t); res(window.DitherViewer); } }, 50); }));
         if (this.dead) return;
         const url = (this.props.handModel || '').trim() || 'https://cdn.jsdelivr.net/npm/@webxr-input-profiles/assets@1.0/dist/profiles/generic-hand/right.glb';
-        this.hand = await mod.createPortrait(this.handRef.current, { model: url, eyes: null, neck: -10, rotation: [-1.15, 0.5, -0.55], light: 'top', keyAngle: 0.2, maxPR: this.lowPower ? 0.9 : 2, shadowSize: this.lowPower ? 512 : 2048, textureAmount: 0, clay: { color: 0x5e5650, roughness: 0.82, sheen: 0.6, sheenColor: 0xc2b19e }, post: { dither: 0, grain: 0.03, saturation: 0.28, contrast: 0.32, bloom: 0.05, vignette: 1.25, stipple: 0, tint: 0.6 , exposure: 0.1 } });
+        this.hand = await mod.createPortrait(this.handRef.current, { model: url, eyes: null, neck: -10, rotation: [-1.15, 0.5, -0.55], light: 'top', keyAngle: 0.2, maxPR: this.lowPower ? 0.9 : 2, shadowSize: this.lowPower ? 512 : 2048, textureAmount: 0, toon: (this.props.shading || 'Photoreal') === 'Toon', clay: { color: 0x5e5650, roughness: 0.82, sheen: 0.6, sheenColor: 0xc2b19e }, post: { dither: 0, grain: 0.03, saturation: 0.28, contrast: 0.32, bloom: 0.05, vignette: 1.25, stipple: 0, tint: 0.6 , exposure: 0.1 } });
         this.hand.scene.traverse((o) => { if (o.isLight) o.color.set(0xd8ccbc); });
         const c = this.hand.renderer.domElement; c.style.position = 'absolute'; c.style.inset = '0'; c.style.width = '100%'; c.style.height = '100%';
         handOn = true;
@@ -773,6 +824,7 @@ class Component extends DCLogic {
       {
         const ss = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
         const rp = this.rp || 0, rq = this.rq || 0, r3 = this.r3 || 0;
+        this.blendBg(rp, rq, r3);
         const heroD = ss(0.1, 0.7, rp), handD = 1 - ss(0.3, 0.9, r3), astroD = ss(0.1, 0.7, r3);
         this.astroD = astroD;
         if (this.portrait && this.portrait.post && this.portrait.post.uDissolve) this.portrait.post.uDissolve.value = heroD;
@@ -796,7 +848,7 @@ class Component extends DCLogic {
     const r = new THREE.WebGLRenderer({ antialias: false, alpha: false });
     r.domElement.style.cssText = 'display:block;width:100%;height:100%;';
     box.appendChild(r.domElement);
-    const U = { uRes: { value: new THREE.Vector2(1, 1) }, uT: { value: 0 }, uP: { value: 0 }, uM: { value: new THREE.Vector2() }, uIn: { value: 0 }, uTilt: { value: 0 }, uZoom: { value: 0 }, uDith: { value: 0 }, uWarp: { value: 0 }, uAstro: { value: null }, uAstroOn: { value: 0 }, uFlare: { value: new THREE.Vector3(0, 0, 0) }, uADis: { value: 0 } };
+    const U = { uRes: { value: new THREE.Vector2(1, 1) }, uT: { value: 0 }, uP: { value: 0 }, uM: { value: new THREE.Vector2() }, uIn: { value: 0 }, uTilt: { value: 0 }, uZoom: { value: 0 }, uDith: { value: 0 }, uWarp: { value: 0 }, uAstro: { value: null }, uAstroOn: { value: 0 }, uFlare: { value: new THREE.Vector3(0, 0, 0) }, uADis: { value: 0 }, uBase: { value: this.bgColor(THREE, 'bgServices') } };
     const mat = new THREE.ShaderMaterial({ uniforms: U, depthTest: false,
       vertexShader: 'void main(){ gl_Position = vec4(position.xy, 0.0, 1.0); }',
       fragmentShader: (this.props.ctaScene || 'Ascent') === 'Mountains' ? \`
@@ -861,7 +913,7 @@ class Component extends DCLogic {
           }
           gl_FragColor = vec4(max(col, 0.0), 1.0);
         }\` : \`
-        precision highp float;
+        precision highp float; uniform vec3 uBase;
         uniform vec2 uRes; uniform float uT; uniform float uP; uniform vec2 uM; uniform float uIn; uniform float uTilt; uniform float uZoom; uniform float uDith; uniform float uWarp; uniform sampler2D uAstro; uniform float uAstroOn; uniform vec3 uFlare; uniform float uADis;
         float h(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
         float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
@@ -966,7 +1018,7 @@ class Component extends DCLogic {
           col += (h(fc + fract(uT * 6.1) * 117.0) - 0.5) * 0.02 * (0.3 + lg * 4.0);
           vec2 vu = uv - 0.5; col *= 1.0 - 1.0 * dot(vu, vu);
           col *= uIn;
-          gl_FragColor = vec4(max(col, 0.0), 1.0);
+          gl_FragColor = vec4(max(col, 0.0) + uBase * (1.0 - smoothstep(0.0, 0.3, dot(col, vec3(0.333)))), 1.0);
         }\` });
     const scene = new THREE.Scene(), cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat));
@@ -988,7 +1040,17 @@ class Component extends DCLogic {
         const url = (this.props.astroModel || '').trim() || 'https://raw.githubusercontent.com/wuppie/wubble/main/astro.glb';
         const g = await loader.loadAsync(url); if (this.dead) return;
         const m = g.scene;
-        m.traverse((o) => { if (o.isMesh) { (Array.isArray(o.material) ? o.material : [o.material]).forEach((mt) => { mt.envMapIntensity = 0.55; }); } });
+        const TOON = (this.props.shading || 'Photoreal') === 'Toon';
+        if (TOON) {
+          const gm = new T3.DataTexture(new Uint8Array([18, 90, 170, 255]), 4, 1, T3.RedFormat); gm.minFilter = gm.magFilter = T3.NearestFilter; gm.needsUpdate = true;
+          const hulls = [];
+          m.traverse((o) => { if (!o.isMesh) return; const src = Array.isArray(o.material) ? o.material[0] : o.material;
+            o.material = new T3.MeshToonMaterial({ map: src.map || null, color: 0xd6d3ce, gradientMap: gm });
+            const ink = new T3.MeshBasicMaterial({ color: 0x050505, side: T3.BackSide });
+            ink.onBeforeCompile = (sh) => { sh.vertexShader = sh.vertexShader.replace('#include <begin_vertex>', 'vec3 transformed = position + normal * 0.012;'); };
+            hulls.push([o, new T3.Mesh(o.geometry, ink)]); });
+          hulls.forEach(([o, h]) => o.add(h));
+        } else m.traverse((o) => { if (o.isMesh) { (Array.isArray(o.material) ? o.material : [o.material]).forEach((mt) => { mt.envMapIntensity = 0.55; }); } });
         const bb = new T3.Box3().setFromObject(m), sz = bb.getSize(new T3.Vector3()), cn = bb.getCenter(new T3.Vector3());
         const k = 1 / Math.max(sz.x, sz.y, sz.z); m.position.sub(cn.multiplyScalar(k)); m.scale.setScalar(k);
         const pivot = new T3.Group(); pivot.add(m);
@@ -1461,7 +1523,7 @@ class Component extends DCLogic {
     const camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 200);
 
     const W = 3.4, H = 2.1, GAP = 0.16, STEP = W + GAP, N = this.projects.length, LEN = N * STEP;
-    const common = { uCurve: { value: 0.11 }, uVel: { value: 0 }, uRadius: { value: 0.14 }, uTime: { value: 0 }, uHoverAmt: { value: 1 }, uRibbon: { value: new THREE.Matrix4() }, uTwist: { value: 0 }, uIntro: { value: 0 }, uCover: { value: new THREE.Vector2(1, 1) } };
+    const common = { uCurve: { value: 0.11 }, uSCurve: { value: 1 }, uVel: { value: 0 }, uRadius: { value: 0.14 }, uTime: { value: 0 }, uHoverAmt: { value: 1 }, uRibbon: { value: new THREE.Matrix4() }, uTwist: { value: 0 }, uIntro: { value: 0 }, uCover: { value: new THREE.Vector2(1, 1) } };
     const ribbonEuler = new THREE.Euler();
     let ribbonAmt = -1;
     const setRibbon = (k) => {
@@ -1472,7 +1534,7 @@ class Component extends DCLogic {
     };
 
     const vert = \`
-      uniform float uCurve; uniform float uVel; uniform float uHover; uniform vec2 uMouse; uniform vec2 uSize; uniform float uHoverAmt;
+      uniform float uCurve; uniform float uSCurve; uniform float uVel; uniform float uHover; uniform vec2 uMouse; uniform vec2 uSize; uniform float uHoverAmt;
       uniform float uRefl; uniform float uFloor;
       uniform mat4 uRibbon; uniform float uTwist; uniform float uIntro; uniform float uOpen; uniform vec2 uCover; uniform float uOV; uniform vec2 uClick; uniform float uDim; uniform float uPS; uniform float uPV;
       varying vec2 vUv; varying float vX; varying float vIntro; varying vec2 vUnb;
@@ -1493,7 +1555,8 @@ class Component extends DCLogic {
         float R = 1.0 / c;
         float th = x * c;
         wp.x = sin(th) * R;
-        wp.z += (1.0 - cos(th)) * R;
+        wp.z += (1.0 - cos(th)) * R * (1.0 - 0.55 * clamp(uSCurve, 0.0, 1.0));
+        wp.z += uSCurve * (sin(x * 0.36 + 0.4) * 1.35 - 0.52);
         float vk = 1.0 - smoothstep(0.0, 0.25, uOpen);
         wp.z -= sin(uv.x * 3.14159) * abs(uVel) * 0.55 * vk;
         wp.x += (uv.y - 0.5) * -uVel * 0.35 * vk;
@@ -1801,9 +1864,9 @@ class Component extends DCLogic {
         this.zH = cover;
         const ch = this.zH, ce = io(ch) * Z;
         const rot = (P.sectionRotate ?? true);
-        const rp0 = Math.max(0, Math.min(1, sY / (vh * 1.35)));
+        const rp0 = Math.max(0, Math.min(1, sY / (vh * 2.4)));
         this.rp = this.sceneTween('rp', rp0);
-        if (Math.abs(rp0 - this.rp) < 0.0004) this.rp = rp0;
+        
         const e = this.rp < 0.5 ? 4 * this.rp * this.rp * this.rp : 1 - Math.pow(-2 * this.rp + 2, 3) / 2;
         const bell = Math.sin(Math.PI * e);
         const active = rot && this.rp > 0.0004 && this.rp < 0.9996;
@@ -1861,9 +1924,9 @@ class Component extends DCLogic {
         let outOp = 1 - eout * 0.8;
         if (cs && cpn) {
           const ct = ctaRect0.top;
-          const q0 = Math.max(0, Math.min(1, (vh - ct) / (vh * 1.35)));
+          const q0 = Math.max(0, Math.min(1, (vh - ct) / (vh * 2.4)));
           this.rq = this.sceneTween('rq', q0);
-          if (Math.abs(q0 - this.rq) < 0.0004) this.rq = q0;
+          
           const e2 = this.rq < 0.5 ? 4 * this.rq * this.rq * this.rq : 1 - Math.pow(-2 * this.rq + 2, 3) / 2;
           const b2 = Math.sin(Math.PI * e2);
           const act2 = rot && this.rq > 0.0004 && this.rq < 0.9996;
@@ -1891,9 +1954,9 @@ class Component extends DCLogic {
         const rct = this.reachContent || (this.reachContent = rs && rs.querySelector('[data-reach-content]'));
         if (rs && rpn && cs && cpn) {
           const rt = reachRect0.top, cb = ctaRect0.bottom;
-          const q0 = Math.max(0, Math.min(1, (vh - rt) / (vh * 1.35)));
+          const q0 = Math.max(0, Math.min(1, (vh - rt) / (vh * 2.4)));
           this.r3 = this.sceneTween('r3', q0);
-          if (Math.abs(q0 - this.r3) < 0.0004) this.r3 = q0;
+          
           const e3 = this.r3 < 0.5 ? 4 * this.r3 * this.r3 * this.r3 : 1 - Math.pow(-2 * this.r3 + 2, 3) / 2;
           const b3 = Math.sin(Math.PI * e3);
           const act3 = this.r3 > 0.0004 && this.r3 < 0.9996;
@@ -1926,7 +1989,7 @@ class Component extends DCLogic {
       if (this.portraitRef.current) this.portraitRef.current.style.transform = \`translate3d(0, \${sy * 0.15}px, 0) scale(\${1 + sy / vh * 0.08})\`;
       if (this.uiRef.current) this.uiRef.current.style.opacity = String(Math.max(0, Math.min(1, (introS - 0.75) / 0.25)) * (1 - Math.max(0, Math.min(1, this.openT * 3))));
 
-      common.uCurve.value = P.curvature ?? 0.11;
+      common.uCurve.value = P.curvature ?? 0.11; if (common.uSCurve) common.uSCurve.value = P.ribbonS ?? 1;
       common.uRadius.value = P.cornerRadius ?? 0.11;
       common.uTime.value = performance.now() / 1000;
       common.uHoverAmt.value = P.hoverDistortion ?? 1.7;

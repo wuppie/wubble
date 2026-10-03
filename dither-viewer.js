@@ -8,6 +8,7 @@ import * as THREE from 'https://esm.sh/three@0.184.0';
 import { GLTFLoader } from 'https://esm.sh/three@0.184.0/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'https://esm.sh/three@0.184.0/examples/jsm/libs/meshopt_decoder.module.js';
 import { KTX2Loader } from 'https://esm.sh/three@0.184.0/examples/jsm/loaders/KTX2Loader.js';
+import { RGBELoader } from 'https://esm.sh/three@0.184.0/examples/jsm/loaders/RGBELoader.js';
 
 export const LIGHTS = {
   top:       { angle: -0.45, height: 2.6, key: 2.7, rimL: 0.45, rimR: 0.2, fill: 0.06, amb: 0.05, cone: 0.36 },
@@ -173,6 +174,9 @@ void main(){
 export async function createPortrait(container, { onProgress, ...overrides } = {}) {
   if (!('rotation' in overrides)) CONFIG.rotation = null;
   if (!('clay' in overrides)) CONFIG.clay = null;
+  if (!('glass' in overrides)) CONFIG.glass = null;
+  if (!('hdri' in overrides)) CONFIG.hdri = null;
+  if (!('toon' in overrides)) CONFIG.toon = false;
   if (!('fit' in overrides)) CONFIG.fit = 1;
   if (!('cutout' in overrides)) CONFIG.cutout = false;
   for (const [k, v] of Object.entries(overrides)) CONFIG[k] = (v && typeof v === 'object' && !Array.isArray(v) && CONFIG[k]) ? { ...CONFIG[k], ...v } : v;
@@ -185,6 +189,17 @@ export async function createPortrait(container, { onProgress, ...overrides } = {
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x010101);
+  if (CONFIG.hdri) {
+    new RGBELoader().load(CONFIG.hdri, (hdr) => { hdr.mapping = THREE.EquirectangularReflectionMapping; const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromEquirectangular(hdr).texture; scene.environmentIntensity = CONFIG.glass ? 1.4 : 0.6; if (scene.environmentRotation) scene.environmentRotation.set(0, 2.2, 0); hdr.dispose(); pm.dispose(); });
+  }
+  if (CONFIG.glass && !CONFIG.hdri) {
+    // studio softbox environment for glass reflections (built locally, no extra downloads)
+    const env = new THREE.Scene();
+    env.add(new THREE.Mesh(new THREE.BoxGeometry(10, 10, 10), new THREE.MeshBasicMaterial({ color: 0x060606, side: THREE.BackSide })));
+    const box = (w, h, x, y, z, v) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(v, v, v), side: THREE.DoubleSide })); m.position.set(x, y, z); m.lookAt(0, 0, 0); env.add(m); };
+    box(4, 1.2, 0, 4.6, 0.5, 6); box(1.2, 4, -4.6, 0.8, 1.2, 2.2); box(1.0, 3.2, 4.6, 0.4, -1.4, 3.4); box(3, 0.6, 0, -4.6, 2, 0.4);
+    const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromScene(env, 0.035).texture; pm.dispose();
+  }
   const camera = new THREE.PerspectiveCamera(20, 1, 0.1, 20);
 
   const key = new THREE.SpotLight(0xffffff, 2.7, 0, 0.36, 0.9, 0);
@@ -209,8 +224,14 @@ export async function createPortrait(container, { onProgress, ...overrides } = {
   model.traverse((o) => { if (o.isMesh) {
     o.castShadow = o.receiveShadow = true;
     const src = o.material; smoothNormals(o.geometry);
-    const clay = CONFIG.clay;
-    const m = clay
+    const clay = CONFIG.clay, glass = CONFIG.glass;
+    const toonGM = CONFIG.toon ? (() => { const g = new THREE.DataTexture(new Uint8Array([18, 90, 170, 255]), 4, 1, THREE.RedFormat); g.minFilter = g.magFilter = THREE.NearestFilter; g.needsUpdate = true; return g; })() : null;
+    const m = toonGM
+      ? new THREE.MeshToonMaterial({ color: 0xcfcbc5, map: src.map, gradientMap: toonGM })
+      : glass
+      ? new THREE.MeshPhysicalMaterial({ color: glass.color ?? 0x8c8c8c, metalness: 0, roughness: glass.roughness ?? 0.1, transmission: glass.transmission ?? 0.62, thickness: glass.thickness ?? 1.4, ior: 1.45,
+          clearcoat: 1, clearcoatRoughness: 0.06, specularIntensity: 1, envMapIntensity: glass.env ?? 1.5, attenuationColor: new THREE.Color(0x1c1c1c), attenuationDistance: 0.55, side: THREE.FrontSide })
+      : clay
       ? new THREE.MeshPhysicalMaterial({ color: clay.color ?? 0x5c5550, roughness: clay.roughness ?? 0.82, metalness: 0, map: src.map, side: THREE.FrontSide,
           sheen: clay.sheen ?? 0.6, sheenRoughness: 0.75, sheenColor: new THREE.Color(clay.sheenColor ?? 0xb8a898), clearcoat: clay.clearcoat ?? 0.06, clearcoatRoughness: 0.6 })
       : new THREE.MeshStandardMaterial({ color: 0x9a9894, roughness: 0.62, metalness: 0, map: src.map, side: THREE.FrontSide });
