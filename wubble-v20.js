@@ -56,6 +56,9 @@ function boot() {
   var root = document.querySelector('[data-w="root"],[data-wh="root"]'); if (!root) return console.warn('wubble: no [data-w=root]');
   // loader is hidden in the Designer (w13-hidden) so it never covers content while editing; show it on the live site
   document.querySelectorAll('[data-w="loader"],[data-wh="loader"]').forEach(function (el) { el.classList.remove('w13-hidden', 'is-editor-hidden', 'w20-ed-hide'); el.style.removeProperty('display'); });
+  // effects attach to any element via data-wb-module (alias of the internal hook names)
+  var WB_MOD = { astronaut: 'astroG', ribbon: 'host', 'ribbon-cursor': 'goo', thunderstorm: 'hero3d', 'thunderstorm-mask': 'portrait', hand: 'hand', ray: 'ray', loader: 'loader', 'space-background': 'ctaGl', smoke: 'bleed', cursor: 'ink', popup: 'overlay', nav: 'chrome' };
+  document.querySelectorAll('[data-wb-module]').forEach(function (el) { var k = WB_MOD[el.getAttribute('data-wb-module')]; if (k && !el.getAttribute('data-w')) el.setAttribute('data-w', k); });
   // titles are plain text in Webflow; split them into animated letters here
   var splitEl = function (el) {
     if (el.__split) return; el.__split = 1;
@@ -95,6 +98,14 @@ function boot() {
   };
   // ---------- props: defaults + root data-* overrides ----------
   var props = Object.assign({}, DEFAULTS);
+  // ---------- section order comes from the Webflow Navigator ----------
+  var WB_SECS = Array.prototype.slice.call(document.querySelectorAll('[data-wb-section]'));
+  var WB_ORDER = WB_SECS.map(function (e) { return e.getAttribute('data-wb-section'); }).join(',');
+  window.__wbGeneric = WB_ORDER !== 'hero,work,services,reach' || root.getAttribute('data-wb-mode') === 'generic';
+  WB_SECS.forEach(function (sec, i) {
+    sec.style.zIndex = String(i + 1);
+    if (window.__wbGeneric) { var ov = parseFloat(sec.getAttribute('data-wb-overlap')); sec.style.marginTop = i === 0 ? '0px' : '-' + (isFinite(ov) ? ov : 100) + 'vh'; }
+  });
   // everything visual comes from Webflow: read fonts, colors and texts from the Designer styles
   (function () {
     var cs = function (sel) { var e = document.querySelector(sel); return e ? getComputedStyle(e) : null; };
@@ -113,6 +124,7 @@ function boot() {
   })();
   Object.keys(root.dataset).forEach(function (k) { if (k === 'w' || k === 'wh') return; var v = root.dataset[k]; props[k] = v === 'true' ? true : v === 'false' ? false : (v !== '' && !isNaN(+v) ? +v : v); });
   // ---------- tiny React-free component host ----------
+  if (window.__wbGeneric) { props.sectionRotate = false; props.sectionBleed = false; }
   window.React = window.React || {}; if (!window.React.createRef) window.React.createRef = function () { return { current: null }; };
   function DCLogic(p) { this.props = p; }
   DCLogic.prototype.setState = function (u, cb) { var patch = typeof u === 'function' ? u(this.state, this.props) : u; if (patch == null) { cb && cb(); return; } this.state = Object.assign({}, this.state, patch); if (cb) this.__cbs.push(cb); this.__schedule(); };
@@ -2774,7 +2786,7 @@ class Component extends DCLogic {
         this.zH = cover;
         const ch = this.zH, ce = io(ch) * Z;
         const rot = (P.sectionRotate ?? true);
-        const rp0 = Math.max(0, Math.min(1, sY / (vh * 2.4)));
+        const heroTop = this.heroRef && this.heroRef.current ? this.heroRef.current.getBoundingClientRect().top : -sY; const rp0 = Math.max(0, Math.min(1, -heroTop / (vh * 2.4)));
         this.rp = this.sceneTween('rp', rp0);
         
         const e = this.rp < 0.5 ? 4 * this.rp * this.rp * this.rp : 1 - Math.pow(-2 * this.rp + 2, 3) / 2;
@@ -2860,7 +2872,7 @@ class Component extends DCLogic {
             this.ctaTilt = 0; this.ctaZoom = (1 - k) * 0.55; this.e2 = e2;
             outOp = mp > 0.995 ? 0 : 1;
           } else {
-            this.smokeMask(cpn, 0); cpn.style.clipPath = ''; cpn.style.filter = ''; if (stk) { stk.style.transform = ''; stk.style.filter = ''; }
+            if (!window.__wbGeneric) this.smokeMask(cpn, 0); cpn.style.clipPath = ''; cpn.style.filter = ''; if (stk) { stk.style.transform = ''; stk.style.filter = ''; }
             cpn.style.transform = 'none'; if (cct) cct.style.transform = 'none';
             cpn.style.opacity = (rot && this.rq <= 0.0004) ? '0' : '1';
             this.ctaTilt = 0; this.ctaZoom = 0; this.e2 = this.rq >= 0.9996 ? 1 : 0;
@@ -2893,7 +2905,7 @@ class Component extends DCLogic {
             if (rct) rct.style.transform = pre3 + (ANG * e3 - ANG) + post;
             this.rayTilt = 1 - e3; this.rayZoom = b3;
           } else {
-            rpn.style.transform = 'none'; if (rct) rct.style.transform = 'none'; this.smokeMask(rpn, 0);
+            rpn.style.transform = 'none'; if (rct) rct.style.transform = 'none'; if (!window.__wbGeneric) this.smokeMask(rpn, 0);
             rpn.style.opacity = (!rot || this.r3 >= 0.9996) ? '1' : '0';
             if (rot && this.r3 >= 0.9996) cpn.style.opacity = '0';
             this.rayTilt = 0; this.rayZoom = 0;
@@ -3143,6 +3155,26 @@ class Component extends DCLogic {
   inst.__schedule = function () { if (!queued) { queued = true; queueMicrotask(render); } };
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-w-click]'); if (!b) return; var f = vals[b.getAttribute('data-w-click')]; if (typeof f === 'function') { e.preventDefault(); f(e); } });
   window.__wubble = inst;
+  if (window.__wbGeneric) (function () {
+    var st = WB_SECS.map(function () { return { q: 0, bgSet: false }; });
+    var panelOf = function (sec) { return sec.querySelector('[data-panel],[data-cta-panel],[data-reach-panel]') || sec.firstElementChild || sec; };
+    var bgOf = function (el) { for (var e = el; e && e !== document.body; e = e.parentElement) { var c = getComputedStyle(e).backgroundColor; if (c && !/rgba\(\s*0,\s*0,\s*0,\s*0\s*\)|transparent/.test(c)) return c; } return props.pageBg || '#050505'; };
+    var tick = function () {
+      requestAnimationFrame(tick);
+      if (inst.state && inst.state.page) return;
+      var vh = window.__svh || innerHeight;
+      for (var i = 1; i < WB_SECS.length; i++) {
+        var sec = WB_SECS[i], s0 = st[i], T = parseFloat(sec.getAttribute('data-wb-transition')) || 1.6;
+        var top = sec.getBoundingClientRect().top, q = Math.max(0, Math.min(1, (vh - top) / (vh * T)));
+        s0.q += (q - s0.q) * 0.18; if (Math.abs(q - s0.q) < 0.0005) s0.q = q;
+        var p = panelOf(sec), on = s0.q > 0.0005 && s0.q < 0.9995;
+        inst.smokeMask(p, s0.q);
+        if (on && !s0.bgSet) { var c = getComputedStyle(p).backgroundColor; if (!c || /rgba\(\s*0,\s*0,\s*0,\s*0\s*\)|transparent/.test(c)) { p.style.backgroundColor = bgOf(sec.parentElement) ; s0.bgSet = true; } }
+        if (!on && s0.bgSet) { p.style.backgroundColor = ''; s0.bgSet = false; }
+      }
+    };
+    requestAnimationFrame(tick);
+  })();
   lenisReady.then(render);
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
