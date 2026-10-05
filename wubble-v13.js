@@ -3,7 +3,7 @@
 (function () {
 if (window.__wubbleV13) return; window.__wubbleV13 = true; console.info('wubble: build 2026-10-02 / V14 focus-pull');
 var BASE = (document.currentScript && document.currentScript.dataset.base) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/';
-var DEFAULTS = {"displayFont":"Oswald","heroTitleSize":1,"sectionTitleSize":1,"workTitleSize":1,"bodySize":1,"labelSize":11,"ctaScene":"Ascent","transitionSeconds":2.6,"sectionBleed":true,"soundtrack":"","hero3D":true,"handModel":"","sectionRotate":true,"sectionZoom":1,"smoothScroll":true,"scrollLerp":0.08,"bgMode":"Silk","lightIntensity":1,"relief":1,"grain":1.4,"bgSpeed":1,"viewCursor":true,"customCursor":true,"inkLinger":0.6,"curvature":0.11,"ribbonTilt":1.7,"velocityBend":1.4,"hoverDistortion":1.7,"cornerRadius":0.11,"reflections":true,"reflectionStrength":0.1,"showGrid":false,"image1":"","video1":"","image2":"","video2":"https://threejs.org/examples/textures/sintel.mp4","image3":"","video3":"","image4":"","video4":"","image5":"","video5":"","image6":"","video6":"","ribbonS":1,"bgHero":"#000000","bgWork":"#000000","bgServices":"#000000","bgReach":"#000000","shading":"Photoreal"};
+var DEFAULTS = {"displayFont":"Oswald","heroTitleSize":1,"sectionTitleSize":1,"workTitleSize":1,"bodySize":1,"labelSize":11,"ctaScene":"Ascent","transitionSeconds":2.6,"sectionBleed":true,"soundtrack":"","hero3D":true,"handModel":"","sectionRotate":true,"sectionZoom":1,"smoothScroll":true,"scrollLerp":0.08,"bgMode":"Silk","lightIntensity":1,"relief":1,"grain":1.4,"bgSpeed":1,"viewCursor":true,"customCursor":true,"inkLinger":0.6,"curvature":0.11,"ribbonTilt":1.7,"velocityBend":1.4,"hoverDistortion":1.7,"cornerRadius":0.11,"reflections":true,"reflectionStrength":0.1,"showGrid":false,"image1":"","video1":"","image2":"","video2":"https://threejs.org/examples/textures/sintel.mp4","image3":"","video3":"","image4":"","video4":"","image5":"","video5":"","image6":"","video6":"","ribbonS":1,"bgHero":"#ffffff","bgWork":"#000000","bgServices":"#000000","bgReach":"#000000","shading":"Photoreal","heroDither":true,"ditherSize":2};
 // ---------- head: fonts, base css, lenis, 3D viewer ----------
 var lk = document.createElement('link'); lk.rel = 'stylesheet'; lk.href = "https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Anton&family=Bebas+Neue&family=Syne:wght@500;700;800&family=Space+Grotesk:wght@500;700&family=Unbounded:wght@500;700&family=Inter+Tight:wght@500;700;800&family=Archivo:wght@500;700;900&family=Big+Shoulders+Display:wght@600;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400&display=swap"; document.head.appendChild(lk);
 var st = document.createElement('style'); st.textContent = `
@@ -32,6 +32,8 @@ if (!window.__wubbleViewerPreloaded) loadScript(BASE + 'dither-viewer.js' + VQ, 
 function prepHooks(scope) { scope.querySelectorAll('[data-w]').forEach(function (el) { var v = el.getAttribute('data-w'); if (v) { el.setAttribute('data-wh', v); el.removeAttribute('data-w'); } }); }
 function boot() {
   var root = document.querySelector('[data-w="root"],[data-wh="root"]'); if (!root) return console.warn('wubble: no [data-w=root]');
+  // loader is hidden in the Designer (w13-hidden) so it never covers content while editing; show it on the live site
+  document.querySelectorAll('[data-w="loader"],[data-wh="loader"]').forEach(function (el) { el.classList.remove('w13-hidden', 'is-editor-hidden'); el.style.removeProperty('display'); });
   prepHooks(document);
   root.insertAdjacentHTML('afterbegin', "<svg width=\"0\" height=\"0\" style=\"position:absolute;\"><defs><filter id=\"gooText\" x=\"-20%\" y=\"-60%\" width=\"140%\" height=\"220%\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"0\" result=\"b\" data-goo-text=\"\"></feGaussianBlur><feColorMatrix in=\"b\" mode=\"matrix\" values=\"1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 9 -3\"></feColorMatrix></filter><filter id=\"goo\" x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"6\" result=\"b\"></feGaussianBlur><feColorMatrix in=\"b\" mode=\"matrix\" values=\"1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8\"></feColorMatrix></filter></defs></svg>");
   var off = document.querySelector('[data-w-if="soundOff"]'); if (off && !off.innerHTML.trim()) off.innerHTML = "<svg width=\"14\" height=\"12\" viewBox=\"0 0 14 12\" fill=\"none\" style=\"display:block;\"><path d=\"M1 4h2.5L7 1v10L3.5 8H1z\" fill=\"currentColor\"></path><path d=\"M9.5 4l3 4M12.5 4l-3 4\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linecap=\"round\"></path></svg>";
@@ -109,19 +111,54 @@ class Component extends DCLogic {
   }
   bgColor(THREE, k) {
     const C = this._bgc || (this._bgc = {});
-    if (!C[k]) { C[k] = new THREE.Color(0, 0, 0); if (k !== 'pageBlend') C[k].set(this.props[k] || '#000000'); else C[k].set(this.props.bgHero || '#000000'); }
+    if (!C[k]) { C[k] = new THREE.Color(0, 0, 0); if (k !== 'pageBlend') C[k].set(this.bgVal(k)); else C[k].set(this.bgVal('bgHero')); }
     return C[k];
   }
+  isLightBg(k) { const h = this.bgVal(k); const n = parseInt(h.length === 4 ? h.slice(1).split('').map((c) => c + c).join('') : h.slice(1), 16); return ((n >> 16 & 255) * 0.299 + (n >> 8 & 255) * 0.587 + (n & 255) * 0.114) / 255 > 0.6; }
+  applyLightScenes() {
+    // light section backgrounds: 3D viewers render on the section colour and multiply-blend into it, no vignette
+    const hL = this.isLightBg('bgHero'), rL = this.isLightBg('bgReach');
+    const key = [hL, this.bgVal('bgHero'), rL, this.bgVal('bgReach'), !!this.portrait, !!this.hand, this.props.heroDither ?? true, this.props.ditherSize ?? 2].join('|');
+    if (key === this._lightKey) return; this._lightKey = key;
+    const set = (v, L, col, wrap, darkBlend) => {
+      if (v) {
+        if (v.scene && v.scene.background && v.scene.background.set) v.scene.background.set(L ? col : 0x010101);
+        if (v.post && v.post.uVignette) { if (v._vig == null) v._vig = v.post.uVignette.value; v.post.uVignette.value = L ? 0 : v._vig; }
+      }
+      if (wrap) wrap.style.mixBlendMode = L ? 'multiply' : darkBlend;
+    };
+    set(this.portrait, hL, this.bgVal('bgHero'), this.hero3dRef && this.hero3dRef.current, '');
+    // real ordered-dither on the hero model (pixel grid, 1-bit greyscale)
+    if (this.portrait && this.portrait.post) { const u = this.portrait.post, on = this.props.heroDither ?? true;
+      if (u.uDither) u.uDither.value = on ? 1 : 0; if (u.uGrid) u.uGrid.value = this.props.ditherSize ?? 2;
+      if (u.uDitherGray) u.uDitherGray.value = 1; if (u.uDitherInvert) u.uDitherInvert.value = 0; if (u.uStipple) u.uStipple.value = 0;
+      if (u.uAperture && on) u.uAperture.value = 0;
+      if (u.uBgMask) { u.uBgMask.value = hL ? 1 : 0; u.uBgCol.value.set(this.bgVal('bgHero')); }
+      if (u.uExposure) { if (this._exp0 == null) this._exp0 = u.uExposure.value; u.uExposure.value = hL ? this._exp0 + 0.55 : this._exp0; }
+      if (u.uContrast) { if (this._con0 == null) this._con0 = u.uContrast.value; u.uContrast.value = hL ? Math.max(0, this._con0 - 0.12) : this._con0; } }
+    // white hero: model turns to light porcelain clay, hero frame border goes light
+    if (this.portrait && this.portrait.scene) this.portrait.scene.traverse((o) => { if (!o.isMesh || !o.material || !o.material.color) return; const m = o.material; if (m._c0 == null) m._c0 = m.color.getHex(); m.color.setHex(hL ? 0xe9e6e1 : m._c0); if ('sheenColor' in m && m.sheenColor) { if (m._s0 == null) m._s0 = m.sheenColor.getHex(); m.sheenColor.setHex(hL ? 0xffffff : m._s0); } });
+    const hs = this.heroRef && this.heroRef.current, hf = hs && hs.firstElementChild;
+    if (hs) hs.style.background = hL ? this.bgVal('bgHero') : '';
+    if (hf) { hf.style.borderColor = hL ? '#d9d7d2' : ''; hf.style.background = hL ? this.bgVal('bgHero') : ''; }
+    const ch = this.chromeRef && this.chromeRef.current; if (ch) ch.style.mixBlendMode = hL ? 'difference' : '';
+    set(this.hand, rL, this.bgVal('bgReach'), this.handRef && this.handRef.current, 'screen');
+  }
   blendBg(rp, rq, r3) {
+    this.applyLightScenes();
     const C = this._bgc; if (!C || !C.pageBlend) return;
     const T = C.pageBlend, tmp = this._bgTmp || (this._bgTmp = T.clone()), P = this.props;
-    T.set(P.bgHero || '#000000');
-    tmp.set(P.bgWork || '#000000'); T.lerp(tmp, Math.max(0, Math.min(1, rp)));
-    tmp.set(P.bgServices || '#000000'); T.lerp(tmp, Math.max(0, Math.min(1, rq)));
-    tmp.set(P.bgReach || '#000000'); T.lerp(tmp, Math.max(0, Math.min(1, r3)));
+    T.set(this.bgVal('bgHero'));
+    tmp.set(this.bgVal('bgWork')); T.lerp(tmp, Math.max(0, Math.min(1, rp)));
+    tmp.set(this.bgVal('bgServices')); T.lerp(tmp, Math.max(0, Math.min(1, rq)));
+    tmp.set(this.bgVal('bgReach')); T.lerp(tmp, Math.max(0, Math.min(1, r3)));
   }
+  bgVal(k) { const v = String(this.props[k] || '#000000').trim().replace(/^#+/, '#'); return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v) ? v : (/^[0-9a-f]{6}$/i.test(v) ? '#' + v : '#000000'); }
   syncBg() {
-    const P = this.props, d = document.documentElement.style;
+    const P = Object.assign({}, this.props, { bgHero: this.bgVal('bgHero'), bgWork: this.bgVal('bgWork'), bgServices: this.bgVal('bgServices'), bgReach: this.bgVal('bgReach') }), d = document.documentElement.style;
+    if (!document.getElementById('wb-ink')) { const st = document.createElement('style'); st.id = 'wb-ink'; st.textContent = '[data-ink="dark"] h1,[data-ink="dark"] h2,[data-ink="dark"] h3,[data-ink="dark"] p,[data-ink="dark"] li,[data-ink="dark"] a{color:#121212 !important}'; document.head.appendChild(st); }
+    const lum = (h) => { const n = parseInt(h.length === 4 ? h.slice(1).split('').map((c) => c + c).join('') : h.slice(1), 16); return ((n >> 16 & 255) * 0.299 + (n >> 8 & 255) * 0.587 + (n & 255) * 0.114) / 255; };
+    [[this.heroRef, P.bgHero], [this.workRef, P.bgWork], [this.ctaRef, P.bgServices], [this.reachRef, P.bgReach]].forEach(([r, c]) => { const el = r && r.current; if (el) el.setAttribute('data-ink', lum(c) > 0.6 ? 'dark' : 'light'); });
     d.setProperty('--bg-hero', P.bgHero || '#000000'); d.setProperty('--bg-work', P.bgWork || '#000000');
     d.setProperty('--bg-services', P.bgServices || '#000000'); d.setProperty('--bg-reach', P.bgReach || '#000000');
     if (this._bgc && this._bgc.bgServices) this._bgc.bgServices.set(P.bgServices || '#000000');
