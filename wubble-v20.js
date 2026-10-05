@@ -1,7 +1,29 @@
 /* wubble V20 for Webflow — runs the exact Claude Design V13 logic on native Webflow elements.
    Layout/styling lives in Webflow (w13-* classes). Elements the animation drives carry data-w / data-* hooks. */
 (function () {
-if (window.__wubbleV20) return; window.__wubbleV20 = true; console.info('wubble: build 2026-10-02 / V14 focus-pull');
+if (window.__wubbleV20) return; window.__wubbleV20 = true;
+// ---------- live-only layout: in the Webflow Designer sections stack normally; on the live site the scroll staging switches on ----------
+document.documentElement.classList.add('wb-live');
+(function () { var L = document.createElement('style'); L.id = 'wb-live-css'; L.textContent = [
+  'html.wb-live [data-w="hero"],html.wb-live [data-wh="hero"]{position:sticky;top:0;height:100vh;height:100lvh}',
+  'html.wb-live [data-w="work"],html.wb-live [data-wh="work"]{height:var(--wb-len,815vh);margin-top:-100vh}',
+  'html.wb-live [data-panel]{position:sticky;top:0}',
+  'html.wb-live [data-w="ui"],html.wb-live [data-wh="ui"]{opacity:0}',
+  'html.wb-live [data-w="cta"],html.wb-live [data-wh="cta"]{height:var(--wb-len,965vh);margin-top:-245vh}',
+  'html.wb-live [data-cta-panel]{position:sticky;top:0;height:100vh;overflow:hidden}',
+  'html.wb-live [data-hero3]{position:absolute;left:clamp(20px,6vw,96px);right:0;top:0}',
+  'html.wb-live [data-about]{position:absolute;top:0;right:0;bottom:0;left:0;min-height:0;opacity:0}',
+  'html.wb-live [data-w="reach"],html.wb-live [data-wh="reach"]{height:var(--wb-len,420vh);margin-top:-245vh}',
+  'html.wb-live [data-reach-panel]{position:sticky;top:0;opacity:0}',
+  'html.wb-live [data-footer-spacer]{height:70vh}',
+  'html.wb-live [data-footer]{position:fixed;left:0;right:0;bottom:0;z-index:55;visibility:hidden}',
+  'html.wb-live [data-footer-dim]{opacity:0.8}',
+  'html.wb-live [data-hero-front]{display:block;position:fixed}',
+  'html.wb-live [data-site-frame],html.wb-live [data-w="chrome"],html.wb-live [data-wh="chrome"]{position:fixed}'
+].join('\n'); (document.head || document.documentElement).appendChild(L); })();
+// per-section scroll length from Webflow: data-wb-length="815" (in vh)
+document.addEventListener('DOMContentLoaded', function () { document.querySelectorAll('[data-wb-length]').forEach(function (el) { var v = parseFloat(el.getAttribute('data-wb-length')); if (v > 0) el.style.setProperty('--wb-len', v + 'vh'); }); });
+ console.info('wubble: build 2026-10-02 / V14 focus-pull');
 var BASE = (document.currentScript && document.currentScript.dataset.base) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/';
 var DEFAULTS = {"displayFont":"Oswald","heroTitleSize":1,"sectionTitleSize":1,"workTitleSize":1,"bodySize":1,"labelSize":11,"ctaScene":"Ascent","transitionSeconds":2.6,"sectionBleed":true,"soundtrack":"","hero3D":true,"handModel":"","sectionRotate":true,"sectionZoom":1,"smoothScroll":true,"scrollLerp":0.08,"bgMode":"Silk","lightIntensity":1,"relief":1,"grain":1.4,"bgSpeed":1,"viewCursor":true,"customCursor":true,"inkLinger":0.6,"curvature":0.18,"ribbonTilt":0.25,"velocityBend":1.1,"hoverDistortion":1.9,"cornerRadius":0.07,"reflections":true,"reflectionStrength":0.1,"showGrid":false,"image1":"","video1":"","image2":"","video2":"https://threejs.org/examples/textures/sintel.mp4","image3":"","video3":"","image4":"","video4":"","image5":"","video5":"","image6":"","video6":"","workLayout":"Ribbon","ringTiltX":0.12,"ringTiltZ":0.06,"workWord":"Work","weaveDepth":0.35,"weaveDrop":0.55,"workWordSize":0.62,"workWordY":-0.04,"workWordX":0,"workWordSpacing":-0.07,"workWordWeight":600,"workWordColor":"#ecebe6","workWordOpacity":1,"workWordShadow":0.6,"astroGlobal":true,"galaxyBg":true,"galaxySize":1.25,"ditherStyle":true,"ditherSize":1,"ditherGain":1.35,"galaxyBright":0.14,"astroBright":0.7,"astroFaceDown":0.85,"astroMouse":1,"galaxyOpacity":1,"heroLight":true,"heroLightBg":"#ffffff","heroLightInk":"#0a0a0a","astroHoverReveal":true,"astroJets":true,"warpAmount":1,"letterStorm":0,"titleMorph":true,"astroFlag":false,"hero3Model":"","ribbonY":-0.4,"reachTitle":"Reach Out","pageBg":"#050505","textColor":"#ecebe6","aboutBg":"#232221","aboutText":"#f4c9c6","footerBg":"#f4f4f2","footerText":"#1a1a19","infoBg":"#f2f1ed","infoText":"#151412","astroHoverLight":1.5};
 // ---------- head: fonts, base css, lenis, 3D viewer ----------
