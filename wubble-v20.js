@@ -2786,7 +2786,7 @@ class Component extends DCLogic {
         this.zH = cover;
         const ch = this.zH, ce = io(ch) * Z;
         const rot = (P.sectionRotate ?? true);
-        const heroTop = this.heroRef && this.heroRef.current ? this.heroRef.current.getBoundingClientRect().top : -sY; const rp0 = Math.max(0, Math.min(1, -heroTop / (vh * 2.4)));
+        const rp0 = Math.max(0, Math.min(1, sY / (vh * 2.4)));
         this.rp = this.sceneTween('rp', rp0);
         
         const e = this.rp < 0.5 ? 4 * this.rp * this.rp * this.rp : 1 - Math.pow(-2 * this.rp + 2, 3) / 2;
