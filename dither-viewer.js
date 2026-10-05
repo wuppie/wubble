@@ -72,7 +72,7 @@ uniform sampler2D tScene; uniform sampler2D tDepth; uniform vec2 uRes; uniform f
 uniform float uExposure, uBloom, uGrain, uVignette, uContrast, uSaturation, uAperture, uTint, uFocus, uNear, uFar, uStipple, uDotSize, uAnimate, uSoft;
 uniform float uDither, uGrid, uPixelRatio, uDitherInvert, uDitherGray;
 uniform vec2 uMouse; uniform float uHover, uHoverRadius, uHoverAmt; uniform vec2 uScan;
-uniform float uDissolve; uniform float uCutout;
+uniform float uDissolve; uniform float uCutout; uniform vec3 uBgCol; uniform float uBgMask;
 varying vec2 vUv;
 vec3 aces(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14), 0.0, 1.0); }
 float hash(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
@@ -165,6 +165,7 @@ void main(){
     float rim = smoothstep(0.09, 0.0, abs(dn - dk)) * step(0.001, uDissolve) * (1.0 - smoothstep(0.85, 1.0, uDissolve));
     col = col * keep + vec3(0.07, 0.07, 0.072) * rim * 0.6;
   }
+  if (uBgMask > 0.5) { float onM = 1.0 - step(0.99999, texture2D(tDepth, gl_FragCoord.xy / uRes).x); col = mix(uBgCol, col, onM); }
   float bgA = 1.0;
   if (uCutout > 0.5) { float dd = texture2D(tDepth, vUv).r; bgA = 1.0 - step(0.99995, dd); }
   gl_FragColor = vec4(clamp(col, 0.0, 1.0) * bgA, bgA);
@@ -177,6 +178,7 @@ export async function createPortrait(container, { onProgress, ...overrides } = {
   if (!('glass' in overrides)) CONFIG.glass = null;
   if (!('hdri' in overrides)) CONFIG.hdri = null;
   if (!('toon' in overrides)) CONFIG.toon = false;
+  if (!('keepMaterials' in overrides)) CONFIG.keepMaterials = false;
   if (!('fit' in overrides)) CONFIG.fit = 1;
   if (!('cutout' in overrides)) CONFIG.cutout = false;
   for (const [k, v] of Object.entries(overrides)) CONFIG[k] = (v && typeof v === 'object' && !Array.isArray(v) && CONFIG[k]) ? { ...CONFIG[k], ...v } : v;
@@ -223,7 +225,7 @@ export async function createPortrait(container, { onProgress, ...overrides } = {
   const mats = [];
   model.traverse((o) => { if (o.isMesh) {
     o.castShadow = o.receiveShadow = true;
-    const src = o.material; smoothNormals(o.geometry);
+    const src = o.material; if (CONFIG.keepMaterials) { mats.push(src); return; } smoothNormals(o.geometry);
     const clay = CONFIG.clay, glass = CONFIG.glass;
     const toonGM = CONFIG.toon ? (() => { const g = new THREE.DataTexture(new Uint8Array([18, 90, 170, 255]), 4, 1, THREE.RedFormat); g.minFilter = g.magFilter = THREE.NearestFilter; g.needsUpdate = true; return g; })() : null;
     const m = toonGM
@@ -263,7 +265,7 @@ export async function createPortrait(container, { onProgress, ...overrides } = {
   rt.depthTexture = new THREE.DepthTexture(1, 1);
   const post = new THREE.ShaderMaterial({
     uniforms: { tScene: { value: rt.texture }, tDepth: { value: rt.depthTexture }, uRes: { value: new THREE.Vector2() }, uTime: { value: 0 },
-      uDissolve: { value: 0 }, uCutout: { value: CONFIG.cutout ? 1 : 0 }, uFocus: { value: 3 }, uMouse: { value: new THREE.Vector2(-1e4, -1e4) }, uHover: { value: 0 }, uScan: { value: new THREE.Vector2(1, 0) }, uNear: { value: camera.near }, uFar: { value: camera.far },
+      uDissolve: { value: 0 }, uCutout: { value: CONFIG.cutout ? 1 : 0 }, uBgCol: { value: new THREE.Color(1, 1, 1) }, uBgMask: { value: 0 }, uFocus: { value: 3 }, uMouse: { value: new THREE.Vector2(-1e4, -1e4) }, uHover: { value: 0 }, uScan: { value: new THREE.Vector2(1, 0) }, uNear: { value: camera.near }, uFar: { value: camera.far },
       ...Object.fromEntries(Object.entries(CONFIG.post).map(([k, v]) => ['u' + k[0].toUpperCase() + k.slice(1), { value: v }])) },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
     fragmentShader: POST_FRAG, depthTest: false, depthWrite: false,
