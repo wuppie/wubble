@@ -34,6 +34,25 @@ function boot() {
   var root = document.querySelector('[data-w="root"],[data-wh="root"]'); if (!root) return console.warn('wubble: no [data-w=root]');
   // loader is hidden in the Designer (w13-hidden) so it never covers content while editing; show it on the live site
   document.querySelectorAll('[data-w="loader"],[data-wh="loader"]').forEach(function (el) { el.classList.remove('w13-hidden', 'is-editor-hidden', 'w20-ed-hide'); el.style.removeProperty('display'); });
+  // titles are plain text in Webflow; split them into animated letters here
+  var splitEl = function (el) {
+    if (el.__split) return; el.__split = 1;
+    var from = el.getAttribute('data-split-from'), src = from ? document.querySelector('[data-w="' + from + '"],[data-wh="' + from + '"]') : null;
+    var txt = ((src ? (src.__txt || src.textContent) : el.textContent) || '').replace(/\s+/g, ' ').trim(); el.__txt = txt;
+    var hide = +(el.getAttribute('data-split-hide') || 0), attr = el.getAttribute('data-split-letter') || 'sq', lc = el.getAttribute('data-split-class') || 'hero-letter';
+    el.setAttribute('aria-label', txt); el.textContent = '';
+    txt.split(' ').forEach(function (w, wi) {
+      if (wi > 0) { var g = document.createElement('span'); g.className = 'title-gap'; el.appendChild(g); }
+      Array.from(w).forEach(function (ch) {
+        var m = document.createElement('span'); m.className = hide === wi + 1 ? 'title-letter-mask-hidden' : 'title-letter-mask';
+        var gw = document.createElement('span'); gw.className = 'title-word'; gw.setAttribute('data-gw', '');
+        var l = document.createElement('span'); l.className = lc; l.setAttribute('data-' + attr, ''); l.setAttribute('aria-hidden', 'true'); l.textContent = ch;
+        gw.appendChild(l); m.appendChild(gw); el.appendChild(m);
+      });
+    });
+  };
+  document.querySelectorAll('[data-split="letters"]:not([data-split-from])').forEach(splitEl);
+  document.querySelectorAll('[data-split="letters"][data-split-from]').forEach(splitEl);
   prepHooks(document);
   root.insertAdjacentHTML('afterbegin', "<svg width=\"0\" height=\"0\" style=\"position:absolute;width:0;height:0\"><defs><filter id=\"gooText\" x=\"-20%\" y=\"-60%\" width=\"140%\" height=\"220%\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"0\" result=\"b\" data-goo-text=\"\"></feGaussianBlur><feColorMatrix in=\"b\" mode=\"matrix\" values=\"1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 9 -3\"></feColorMatrix></filter><filter id=\"goo\" x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"6\" result=\"b\"></feGaussianBlur><feColorMatrix in=\"b\" mode=\"matrix\" values=\"1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8\"></feColorMatrix></filter></defs></svg>");
   var off = document.querySelector('[data-w-if="soundOff"]'); if (off && !off.innerHTML.trim()) off.innerHTML = "<svg width=\"14\" height=\"12\" viewBox=\"0 0 14 12\" fill=\"none\" style=\"display:block;\"><path d=\"M1 4h2.5L7 1v10L3.5 8H1z\" fill=\"currentColor\"></path><path d=\"M9.5 4l3 4M12.5 4l-3 4\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linecap=\"round\"></path></svg>";
@@ -54,6 +73,22 @@ function boot() {
   };
   // ---------- props: defaults + root data-* overrides ----------
   var props = Object.assign({}, DEFAULTS);
+  // everything visual comes from Webflow: read fonts, colors and texts from the Designer styles
+  (function () {
+    var cs = function (sel) { var e = document.querySelector(sel); return e ? getComputedStyle(e) : null; };
+    var hex = function (c) { var m = /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/.exec(c || ''); if (!m || (m[4] !== undefined && +m[4] === 0)) return null; return '#' + [m[1], m[2], m[3]].map(function (v) { return (+v).toString(16).padStart(2, '0'); }).join(''); };
+    var fam = function (st) { return st ? st.fontFamily.split(',')[0].replace(/["']/g, '').trim() : null; };
+    var set = function (k, v) { if (v) props[k] = v; };
+    var h = cs('.hero-headline'), site = cs('.site-bg'), body = cs('.site'), wh = document.querySelector('.work-heading');
+    set('displayFont', fam(h));
+    if (h && h.fontFamily) document.documentElement.style.setProperty('--display', h.fontFamily);
+    set('pageBg', site && hex(site.backgroundColor)); set('textColor', body && hex(body.color));
+    if (wh) { set('workWord', (wh.textContent || '').trim()); set('workWordColor', hex(getComputedStyle(wh).color)); }
+    var rh = document.querySelector('.reach-headline'); if (rh) set('reachTitle', rh.__txt || rh.textContent.trim());
+    var ab = cs('.section-about'), at = cs('.about-text'); set('aboutBg', ab && hex(ab.backgroundColor)); set('aboutText', at && hex(at.color));
+    var ft = cs('.site-footer'); set('footerBg', ft && hex(ft.backgroundColor)); set('footerText', ft && hex(ft.color));
+    var fg = cs('.facts-grid'); set('infoBg', fg && hex(fg.backgroundColor)); set('infoText', fg && hex(fg.color));
+  })();
   Object.keys(root.dataset).forEach(function (k) { if (k === 'w' || k === 'wh') return; var v = root.dataset[k]; props[k] = v === 'true' ? true : v === 'false' ? false : (v !== '' && !isNaN(+v) ? +v : v); });
   // ---------- tiny React-free component host ----------
   window.React = window.React || {}; if (!window.React.createRef) window.React.createRef = function () { return { current: null }; };
@@ -645,6 +680,7 @@ class Component extends DCLogic {
     const fs0 = parseFloat(getComputedStyle(h1).fontSize) || 100;
     const w = kids[kids.length - 1].getBoundingClientRect().right - kids[0].getBoundingClientRect().left;
     if (w > 0) { const fs = Math.min(fs0 * W / w, (window.__svh || innerHeight) * 0.62); if (Math.abs(fs - fs0) > 0.5) h1.style.fontSize = fs.toFixed(1) + 'px'; }
+    { const fh = document.querySelector('[data-hero-front] h1'); if (fh && fh !== h1) fh.style.fontSize = h1.style.fontSize; }
     // services row sits just below the title's letters
     const ul = h1.parentElement && h1.parentElement.querySelector('ul[data-cg]'), wrap = ul && ul.parentElement;
     if (wrap && wrap !== h1.parentElement) {
