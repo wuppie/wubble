@@ -47,7 +47,7 @@ html.lenis.lenis-smooth body{overscroll-behavior:none;touch-action:pan-y}
 
 [data-wh="root"]{min-height:100vh}`; document.head.appendChild(st);
 function loadScript(src, mod) { return new Promise(function (r) { var e = document.createElement('script'); if (mod) e.type = 'module'; e.src = src; e.onload = r; e.onerror = r; document.head.appendChild(e); }); }
-var lenisReady = window.Lenis ? Promise.resolve() : loadScript('https://unpkg.com/lenis@1.1.13/dist/lenis.min.js');
+var lenisReady = Promise.all([window.Lenis ? Promise.resolve() : loadScript('https://unpkg.com/lenis@1.1.13/dist/lenis.min.js'), window.gsap ? Promise.resolve() : loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js')]);
 var VQ = (document.currentScript && document.currentScript.dataset.v) ? '?v=' + document.currentScript.dataset.v : '';
 if (!window.__wubbleViewerPreloaded) loadScript(BASE + 'dither-viewer.js' + VQ, true);
 // ---------- hooks: data-w="name" → data-wh (V13 uses empty data-w for word reveals) ----------
