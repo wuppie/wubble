@@ -86,7 +86,7 @@ Object.assign(window.WBM, {
         }
       }
       geo.setAttribute('aMk', new T3.BufferAttribute(MK, 4)); geo.setAttribute('aFU', new T3.BufferAttribute(FU, 2));
-      if (!this._faceTex) { this._faceTex = new T3.TextureLoader().load((window.WB_ASSETS || './') + 'models/astro-face.png'); this._faceTex.colorSpace = T3.SRGBColorSpace; this._faceTex.anisotropy = 4; }
+      if (!this._faceTex) { this._faceTex = (P.astroFaceTex ?? false) ? new T3.TextureLoader().load((window.WB_ASSETS || './') + 'models/astro-face.png') : new T3.Texture(); this._faceTex.colorSpace = T3.SRGBColorSpace; this._faceTex.anisotropy = 4; }
       const U = { uVR: { value: 0.8 }, uVC: { value: 0.35 }, uCav: { value: 0.7 }, uFace: { value: new T3.Color('#a88672') }, uVis: { value: new T3.Color('#1c1e24') }, uDbg: { value: 0 }, uTex: { value: MTC }, uTexR: { value: MTR }, uTS: { value: 0.004 }, uCer: { value: 1 }, uTC: { value: 2.5 }, uMet: { value: 1 }, uFL: { value: 0.55 }, uFT: { value: 1 }, uFaceTex: { value: this._faceTex } };
       const mt = new T3.MeshStandardMaterial({ color: new T3.Color(P.astroChromeColor || '#c9c9c7'), metalness: P.astroMetal ?? 0.85, roughness: P.astroRough ?? 0.38, side: T3.DoubleSide, envMapIntensity: 1 });
       mt.userData.U = U;
@@ -769,7 +769,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
       qM.uniforms.uPhoto.value = (this.props.heroStudio ?? true) ? 1 : 0;
       { const w = (this.props.heroStudio ?? true) ? Math.round(hv.v * 50) / 50 : 0;
         { const on = !this._nat && (this.props.hoverMetal ?? true) && w > 0.5; if (on !== this._metalOn) { this._metalOn = on;
-            const ML = this._metalTex || (this._metalTex = (() => { const L = new T3.TextureLoader(), base = './uploads/Metal029_1K-JPG_', ld = (n, srgb) => { const t = L.load(base + n + '.jpg'); t.wrapS = t.wrapT = T3.RepeatWrapping; t.repeat.set(2, 2); if (srgb) t.colorSpace = T3.SRGBColorSpace; return t; };
+            const ML = this._metalTex || (this._metalTex = (() => { const L = new T3.TextureLoader(), base = (window.WB_ASSETS || './') + 'models/Metal029_1K-JPG_', ld = (n, srgb) => { const t = L.load(base + n + '.jpg'); t.wrapS = t.wrapT = T3.RepeatWrapping; t.repeat.set(2, 2); if (srgb) t.colorSpace = T3.SRGBColorSpace; return t; };
               return { map: ld('Color', true), normalMap: ld('NormalGL'), roughnessMap: ld('Roughness'), metalnessMap: ld('Metalness') }; })());
             piv.traverse((o) => { if (!o.isMesh || !o.material || o.material.isShaderMaterial) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach((mt) => { if (!mt.isMeshStandardMaterial) return;
               if (on) { if (!mt.userData.__o) mt.userData.__o = { map: mt.map, normalMap: mt.normalMap, roughnessMap: mt.roughnessMap, metalnessMap: mt.metalnessMap, metalness: mt.metalness, roughness: mt.roughness, color: mt.color.clone() };
