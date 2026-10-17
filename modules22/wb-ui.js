@@ -189,6 +189,9 @@ Object.assign(window.WBM, {
         const all = (el && el.__chars) || [], fill = row.querySelector('[data-svc-fill]'), arr = row.querySelector('[data-svc-arrow]');
         if (all.length) G.to(all, { yPercent: on ? -100 : 0, duration: on ? 0.32 : 0.3, ease: 'power3.out', stagger: { each: on ? 0.008 : 0.006, from: on ? 'start' : 'end' }, overwrite: true });
         if (fill) G.to(fill, { scaleY: on ? 1 : 0, duration: on ? 0.45 : 0.4, ease: 'expo.out', overwrite: true });
+        // r14.15: the fill must sit UNDER the text (Webflow can reorder layers), and the text turns dark on the light bar
+        if (fill && !row.__zf) { row.__zf = 1; fill.style.zIndex = '0'; Array.from(row.children).forEach((ch) => { if (ch === fill || ch.contains(fill)) return; const cs = getComputedStyle(ch); if (cs.position === 'static') ch.style.position = 'relative'; ch.style.zIndex = '1'; }); }
+        if (!all.length) { row.style.transition = 'color 0.3s'; row.style.color = on ? 'var(--svc-hover-ink,#0b0b0b)' : ''; row.querySelectorAll('h1,h2,h3,h4,p,span').forEach((t) => { t.style.transition = 'color 0.3s'; t.style.color = on ? 'var(--svc-hover-ink,#0b0b0b)' : ''; }); }
         if (arr) G.to(arr, { rotate: on ? -90 : 0, duration: on ? 0.45 : 0.4, ease: 'expo.out', overwrite: true }); };
       let cur = null;
       let px = -1, py = -1; const set = (row) => { if (row === cur) return; if (cur) go(cur, false); cur = row; if (row) go(row, true); };
