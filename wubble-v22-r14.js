@@ -23,7 +23,7 @@ document.documentElement.classList.add('wb-live');
 ].join('\n'); (document.head || document.documentElement).appendChild(L); })();
 // per-section scroll length from Webflow: data-wb-length="815" (in vh)
 document.addEventListener('DOMContentLoaded', function () { document.querySelectorAll('[data-wb-length]').forEach(function (el) { var v = parseFloat(el.getAttribute('data-wb-length')); if (v > 0) el.style.setProperty('--wb-len', v + 'vh'); }); });
- console.info('wubble: build V22-webflow r14.13 (2026-10-17)');
+ console.info('wubble: build V22-webflow r14.14 (2026-10-17)');
 var BASE = (document.currentScript && document.currentScript.dataset.base) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/';
 (function () { try { var B = (document.currentScript && document.currentScript.getAttribute('data-base')) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/'; var lo = matchMedia('(pointer: coarse)').matches || innerWidth < 820 || (navigator.deviceMemory || 8) <= 4, q = lo ? '-1k' : '-2k';
   [['models/astronaut-rig.glb', 'fetch'], ['models/astro-rig-uv.bin', 'fetch'], ['models/astro-tex-color' + q + '.webp', 'image'], ['models/astro-tex-mr' + q + '.webp', 'image'], ['models/astro-tex-normal' + q + '.webp', 'image']].forEach(function (f) { var l = document.createElement('link'); l.rel = 'preload'; l.as = f[1]; l.href = B + f[0]; l.crossOrigin = 'anonymous'; if (f[1] === 'fetch') l.setAttribute('fetchpriority', 'high'); document.head.appendChild(l); });
@@ -540,7 +540,7 @@ class Component extends DCLogic {
     if (window.__wbGalaxy) Object.assign(map, { '--bg-services': P.servicesBg || '#0b0b0b', '--ink-services': P.servicesText || '#f2f2f0', '--ink-footer': P.footerText || '#f2f2f0', '--ink-about': P.aboutText || '#f2f2f0' });
     // galaxy mode: clear only the actual panel backgrounds; colour tokens stay real (they're also used as inverse text/icon colours)
     { const G = window.__wbGalaxy; [['[data-panel]', 'background'], ['[data-cta-panel]', 'background'], ['[data-about]', 'backgroundColor'], ['[data-footer]', 'background'], ['[data-reach-panel]', 'background']].forEach(([q, k]) => { const el = document.querySelector(q); if (el) el.style[k] = G ? 'transparent' : ''; });
-      document.querySelectorAll('[data-panel] > [aria-hidden="true"]').forEach((el) => { if (/linear-gradient/.test(el.style.background)) el.style.display = G ? 'none' : ''; }); { const sh = document.querySelector('[data-space-host]'); if (sh) sh.style.zIndex = '1'; const bgL = document.querySelector('[data-w="bg"]'); if (bgL) bgL.style.zIndex = '0'; const rs = document.querySelector('[data-reach-panel]'); if (rs && G) rs.style.background = 'transparent'; } /* r14.10 */ }
+      document.querySelectorAll('[data-panel] > [aria-hidden="true"]').forEach((el) => { if (/linear-gradient/.test(el.style.background)) el.style.display = G ? 'none' : ''; }); { const rs = document.querySelector('[data-reach-panel]'); if (rs && G) rs.style.background = 'transparent'; } /* r14.14: galaxy keeps z-index 0 (z 1 put it above the About monitor layer) */ }
     const key = JSON.stringify(map); if (key === this._colKey) return; this._colKey = key;
     const st = document.documentElement.style; Object.entries(map).forEach(([k, v]) => { if (v) st.setProperty(k, v); else st.removeProperty(k); });
   }
