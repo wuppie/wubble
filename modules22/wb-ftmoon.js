@@ -24,7 +24,7 @@ Object.assign(window.WBM, {
       const rim = new T.DirectionalLight(0xa9c6ff, 0.9); rim.position.set(3, 2.5, -2.5); sc.add(rim); const amb = new T.AmbientLight(0x8fa6c8, 0.04); sc.add(amb);
       // low raking sun: long crater shadows, bright limb, near-black night side (real moon photo look)
       const sun = new T.DirectionalLight(0xfff3e2, 6); sc.add(sun); sc.add(sun.target);
-      const LD = new GL.GLTFLoader();
+      const LD = new GL.GLTFLoader(); try { const MO = await import('https://esm.sh/three@0.160.0/examples/jsm/libs/meshopt_decoder.module.js'); LD.setMeshoptDecoder(MO.MeshoptDecoder); } catch (e) {}
       const [mg, ag] = await Promise.all([LD.loadAsync((window.WB_ASSETS || './') + 'models/moon-2k.glb'), LD.loadAsync((window.WB_ASSETS || './') + 'models/astronaut-rig.glb')]);
       // moon: the file uses the old spec-gloss material, so rebuild it from its own texture
       let mtx = null; try { mtx = await mg.parser.getDependency('texture', 0); mtx.colorSpace = T.SRGBColorSpace; mtx.anisotropy = 8; } catch (e) {}
