@@ -3,7 +3,7 @@
   const VS = 'varying vec2 vUv; varying float vD; void main(){ vUv = uv; vec4 mv = modelViewMatrix * vec4(position,1.0); vD = -mv.z; gl_Position = projectionMatrix * mv; }';
   const FS = `uniform sampler2D map; uniform vec3 fogColor; uniform float fogNear, fogFar, uSplit, uFront, uOp; varying vec2 vUv; varying float vD;
     void main(){ float depth = gl_FragCoord.z / gl_FragCoord.w; float fogFactor = smoothstep(fogNear, fogFar, depth);
-      vec4 c = texture2D(map, vUv); c.w *= pow(gl_FragCoord.z, 20.0); c = mix(c, vec4(fogColor, c.w), fogFactor);
+      vec4 c = texture2D(map, vUv); c.w *= exp(-20.0 / max(vD, 0.5)); /* = pow(depth,20) of the pen, but precise on mobile GPUs */ c = mix(c, vec4(fogColor, c.w), fogFactor);
       float near = 1.0 - smoothstep(uSplit * 0.85, uSplit * 1.15, vD); c.w *= uOp * mix(1.0 - near, near, uFront);
       if (c.w < 0.002) discard; gl_FragColor = c; }`;
   window.__wbCloudsGL = async (back, front) => {
@@ -19,7 +19,7 @@
     const dropR = () => { if (!r) return; try { r.dispose(); r.forceContextLoss(); } catch (e) {} r = null; };
     const layer = (host, isFront) => { const c = document.createElement('canvas'), g2 = c.getContext('2d'); c.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;'; host.appendChild(c);
       const U = { map: { value: tex }, fogColor: { value: new T.Color(0xffffff) }, fogNear: { value: -100 }, fogFar: { value: 3000 }, uSplit: { value: 200 }, uFront: { value: isFront ? 1 : 0 }, uOp: { value: 1 } };
-      const mat = new T.ShaderMaterial({ uniforms: U, vertexShader: VS, fragmentShader: FS, depthWrite: false, depthTest: false, transparent: true });
+      const mat = new T.ShaderMaterial({ precision: 'highp',  uniforms: U, vertexShader: VS, fragmentShader: FS, depthWrite: false, depthTest: false, transparent: true });
       const sc = new T.Scene(), a = new T.Mesh(geo, mat), b = new T.Mesh(geo, mat); a.renderOrder = 2; b.position.z = -8000; b.renderOrder = 1; a.frustumCulled = b.frustumCulled = false; sc.add(a, b);
       return { c, g2, U, sc }; };
     const L = [layer(back, false), layer(front, true)];
@@ -29,7 +29,7 @@
     let pos = 0, last = performance.now(), lastRP = 0, wasOn = true;
     const tick = () => { requestAnimationFrame(tick); const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now;
       const P = window.__wbClouds || {}, rp = window.__wbRP || 0, sm = (a, b, x) => { const k = Math.max(0, Math.min(1, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
-      const op = P.on === false ? 0 : (P.amount ?? 1) * (1 - sm(P.hs ?? 0.04, (P.hs ?? 0.04) + (P.hw ?? 0.16), rp));
+      const LG = P.linger ?? 1.8, op = P.on === false ? 0 : (P.amount ?? 1) * (1 - sm((P.hs ?? 0.04) + (P.hw ?? 0.16) * 0.35 * LG, (P.hs ?? 0.04) + (P.hw ?? 0.16) * (1 + 0.6 * LG), rp)); /* r14.12: clouds stay longer */
       back.style.opacity = front.style.opacity = op.toFixed(3);
       if (op < 0.003) { offT += dt; } else { offT = 0; if (!r) mkR(); }
       if (op < 0.003 || !r || r.getContext().isContextLost() || !r.domElement.width || !r.domElement.height) { lastRP = rp; if (wasOn) { for (const l of L) l.g2.clearRect(0, 0, l.c.width, l.c.height); wasOn = false; } return; } wasOn = true;

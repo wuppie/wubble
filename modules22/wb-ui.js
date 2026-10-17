@@ -173,7 +173,7 @@ Object.assign(window.WBM, {
       Array.from(txt).forEach((ch, i) => {
         const m = document.createElement('span'); m.style.cssText = 'position:relative;display:inline-block;overflow:hidden;vertical-align:top;line-height:1;';
         const a = document.createElement('span'), b = document.createElement('span'), c = ch === ' ' ? '\u00a0' : ch;
-        a.textContent = c; b.textContent = c; a.style.cssText = 'display:block;'; b.style.cssText = 'display:block;position:absolute;left:0;top:100%;color:var(--bg-services,#0b0b0b);';
+        a.textContent = c; b.textContent = c; a.style.cssText = 'display:block;'; b.style.cssText = 'display:block;position:absolute;left:0;top:100%;color:var(--svc-hover-ink,#0b0b0b);';
         m.appendChild(a); m.appendChild(b); el.appendChild(m); chars.push([a, b]);
       });
       const li = el.closest('li'); if (!li || !G) return;
