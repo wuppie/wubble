@@ -14,7 +14,8 @@
     const frame = () => { requestAnimationFrame(frame);
       const now = performance.now(), dt = Math.min(0.05, (now - t0) / 1000); t0 = now;
       const rp = window.__wbRP || 0, rq = window.__wbRQ || 0, P = window.__wbSpace || {};
-      const pp = rp + rq + (window.__wbRA || 0) + (window.__wbFootP || 0); /* warp only while moving between sections */ vel += ((pp - lastRP) / Math.max(0.001, dt) - vel) * (1 - Math.exp(-dt * 2.2)); lastRP = pp; /* slower response = softer ramp in/out */
+      const spE = window.__wbSpcEl || (window.__wbSpcEl = document.querySelector('[data-footer-spacer]')), spQ = spE ? Math.max(0, Math.min(1.5, 1.5 - spE.getBoundingClientRect().top / innerHeight)) : 0; /* own measure of the services→footer flight (doesn't wait for the moon to load) */
+      const pp = rp + rq + (window.__wbRA || 0) + Math.max(window.__wbFootP || 0, spQ); /* warp only while moving between sections */ vel += ((pp - lastRP) / Math.max(0.001, dt) - vel) * (1 - Math.exp(-dt * 2.2)); lastRP = pp; /* slower response = softer ramp in/out */
       const sm = (a, b, x) => { const k = Math.max(0, Math.min(1, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
       const tgt = P.on === false ? 0 : Math.max(sm(P.hs ?? 0.04, (P.hs ?? 0.04) + (P.hw ?? 0.16), rp) * (1 - (1 - (P.rest ?? 0.45)) * sm(0.85, 1, rp)), 0) * (1 - sm(0.3, 0.6, rq)); const f2 = (P.on === false ? 0 : 1) * sm(P.f2a ?? 0.28, (P.f2a ?? 0.28) + 0.1, rq) * (1 - sm(P.f2b ?? 0.6, (P.f2b ?? 0.6) + 0.12, rq)); const tg2 = Math.max(tgt, f2, P.on === false ? 0 : Math.min(1, (window.__wbFly || 0) * 1.3), window.__wbSpaceForce || 0);
       // galaxy mode: after the hero the space layer is the only background; hide panels that would sit on top of it (state-change only)

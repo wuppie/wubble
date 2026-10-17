@@ -18,8 +18,10 @@ Object.assign(window.WBM, {
   async initAstroGlobal() {
     const box = this.astroGRef.current; if (!box) return;
     let T3, GL, MO;
+    { const u0 = (this.props.astroModel || '').trim() || (this.props.astroRigUrl || (window.WB_ASSETS || './') + 'models/astronaut-rig.glb'); this.loadGLB({ parse: () => {} }, u0).catch(() => {}); window.__wbAstroUrl = u0; } // r14.8: model download starts with the three.js imports
     try { [T3, GL, MO] = await Promise.all([import('https://esm.sh/three@0.160.0'), import('https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js'), import('https://esm.sh/three@0.160.0/examples/jsm/libs/meshopt_decoder.module.js')]); } catch (e) { return; }
     if (this.dead) return;
+    if ((this.props.astroLook || 'Textured') === 'Textured') this.astroTexMat(T3).catch(() => {}); // start textures in parallel with the model, not after it
     const r = new T3.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance', });
     r.outputColorSpace = T3.SRGBColorSpace; r.toneMapping = T3.ACESFilmicToneMapping; r.toneMappingExposure = 1.05 * (this.props.astroBright ?? 2.2);
     r.setClearColor(0x000000, 0); r.domElement.style.cssText = 'display:block;width:100%;height:100%;';
@@ -39,12 +41,11 @@ Object.assign(window.WBM, {
     const hemiA = new T3.HemisphereLight(0xcfd8e8, 0x050506, 0.25); sc.add(hemiA);
     const softA = new T3.DirectionalLight(0xffffff, 0); softA.position.set(0.3, 2.6, 3.4); sc.add(softA);
     const fillA = new T3.DirectionalLight(0xffffff, 0); fillA.position.set(-2.2, 0.4, 2.0); sc.add(fillA);
-    try { const RE = await import('https://esm.sh/three@0.160.0/examples/jsm/environments/RoomEnvironment.js'); const pm = new T3.PMREMGenerator(r); sc.environment = pm.fromScene(new RE.RoomEnvironment(), 0.04).texture; } catch (e) {}
+    import('https://esm.sh/three@0.160.0/examples/jsm/environments/RoomEnvironment.js').then((RE) => { if (this.dead) return; const pm = new T3.PMREMGenerator(r); sc.environment = pm.fromScene(new RE.RoomEnvironment(), 0.04).texture; }).catch(() => {}); // r14.8: doesn't block the model
     const cam = new T3.PerspectiveCamera(24, 1, 0.1, 50); cam.position.set(0, 0, 4.2);
     const loader = new GL.GLTFLoader(); loader.setMeshoptDecoder(MO.MeshoptDecoder);
-    try { const DL = await import('https://esm.sh/three@0.160.0/examples/jsm/loaders/DRACOLoader.js'); const dl = new DL.DRACOLoader(); dl.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/'); loader.setDRACOLoader(dl); } catch (e) {}
     let g; const aUrl = (this.props.astroModel || '').trim() || ((this.props.astroRig ?? true) ? (this.props.astroRigUrl || (window.WB_ASSETS || './') + 'models/astronaut-rig.glb') : 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/Meshy_AI_Character_output-compressed.glb');
-    try { g = await this.loadGLB(loader, aUrl); } catch (e) { console.warn('astronaut failed', e); return; }
+    window.__wbAstroUrl = aUrl; try { g = await this.loadGLB(loader, aUrl); } catch (e) { console.warn('astronaut failed', e); window.__wbAstroReady = 1; return; }
     if (this.dead) return;
     const m = g.scene;
     { const bn = []; m.traverse((o) => { if (o.isBone) bn.push(o.name); }); console.log('[astro] model', aUrl.split('/').pop(), '| bones', bn.length, bn.join(','), '| clips', (g.animations || []).map((a) => a.name + ' ' + a.duration.toFixed(1) + 's').join(', ') || 'none'); }
@@ -508,7 +509,8 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
       fragmentShader: 'uniform sampler2D tA; uniform float uH; uniform float uPhoto; varying vec2 vUv; ' + this.ditherGLSL(2.0) + ' void main(){ vec4 c = texture2D(tA, vUv); vec3 rgb = c.rgb / max(c.a, 0.001); rgb = pow(rgb, vec3(1.0 / 2.2)); rgb = rgb * 1.3 / (1.0 + rgb * 0.55) + 0.02; float a = step(dqB8(gl_FragCoord.xy / 2.0) * 0.85 + 0.08, c.a); float lum = dot(rgb, vec3(0.299, 0.587, 0.114)); float warm = smoothstep(0.02, 0.14, rgb.r - rgb.b); float lv = lum * (1.0 - 0.7 * warm); float lvL = clamp(lv * ' + (this.props.astroHoverLight ?? 1.5).toFixed(2) + ', 0.0, 1.0); vec3 photo = mix(vec3(0.07, 0.075, 0.085), vec3(0.86, 0.88, 0.92), pow(lvL, 1.15)) + vec3(0.9, 0.92, 0.95) * pow(lvL, 5.0) * 0.45 * (1.0 - warm); photo = clamp(photo, 0.0, 1.0); float rv = step(dqB8(gl_FragCoord.xy / 2.0) + 0.001, uH); vec3 lin = c.rgb / max(c.a, 0.001) * 0.62; vec3 aces = clamp((lin * (2.51 * lin + 0.03)) / (lin * (2.43 * lin + 0.59) + 0.14), 0.0, 1.0); vec3 studio = pow(aces, vec3(1.0 / 2.2)); studio = clamp((studio - 0.5) * 1.06 + 0.5, 0.0, 1.0); vec3 dq = mix(DQ(rgb), mix(photo, studio, uPhoto), rv); gl_FragColor = vec4(dq, mix(a, c.a, rv * uPhoto)); }' });
     qS.add(new T3.Mesh(new T3.PlaneGeometry(2, 2), qM));
     const LOOK = () => this.props.astroLook || 'Textured', PLAIN = LOOK() === 'Plain', dOn = !PLAIN && (this.props.ditherStyle ?? true);
-    if (NATIVE) for (const c of CHM) { if (!c.o.isSkinnedMesh) continue; if (LOOK() === 'Textured') { c.o.visible = false; setTimeout(() => { c.o.visible = true; }, 20000); } /* hide the untextured (blue-ish) placeholder until the real textures are on */ this.applyAstroTex(T3, c.o).then((mt) => { if (mt) { c.texM = mt; this._texReady = 1; const t0 = performance.now(), was = mt.transparent; mt.transparent = true; mt.opacity = 0; mt.needsUpdate = true; c.o.visible = true; const f = () => { const k = Math.min(1, (performance.now() - t0) / 450); mt.opacity = k * k * (3 - 2 * k); if (k < 1) requestAnimationFrame(f); else { mt.opacity = 1; mt.transparent = was; mt.needsUpdate = true; } }; requestAnimationFrame(f); } else c.o.visible = true; }).catch((e) => { c.o.visible = true; console.warn('astro tex failed', e); }); }
+    if (NATIVE) for (const c of CHM) { if (!c.o.isSkinnedMesh) continue;  /* hide the untextured (blue-ish) placeholder until the real textures are on */ this.applyAstroTex(T3, c.o).then((mt) => { if (mt) { c.texM = mt; this._texReady = 1; c.o.visible = true; requestAnimationFrame(() => requestAnimationFrame(() => { window.__wbAstroReady = 1; })); /* loader may leave now */ } else c.o.visible = true; }).catch((e) => { c.o.visible = true; window.__wbAstroReady = 1; console.warn('astro tex failed', e); }); }
+    if (!NATIVE || (this.props.astroLook || 'Textured') !== 'Textured') requestAnimationFrame(() => { window.__wbAstroReady = 1; });
     size(); addEventListener('resize', size);
     // storyline keyframes (screen units: x,y in -1..1, s = scale)
     const K = [{ x: 0, y: -0.04, s: 1.45, ry: -0.5 }, { x: 0.0, y: 0.02, s: (innerWidth < 820 ? 1.6 : 1.3), ry: -0.5 }, { x: -0.46, y: 0.0, s: 0.62, ry: 0.6 }, { x: 0.42, y: 0.08, s: 0.56, ry: -0.4 }];
@@ -619,7 +621,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
         }
         if (LOOK() === 'Hologram') {}
         else if (LOOK() === 'Textured' && this._texReady) { const P = this.props; for (const c of CHM) if (c.texM) { if (c.o.material !== c.texM) c.o.material = c.texM; c.texM.envMapIntensity = P.astroTexEnv ?? 1; c.texM.metalness = P.astroTexMetal ?? 1; c.texM.roughness = P.astroTexRough ?? 1; c.texM.normalScale.setScalar(P.astroTexNormal ?? 1); } }
-        else if (LOOK() === 'Textured') {}
+        else if (LOOK() === 'Textured') { if (!this._waitM) { this._waitM = new T3.MeshStandardMaterial({ color: 0xd6d4cf, metalness: 1, roughness: 0.32, envMapIntensity: 1.2, side: T3.DoubleSide }); this._waitT0 = performance.now(); } for (const c of CHM) if (c.o.isMesh) { if (c.o.material !== this._waitM) c.o.material = this._waitM; c.o.visible = performance.now() - this._waitT0 > 6000; } } // r14.9: stays hidden until the metallic textures are on (they now download in parallel); metallic fallback after 6 s // neutral suit while textures stream in (no blue chrome)
         else if (PLAIN) { if (!this._plainM) this._plainM = new T3.MeshStandardMaterial({ color: 0xd2d1cd, metalness: 0, roughness: 0.6, side: T3.DoubleSide }); for (const c of CHM) if (c.o.material !== this._plainM) c.o.material = this._plainM; }
         else { const P = this.props, FLK = (P.astroLook || 'Footer') === 'Footer', TXM = FLK ? 'None' : (P.astroTexture || 'Metal012'), on = FLK || (P.astroChrome ?? true) || TXM !== 'None', col = FLK ? '#d2d1cd' : (P.astroChromeColor || '#c9c9c7'), me = FLK ? 0.25 : (P.astroMetal ?? 0.85), ro = FLK ? 0.5 : (P.astroRough ?? 0.38);
           const uz = { uVR: P.astroVisorR ?? 0.8, uVC: P.astroVisorCone ?? 0.35, uCav: P.astroShadows ?? 0.7, uDbg: (P.astroZones ?? false) ? 1 : 0, uTS: P.astroTexScale ?? 0.004, uTC: P.astroTexContrast ?? 2.5, uCer: TXM !== 'None' ? 1 : 0, uMet: TXM === 'Metal012' ? 1 : 0, uFL: P.astroFaceLight ?? 0.55, uFT: (P.astroFaceTex ?? true) ? 1 : 0 }, fc = P.astroFaceColor || '#a88672', vc = P.astroVisorColor || '#1c1e24', ei = FLK ? 0.9 : (P.astroEnv ?? 0.6);

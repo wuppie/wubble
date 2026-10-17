@@ -663,16 +663,17 @@ Object.assign(window.WBM, {
     const fonts = document.fonts ? document.fonts.ready : Promise.resolve();
     fonts.then(() => { this._fontsOK = true; }); setTimeout(() => { this._fontsOK = true; }, 2500);
     this.lockScroll(true);
-    this._ldAstroOK = true; // loader astronaut removed: it cost a WebGL context during the busiest moment of load
+    this._ldAstroOK = false; // r14.11: the loader waits for the astronaut (model + textures on screen)
     setTimeout(() => { if (this.dead || el.style.display === 'none') return; console.warn('[loader] safety release'); el.style.display = 'none'; if (this._ldStop) this._ldStop(); this.lockScroll(false); if (!this._entered) { this._entered = true; try { this.runEntrance(); } catch (e) {} } }, 36000);
     const ease = (t) => 1 - Math.pow(1 - t, 4), io = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
     const step = () => {
       if (this.dead) return;
       const now = performance.now(), el2 = now - t0;
-      const assets = (this._fontsOK ? 0.35 : 0) + (this._ldAstroOK ? 0.65 : 0);
-      const prog = (window.__glbProg && this._ldUrl && window.__glbProg[this._ldUrl]) || 0, creep = Math.min(0.06, el2 / 15000);
-      const target = this._ldAstroOK || el2 > MAX ? Math.min(1, Math.min(el2 / MIN, 1) * 0.6 + assets * 0.4 + (el2 > MAX ? 1 : 0)) : Math.min(0.92, Math.max(creep, prog * 0.92));
-      shown += (target - shown) * 0.08; if (target >= 1 && shown > 0.995) shown = 1;
+      if (window.__wbAstroReady) this._ldAstroOK = true;
+      // real progress: model download 0→80%, textures + first frame 80→99%, 100 only once the astronaut is on screen
+      const gp = (window.__glbProg && window.__wbAstroUrl && window.__glbProg[window.__wbAstroUrl]) || 0, creep = Math.min(0.08, el2 / 12000);
+      const target = (this._ldAstroOK && this._fontsOK && el2 > MIN) || el2 > MAX ? 1 : Math.min(this._ldAstroOK ? 0.99 : 0.97, Math.max(creep, gp * 0.8 + (gp >= 1 ? 0.12 : 0) + (this._ldAstroOK ? 0.07 : 0)));
+      shown += (target - shown) * (target >= 1 ? 0.12 : 0.06); if (target >= 1 && shown > 0.995) shown = 1; if (target < 1) shown = Math.min(shown, 0.99);
       cnt.textContent = String(Math.round(shown * 100)).padStart(3, '0');
       bar.style.transform = 'scaleX(' + shown.toFixed(4) + ')';
       if (this._ldU) this._ldU.value = shown;
