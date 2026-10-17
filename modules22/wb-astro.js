@@ -86,7 +86,7 @@ Object.assign(window.WBM, {
         }
       }
       geo.setAttribute('aMk', new T3.BufferAttribute(MK, 4)); geo.setAttribute('aFU', new T3.BufferAttribute(FU, 2));
-      if (!this._faceTex) { this._faceTex = (P.astroFaceTex ?? false) ? new T3.TextureLoader().load((window.WB_ASSETS || './') + 'models/astro-face.png') : new T3.Texture(); this._faceTex.colorSpace = T3.SRGBColorSpace; this._faceTex.anisotropy = 4; }
+      if (!this._faceTex) { this._faceTex = new T3.TextureLoader().load((window.WB_ASSETS || './') + 'models/astro-face.png'); this._faceTex.colorSpace = T3.SRGBColorSpace; this._faceTex.anisotropy = 4; }
       const U = { uVR: { value: 0.8 }, uVC: { value: 0.35 }, uCav: { value: 0.7 }, uFace: { value: new T3.Color('#a88672') }, uVis: { value: new T3.Color('#1c1e24') }, uDbg: { value: 0 }, uTex: { value: MTC }, uTexR: { value: MTR }, uTS: { value: 0.004 }, uCer: { value: 1 }, uTC: { value: 2.5 }, uMet: { value: 1 }, uFL: { value: 0.55 }, uFT: { value: 1 }, uFaceTex: { value: this._faceTex } };
       const mt = new T3.MeshStandardMaterial({ color: new T3.Color(P.astroChromeColor || '#c9c9c7'), metalness: P.astroMetal ?? 0.85, roughness: P.astroRough ?? 0.38, side: T3.DoubleSide, envMapIntensity: 1 });
       mt.userData.U = U;
