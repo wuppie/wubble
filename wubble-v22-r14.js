@@ -33,7 +33,7 @@ document.documentElement.classList.add('wb-live');
 ].join('\n'); (document.head || document.documentElement).appendChild(L); })();
 // per-section scroll length from Webflow: data-wb-length="815" (in vh)
 document.addEventListener('DOMContentLoaded', function () { document.querySelectorAll('[data-wb-length]').forEach(function (el) { var v = parseFloat(el.getAttribute('data-wb-length')); if (v > 0) el.style.setProperty('--wb-len', v + 'vh'); }); });
- console.info('wubble: build V22-webflow r14.21 (2026-10-17)');
+ console.info('wubble: build V22-webflow r14.24 (2026-10-19)');
 var BASE = (document.currentScript && document.currentScript.dataset.base) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/';
 (function () { try { var B = (document.currentScript && document.currentScript.getAttribute('data-base')) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/'; var lo = matchMedia('(pointer: coarse)').matches || innerWidth < 820 || (navigator.deviceMemory || 8) <= 4, q = lo ? '-1k' : '-2k';
   [['models/astronaut-rig.glb', 'fetch'], ['models/astro-rig-uv.bin', 'fetch'], ['models/astro-tex-color' + q + '.webp', 'image'], ['models/astro-tex-mr' + q + '.webp', 'image'], ['models/astro-tex-normal' + q + '.webp', 'image']].forEach(function (f) { var l = document.createElement('link'); l.rel = 'preload'; l.as = f[1]; l.href = B + f[0]; l.crossOrigin = 'anonymous'; if (f[1] === 'fetch') l.setAttribute('fetchpriority', 'high'); document.head.appendChild(l); });
@@ -187,14 +187,14 @@ class Component extends DCLogic {
   footerFigRef = React.createRef(); rollRef = React.createRef(); bleedRef = React.createRef(); bgRef = React.createRef(); gooRef = React.createRef(); inkRef = React.createRef(); closeRef = React.createRef(); loaderRef = React.createRef(); chromeRef = React.createRef(); curtainRef = React.createRef(); hero3dRef = React.createRef(); ctaRef = React.createRef(); astroGRef = React.createRef();
   ctaGlRef = React.createRef(); reachRef = React.createRef(); rayRef = React.createRef(); handRef = React.createRef(); astroRef = React.createRef(); hostRef = React.createRef(); heroRef = React.createRef(); workRef = React.createRef();
   uiRef = React.createRef(); headlineRef = React.createRef(); portraitRef = React.createRef(); pageRef = React.createRef();
-  projects = [
+  projects = (window.__wubbleMerge || function (d) { return d; })([ /* r14.24: CMS items replace the baked-in projects again */
     { title: 'Tidewater Atlas', mark: 'TIDE/ WATER', type: 'Interactive atlas', year: '2026', client: 'Coastal Trust', bg: '#d8d3c6', ink: '#151412', accent: '#c9542f', blurb: 'A living map of a changing coastline — tides, erosion and stories layered into one explorable surface.' },
     { title: 'Northfield Records', mark: 'NRTH FLD', type: 'Label identity', year: '2025', client: 'Northfield', bg: '#1e3a2c', ink: '#ebe5d3', accent: '#d9c36a', blurb: 'Identity and web presence for an independent label, built around a flexible system of sleeves and motion.' },
     { title: 'Oda Ceramics', mark: 'ODA', type: 'E-commerce', year: '2025', client: 'Oda Studio', bg: '#c4512d', ink: '#f4ede1', accent: '#1b1a17', blurb: 'A quiet storefront for handmade ceramics where every object gets room to breathe.' },
     { title: 'Kinetic Type Lab', mark: 'KINE TIC', type: 'WebGL experiment', year: '2024', client: 'Self-initiated', bg: '#242a66', ink: '#e9e7f1', accent: '#f0a8c0', blurb: 'An ongoing playground of shader-driven typography reacting to sound, cursor and scroll.' },
     { title: 'Halden Observatory', mark: 'HAL DEN', type: 'Museum website', year: '2024', client: 'Halden Foundation', bg: '#e9e4d7', ink: '#141414', accent: '#3a5bd9', blurb: 'Digital home for a historic observatory — exhibitions, night programmes and a sky archive.' },
     { title: 'Sunday Garden', mark: 'SUN DAY', type: 'Restaurant', year: '2023', client: 'Sunday Garden', bg: '#121212', ink: '#ece9e2', accent: '#c7de5b', blurb: 'Brand and booking experience for a seasonal restaurant that changes with its garden.' },
-  ];
+  ]);
 
   ditherGLSL(px) {
     // site-wide 1-bit ordered dither (engraving / print look): pure black + paper white
