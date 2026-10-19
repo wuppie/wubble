@@ -33,7 +33,7 @@ document.documentElement.classList.add('wb-live');
 ].join('\n'); (document.head || document.documentElement).appendChild(L); })();
 // per-section scroll length from Webflow: data-wb-length="815" (in vh)
 document.addEventListener('DOMContentLoaded', function () { document.querySelectorAll('[data-wb-length]').forEach(function (el) { var v = parseFloat(el.getAttribute('data-wb-length')); if (v > 0) el.style.setProperty('--wb-len', v + 'vh'); }); });
- console.info('wubble: build V22-webflow r14.20 (2026-10-17)');
+ console.info('wubble: build V22-webflow r14.21 (2026-10-17)');
 var BASE = (document.currentScript && document.currentScript.dataset.base) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/';
 (function () { try { var B = (document.currentScript && document.currentScript.getAttribute('data-base')) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/'; var lo = matchMedia('(pointer: coarse)').matches || innerWidth < 820 || (navigator.deviceMemory || 8) <= 4, q = lo ? '-1k' : '-2k';
   [['models/astronaut-rig.glb', 'fetch'], ['models/astro-rig-uv.bin', 'fetch'], ['models/astro-tex-color' + q + '.webp', 'image'], ['models/astro-tex-mr' + q + '.webp', 'image'], ['models/astro-tex-normal' + q + '.webp', 'image']].forEach(function (f) { var l = document.createElement('link'); l.rel = 'preload'; l.as = f[1]; l.href = B + f[0]; l.crossOrigin = 'anonymous'; if (f[1] === 'fetch') l.setAttribute('fetchpriority', 'high'); document.head.appendChild(l); });
@@ -98,11 +98,11 @@ function boot() {
     var hide = +(el.getAttribute('data-split-hide') || 0), attr = el.getAttribute('data-split-letter') || 'sq', lc = el.getAttribute('data-split-class') || 'hero-letter';
     el.setAttribute('aria-label', txt); el.textContent = '';
     txt.split(' ').forEach(function (w, wi) {
-      if (wi > 0) { var g = document.createElement('span'); g.className = 'title-gap'; el.appendChild(g); }
+      if (wi > 0) { var g = document.createElement('span'); g.className = 'title-gap'; g.style.cssText = 'display:inline-block;width:0.2em;'; el.appendChild(g); }
       Array.from(w).forEach(function (ch) {
-        var m = document.createElement('span'); m.className = hide === wi + 1 ? 'title-letter-mask-hidden' : 'title-letter-mask';
-        var gw = document.createElement('span'); gw.className = 'title-word'; gw.setAttribute('data-gw', '');
-        var l = document.createElement('span'); l.className = lc; l.setAttribute('data-' + attr, ''); l.setAttribute('aria-hidden', 'true'); l.textContent = ch;
+        var m = document.createElement('span'); m.className = hide === wi + 1 ? 'title-letter-mask-hidden' : 'title-letter-mask'; m.style.cssText = 'display:inline-block;overflow:hidden;vertical-align:top;padding:0.04em 0 0.08em;' + (hide === wi + 1 ? 'visibility:hidden;' : ''); /* r14.21: exact V22 inline mask, independent of Webflow classes */
+        var gw = document.createElement('span'); gw.className = 'title-word'; gw.setAttribute('data-gw', ''); gw.style.cssText = 'display:inline-block;will-change:transform;';
+        var l = document.createElement('span'); l.className = lc; l.setAttribute('data-' + attr, ''); l.setAttribute('aria-hidden', 'true'); l.style.cssText = 'display:inline-block;transform-origin:50% 100%;will-change:transform;'; l.textContent = ch;
         gw.appendChild(l); m.appendChild(gw); el.appendChild(m);
       });
     });
