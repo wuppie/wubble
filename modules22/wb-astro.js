@@ -513,7 +513,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
     if (!NATIVE || (this.props.astroLook || 'Textured') !== 'Textured') requestAnimationFrame(() => { window.__wbAstroReady = 1; });
     size(); addEventListener('resize', size);
     // storyline keyframes (screen units: x,y in -1..1, s = scale)
-    const K = [{ x: 0, y: -0.04, s: 1.45, ry: -0.5 }, { x: 0.0, y: 0.02, s: (innerWidth < 820 ? 1.6 : 1.3), ry: -0.5 }, { x: -0.46, y: 0.0, s: 0.62, ry: 0.6 }, { x: 0.42, y: 0.08, s: 0.56, ry: -0.4 }];
+    const K = [{ x: 0, y: innerWidth < 820 ? (this.props.astroHeroYMobile ?? 0.1) : -0.04, s: 1.45, ry: -0.5 }, { x: 0.0, y: 0.02, s: (innerWidth < 820 ? 1.6 : 1.3), ry: -0.5 }, { x: -0.46, y: 0.0, s: 0.62, ry: 0.6 }, { x: 0.42, y: 0.08, s: 0.56, ry: -0.4 }];
     const K1s0 = K[1].s;
     const ss = (t) => t * t * (3 - 2 * t), eIn = (t) => t * t * t, eOut = (t) => 1 - Math.pow(1 - t, 3);
     const t0 = performance.now(); let shown = false;
