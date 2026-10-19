@@ -8,7 +8,7 @@
     if (!MOB && (window.__wbClouds.engine || 'WebGL') === 'WebGL' && window.__wbCloudsGL) { window.__wbCloudsGL(back, front).catch((e) => console.warn('clouds gl failed', e)); return true; }
     const img = new Image(); img.src = (window.WB_ASSETS || './') + 'models/cloud10.png';
     const mk = (host) => { const c = document.createElement('canvas'); c.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;'; host.appendChild(c); return { c, g: c.getContext('2d') }; };
-    const B = mk(back), F = mk(front), DEPTH = 1500, N = 1400, S = [];
+    const B = mk(back), F = mk(front), DEPTH = 1500, N = MOB ? 650 : 1400, S = []; /* fewer sprites on phones keeps it smooth */
     let fogC = '', fogI = null; const tintFog = (col) => { const t = document.createElement('canvas'); t.width = img.naturalWidth; t.height = img.naturalHeight; const x = t.getContext('2d'); x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, t.width, t.height); return t; };
     for (let i = 0; i < N; i++) S.push({ x: Math.random() * 1000 - 500, y: -Math.random() * Math.random() * 200 - 15, z: (i / N) * DEPTH, r: Math.random() * Math.PI, s: Math.random() * Math.random() * 1.5 + 0.5 });
     const PR = 0.5; let W = 1, H = 1;
@@ -18,7 +18,7 @@
     let pos = 0, last = performance.now(), lastRP = 0, wasOn = true;
     const tick = () => { requestAnimationFrame(tick); const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now;
       const P = window.__wbClouds || {}, rp = window.__wbRP || 0, sm = (a, b, x) => { const k = Math.max(0, Math.min(1, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
-      const op = P.on === false ? 0 : (P.amount ?? 1) * (1 - sm(P.hs ?? 0.04, (P.hs ?? 0.04) + (P.hw ?? 0.16), rp));
+      const LG = P.linger ?? 1.8, op = P.on === false ? 0 : (P.amount ?? 1) * (1 - sm((P.hs ?? 0.04) + (P.hw ?? 0.16) * 0.35 * LG, (P.hs ?? 0.04) + (P.hw ?? 0.16) * (1 + 0.6 * LG), rp)); /* r14.24: same fade timing as the desktop WebGL clouds */
       back.style.opacity = front.style.opacity = op.toFixed(3);
       if (op < 0.003 || !img.complete) { lastRP = rp; if (wasOn) { B.g.clearRect(0, 0, W, H); F.g.clearRect(0, 0, W, H); wasOn = false; } return; } wasOn = true;
       pos = (pos + dt * 30 * (P.speed ?? 1) + Math.max(0, rp - lastRP) * 1400) % DEPTH; lastRP = rp;
