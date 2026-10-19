@@ -8,6 +8,7 @@ if (window.__wubbleV20) return; window.__wubbleV20 = true;
 // ---------- live-only layout: in the Webflow Designer sections stack normally; on the live site the scroll staging switches on ----------
 document.documentElement.classList.add('wb-live');
 (function () { var L = document.createElement('style'); L.id = 'wb-live-css'; L.textContent = [
+  'html.wb-live [data-wb-cms]{display:none!important}',
   'html.wb-live [data-w="hero"],html.wb-live [data-wh="hero"]{position:sticky;top:0;height:100vh;height:100lvh}',
   'html.wb-live [data-w="work"],html.wb-live [data-wh="work"]{height:var(--wb-len,815vh);margin-top:-100vh}',
   'html.wb-live [data-panel]{position:sticky;top:0}',
@@ -26,7 +27,7 @@ document.documentElement.classList.add('wb-live');
 ].join('\n'); (document.head || document.documentElement).appendChild(L); })();
 // per-section scroll length from Webflow: data-wb-length="815" (in vh)
 document.addEventListener('DOMContentLoaded', function () { document.querySelectorAll('[data-wb-length]').forEach(function (el) { var v = parseFloat(el.getAttribute('data-wb-length')); if (v > 0) el.style.setProperty('--wb-len', v + 'vh'); }); });
- console.info('wubble: build V22-webflow r14.13 (2026-10-17)');
+ console.info('wubble: build V22-webflow r14.14 (2026-10-17)');
 var BASE = (document.currentScript && document.currentScript.dataset.base) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/';
 (function () { try { var B = (document.currentScript && document.currentScript.getAttribute('data-base')) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/'; var lo = matchMedia('(pointer: coarse)').matches || innerWidth < 820 || (navigator.deviceMemory || 8) <= 4, q = lo ? '-1k' : '-2k';
   [['models/astronaut-rig.glb', 'fetch'], ['models/astro-rig-uv.bin', 'fetch'], ['models/astro-tex-color' + q + '.webp', 'image'], ['models/astro-tex-mr' + q + '.webp', 'image'], ['models/astro-tex-normal' + q + '.webp', 'image']].forEach(function (f) { var l = document.createElement('link'); l.rel = 'preload'; l.as = f[1]; l.href = B + f[0]; l.crossOrigin = 'anonymous'; if (f[1] === 'fetch') l.setAttribute('fetchpriority', 'high'); document.head.appendChild(l); });
