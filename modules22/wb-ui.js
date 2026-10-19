@@ -705,6 +705,8 @@ Object.assign(window.WBM, {
     if (T.model) items.push({ el: T.model, d: 0, dur: 2200, kind: 'model' });
     T.hdr.forEach((el, i) => items.push({ el, d: 520 + i * 90, dur: 1200, kind: 'ui' }));
     T.ftr.forEach((el, i) => items.push({ el, d: 760 + i * 90, dur: 1200, kind: 'ui' }));
+    // r14.22: hero services reveal with the entrance (no longer waits for the hero 3D loop / a mouse move)
+    document.querySelectorAll('[data-svc] [data-cw]').forEach((el, i) => items.push({ el, d: 700 + i * 70, dur: 900, kind: 'cw' }));
     const step = () => {
       if (this.dead) return;
       const now = performance.now(); let busy = false;
@@ -713,6 +715,7 @@ Object.assign(window.WBM, {
         if (t < 1) busy = true;
         if (it.kind === 'line') { it.el.style.clipPath = t >= 1 ? '' : 'inset(0 0 ' + ((1 - e) * 100).toFixed(2) + '% 0)'; it.el.style.transform = t >= 1 ? '' : 'translate3d(0,' + ((1 - e) * 0.6).toFixed(3) + 'em,0)'; }
         else if (it.kind === 'model') { it.el.style.opacity = String(Math.min(1, t * 1.6)); it.el.style.transform = t >= 1 ? '' : 'scale(' + (1 + (1 - e) * 0.12).toFixed(4) + ')'; }
+        else if (it.kind === 'cw') { it.el.style.transform = t >= 1 ? 'none' : 'translate3d(0,' + ((1 - e) * 110).toFixed(2) + '%,0) rotate(' + ((1 - e) * 4).toFixed(2) + 'deg)'; it.el.style.opacity = t >= 1 ? '' : (0.15 + 0.85 * e).toFixed(3); }
         else { it.el.style.opacity = String(e); it.el.style.transform = t >= 1 ? '' : 'translate3d(0,' + ((1 - e) * 14).toFixed(2) + 'px,0)'; }
         if (t >= 1) it.el.style.willChange = '';
       });
