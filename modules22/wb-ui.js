@@ -683,14 +683,19 @@ Object.assign(window.WBM, {
       cnt.textContent = String(Math.round(shown * 100)).padStart(3, '0');
       bar.style.transform = 'scaleX(' + shown.toFixed(4) + ')';
       if (this._ldU) this._ldU.value = shown;
-      if (shown >= 1 && !ready) { ready = true; outT = now + 250; }
-      if (ready && now > outT) {
-        const k = Math.min(1, (now - outT) / 1100), e = io(k);
-        el.style.clipPath = 'inset(0 0 ' + (e * 100).toFixed(2) + '% 0)';
-        if (this._ldCv) this._ldCv.style.opacity = String(1 - e);
-        cnt.style.transform = 'translate3d(0,' + (-e * 40) + '%,0)';
-        if (k > 0.45 && !this._entered) { this._entered = true; this.runEntrance(); }
-        if (k >= 1) { el.style.display = 'none'; this._toTop && this._toTop(); this.lockScroll(false); if (this._ldStop) this._ldStop(); return; }
+      // r14.19: wait until the GPU has settled (8 smooth frames in a row, max 1.6s) so the exit never stutters
+      { const dtf = now - (this._ldLast || now); this._ldLast = now; if (shown >= 1) { this._ldSmooth = dtf > 0 && dtf < 22 ? (this._ldSmooth || 0) + 1 : 0; this._ldFull = this._ldFull || now; } }
+      if (shown >= 1 && !ready && ((this._ldSmooth || 0) >= 8 || now - this._ldFull > 1600)) {
+        ready = true; this._toTop && this._toTop();
+        // compositor-driven exit (transform + opacity): stays smooth even if the main thread is busy
+        const EZ = 'cubic-bezier(0.76,0,0.24,1)', D = 1100;
+        el.style.willChange = 'transform'; el.style.clipPath = '';
+        const an = el.animate([{ transform: 'translate3d(0,0,0)' }, { transform: 'translate3d(0,-100%,0)' }], { duration: D, easing: EZ, fill: 'forwards' });
+        cnt.animate([{ transform: 'translate3d(0,0,0)', opacity: 1 }, { transform: 'translate3d(0,-40%,0)', opacity: 0 }], { duration: D * 0.7, easing: EZ, fill: 'forwards' });
+        if (this._ldCv) this._ldCv.animate([{ opacity: 1 }, { opacity: 0 }], { duration: D * 0.6, easing: 'ease-out', fill: 'forwards' });
+        setTimeout(() => { if (!this._entered) { this._entered = true; this.runEntrance(); } }, D * 0.5);
+        an.onfinish = () => { el.style.display = 'none'; this._toTop && this._toTop(); this.lockScroll(false); if (this._ldStop) this._ldStop(); };
+        return;
       }
       requestAnimationFrame(step);
     };
@@ -705,20 +710,14 @@ Object.assign(window.WBM, {
     if (T.model) items.push({ el: T.model, d: 0, dur: 2200, kind: 'model' });
     T.hdr.forEach((el, i) => items.push({ el, d: 520 + i * 90, dur: 1200, kind: 'ui' }));
     T.ftr.forEach((el, i) => items.push({ el, d: 760 + i * 90, dur: 1200, kind: 'ui' }));
-    const step = () => {
-      if (this.dead) return;
-      const now = performance.now(); let busy = false;
-      items.forEach(it => {
-        const t = Math.max(0, Math.min(1, (now - t0 - it.d) / it.dur)), e = ex(t);
-        if (t < 1) busy = true;
-        if (it.kind === 'line') { it.el.style.clipPath = t >= 1 ? '' : 'inset(0 0 ' + ((1 - e) * 100).toFixed(2) + '% 0)'; it.el.style.transform = t >= 1 ? '' : 'translate3d(0,' + ((1 - e) * 0.6).toFixed(3) + 'em,0)'; }
-        else if (it.kind === 'model') { it.el.style.opacity = String(Math.min(1, t * 1.6)); it.el.style.transform = t >= 1 ? '' : 'scale(' + (1 + (1 - e) * 0.12).toFixed(4) + ')'; }
-        else { it.el.style.opacity = String(e); it.el.style.transform = t >= 1 ? '' : 'translate3d(0,' + ((1 - e) * 14).toFixed(2) + 'px,0)'; }
-        if (t >= 1) it.el.style.willChange = '';
-      });
-      if (busy) requestAnimationFrame(step);
-    };
-    step();
+    // r14.19: compositor animations (transform/opacity only) — smooth even while 3D is still warming up
+    const EX = 'cubic-bezier(0.16,1,0.3,1)';
+    items.forEach((it) => { const el = it.el; el.style.clipPath = ''; el.style.willChange = 'transform,opacity';
+      const kf = it.kind === 'line' ? [{ transform: 'translate3d(0,105%,0)' }, { transform: 'translate3d(0,0,0)' }]
+        : it.kind === 'model' ? [{ opacity: 0, transform: 'scale(1.12)' }, { opacity: 1, transform: 'scale(1)' }]
+        : [{ opacity: 0, transform: 'translate3d(0,14px,0)' }, { opacity: 1, transform: 'translate3d(0,0,0)' }];
+      const an = el.animate(kf, { duration: it.dur, delay: it.d, easing: EX, fill: 'both' });
+      an.onfinish = () => { el.style.willChange = ''; el.style.opacity = ''; el.style.transform = ''; try { an.cancel(); } catch (er) {} }; });
   },
   initGrain() {
     const P = this.props; let el = document.getElementById('site-grain');
