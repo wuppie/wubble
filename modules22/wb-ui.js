@@ -670,7 +670,7 @@ Object.assign(window.WBM, {
     toTop(); this._toTop = toTop; document.documentElement.classList.add('wb-ready');
     this.lockScroll(true);
     this._ldAstroOK = false; // r14.11: the loader waits for the astronaut (model + textures on screen)
-    setTimeout(() => { if (this.dead || el.style.display === 'none') return; console.warn('[loader] safety release'); el.style.display = 'none'; if (this._ldStop) this._ldStop(); this.lockScroll(false); if (!this._entered) { this._entered = true; try { this.runEntrance(); } catch (e) {} } }, 36000);
+    setTimeout(() => { if (this.dead || el.style.display === 'none') return; console.warn('[loader] safety release'); el.style.display = 'none'; document.documentElement.classList.add('wb-reveal', 'wb-done'); if (this._ldStop) this._ldStop(); this.lockScroll(false); if (!this._entered) { this._entered = true; try { this.runEntrance(); } catch (e) {} } }, 36000);
     const ease = (t) => 1 - Math.pow(1 - t, 4), io = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
     const step = () => {
       if (this.dead) return;
@@ -686,7 +686,7 @@ Object.assign(window.WBM, {
       // r14.19: wait until the GPU has settled (8 smooth frames in a row, max 1.6s) so the exit never stutters
       { const dtf = now - (this._ldLast || now); this._ldLast = now; if (shown >= 1) { this._ldSmooth = dtf > 0 && dtf < 22 ? (this._ldSmooth || 0) + 1 : 0; this._ldFull = this._ldFull || now; } }
       if (shown >= 1 && !ready && ((this._ldSmooth || 0) >= 8 || now - this._ldFull > 1600)) {
-        ready = true; this._toTop && this._toTop();
+        ready = true; this._toTop && this._toTop(); document.documentElement.classList.add('wb-reveal');
         // compositor-driven exit (transform + opacity): stays smooth even if the main thread is busy
         const EZ = 'cubic-bezier(0.76,0,0.24,1)', D = 1100;
         el.style.willChange = 'transform'; el.style.clipPath = '';
@@ -694,7 +694,7 @@ Object.assign(window.WBM, {
         cnt.animate([{ transform: 'translate3d(0,0,0)', opacity: 1 }, { transform: 'translate3d(0,-40%,0)', opacity: 0 }], { duration: D * 0.7, easing: EZ, fill: 'forwards' });
         if (this._ldCv) this._ldCv.animate([{ opacity: 1 }, { opacity: 0 }], { duration: D * 0.6, easing: 'ease-out', fill: 'forwards' });
         setTimeout(() => { if (!this._entered) { this._entered = true; this.runEntrance(); } }, D * 0.5);
-        an.onfinish = () => { el.style.display = 'none'; this._toTop && this._toTop(); this.lockScroll(false); if (this._ldStop) this._ldStop(); };
+        an.onfinish = () => { el.style.display = 'none'; this._toTop && this._toTop(); this.lockScroll(false); document.documentElement.classList.add('wb-done'); if (this._ldStop) this._ldStop(); };
         return;
       }
       requestAnimationFrame(step);

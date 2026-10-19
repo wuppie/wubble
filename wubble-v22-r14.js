@@ -1,5 +1,5 @@
 /* r14.15: never run inside the Webflow Designer canvas — there the script painted colours/glows that aren't in the Style panel */
-if (/(^|\.)(design|canvas|preview)\.webflow\.com$|webflow\.com$/.test(location.hostname) && !/\.webflow\.io$/.test(location.hostname) || document.documentElement.classList.contains('w-editor') || window.__WEBFLOW_DESIGNER__ || (window.top !== window && /webflow\.com/.test(document.referrer || '')) || (function () { try { return /webflow\.com$/.test(window.top.location.hostname); } catch (e) { return window.top !== window; } })() || (window.Webflow && Webflow.env && (Webflow.env('design') || Webflow.env('editor')))) { console.info('wubble: Designer detected, effects off'); } else {
+if (/(^|\.)(design|canvas|preview)\.webflow\.com$|webflow\.com$/.test(location.hostname) && !/\.webflow\.io$/.test(location.hostname) || document.documentElement.classList.contains('w-editor') || window.__WEBFLOW_DESIGNER__ || (window.top !== window && /webflow\.com/.test(document.referrer || '')) || (function () { try { return /webflow\.com$/.test(window.top.location.hostname); } catch (e) { return window.top !== window; } })() || (window.Webflow && Webflow.env && (Webflow.env('design') || Webflow.env('editor')))) { console.info('wubble: Designer detected, effects off'); document.documentElement.classList.add('wb-reveal', 'wb-done'); } else {
 /* r14.16: sandboxed iframes (e.g. the Made in Webflow showcase) block sessionStorage/localStorage — use a safe in-memory fallback */
 window.__wbSS = (function () { try { var s = window.sessionStorage; s.setItem('__wbT', '1'); s.removeItem('__wbT'); return s; } catch (e) { var m = {}; return { getItem: function (k) { return k in m ? m[k] : null; }, setItem: function (k, v) { m[k] = String(v); }, removeItem: function (k) { delete m[k]; } }; } })();
 try { window.localStorage && window.localStorage.getItem('__wbT'); } catch (e) { try { Object.defineProperty(window, 'localStorage', { value: { getItem: function () { return null; }, setItem: function () {}, removeItem: function () {} }, configurable: true }); } catch (e2) {} }
@@ -10,6 +10,7 @@ if (window.__wubbleV20) return; window.__wubbleV20 = true;
 // ---------- live-only layout: in the Webflow Designer sections stack normally; on the live site the scroll staging switches on ----------
 document.documentElement.classList.add('wb-live');
 (function () { var L = document.createElement('style'); L.id = 'wb-live-css'; L.textContent = [
+  'html:not(.wb-done){overflow:hidden!important}html:not(.wb-done) body{overflow:hidden!important;touch-action:none}',
   'html.wb-live [data-wb-cms]{display:none!important}',
   'html.wb-live [data-wb-svc-img]{display:none!important}',
   /* showcase fallbacks: native Webflow videos/images that only show where custom code does not run */
@@ -32,7 +33,7 @@ document.documentElement.classList.add('wb-live');
 ].join('\n'); (document.head || document.documentElement).appendChild(L); })();
 // per-section scroll length from Webflow: data-wb-length="815" (in vh)
 document.addEventListener('DOMContentLoaded', function () { document.querySelectorAll('[data-wb-length]').forEach(function (el) { var v = parseFloat(el.getAttribute('data-wb-length')); if (v > 0) el.style.setProperty('--wb-len', v + 'vh'); }); });
- console.info('wubble: build V22-webflow r14.18 (2026-10-17)');
+ console.info('wubble: build V22-webflow r14.20 (2026-10-17)');
 var BASE = (document.currentScript && document.currentScript.dataset.base) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/';
 (function () { try { var B = (document.currentScript && document.currentScript.getAttribute('data-base')) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/'; var lo = matchMedia('(pointer: coarse)').matches || innerWidth < 820 || (navigator.deviceMemory || 8) <= 4, q = lo ? '-1k' : '-2k';
   [['models/astronaut-rig.glb', 'fetch'], ['models/astro-rig-uv.bin', 'fetch'], ['models/astro-tex-color' + q + '.webp', 'image'], ['models/astro-tex-mr' + q + '.webp', 'image'], ['models/astro-tex-normal' + q + '.webp', 'image']].forEach(function (f) { var l = document.createElement('link'); l.rel = 'preload'; l.as = f[1]; l.href = B + f[0]; l.crossOrigin = 'anonymous'; if (f[1] === 'fetch') l.setAttribute('fetchpriority', 'high'); document.head.appendChild(l); });
