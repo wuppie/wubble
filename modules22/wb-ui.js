@@ -212,7 +212,7 @@ Object.assign(window.WBM, {
       const rows = Array.from(L.querySelectorAll('[data-svc-row]'));
       rows.forEach((row, i) => row.addEventListener('pointerenter', (e) => {
         if (matchMedia('(pointer: coarse)').matches) return;
-        const p = this.projects[i % this.projects.length] || {}, src = (row.getAttribute('data-img') || '').trim();
+        const p = this.projects[i % this.projects.length] || {}, im = row.querySelector('img[data-wb-svc-img], [data-wb-svc-img] img'), src = ((im && !im.classList.contains('w-dyn-bind-empty') && !/placeholder/i.test(im.getAttribute('src') || '') && (im.currentSrc || im.getAttribute('src'))) || row.getAttribute('data-img') || '').trim(); /* Webflow: swap the Image inside each row */
         num.textContent = String(i + 1).padStart(2, '0');
         img.style.backgroundImage = src ? 'url("' + src + '")' : 'none'; inr.style.background = src ? '#1a1a19' : (p.bg || '#1a1a19');
         mark.textContent = src ? '' : (p.mark || ''); mark.style.color = p.ink || '#ece9e2';
