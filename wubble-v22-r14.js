@@ -1,3 +1,6 @@
+/* r14.16: sandboxed iframes (e.g. the Made in Webflow showcase) block sessionStorage/localStorage — use a safe in-memory fallback */
+window.__wbSS = (function () { try { var s = window.sessionStorage; s.setItem('__wbT', '1'); s.removeItem('__wbT'); return s; } catch (e) { var m = {}; return { getItem: function (k) { return k in m ? m[k] : null; }, setItem: function (k, v) { m[k] = String(v); }, removeItem: function (k) { delete m[k]; } }; } })();
+try { window.localStorage && window.localStorage.getItem('__wbT'); } catch (e) { try { Object.defineProperty(window, 'localStorage', { value: { getItem: function () { return null; }, setItem: function () {}, removeItem: function () {} }, configurable: true }); } catch (e2) {} }
 /* wubble V20 for Webflow — runs the exact Claude Design V13 logic on native Webflow elements.
    Layout/styling lives in Webflow (w13-* classes). Elements the animation drives carry data-w / data-* hooks. */
 (function () {
@@ -23,7 +26,7 @@ document.documentElement.classList.add('wb-live');
 ].join('\n'); (document.head || document.documentElement).appendChild(L); })();
 // per-section scroll length from Webflow: data-wb-length="815" (in vh)
 document.addEventListener('DOMContentLoaded', function () { document.querySelectorAll('[data-wb-length]').forEach(function (el) { var v = parseFloat(el.getAttribute('data-wb-length')); if (v > 0) el.style.setProperty('--wb-len', v + 'vh'); }); });
- console.info('wubble: build V22-webflow r14.14 (2026-10-17)');
+ console.info('wubble: build V22-webflow r14.13 (2026-10-17)');
 var BASE = (document.currentScript && document.currentScript.dataset.base) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/';
 (function () { try { var B = (document.currentScript && document.currentScript.getAttribute('data-base')) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/'; var lo = matchMedia('(pointer: coarse)').matches || innerWidth < 820 || (navigator.deviceMemory || 8) <= 4, q = lo ? '-1k' : '-2k';
   [['models/astronaut-rig.glb', 'fetch'], ['models/astro-rig-uv.bin', 'fetch'], ['models/astro-tex-color' + q + '.webp', 'image'], ['models/astro-tex-mr' + q + '.webp', 'image'], ['models/astro-tex-normal' + q + '.webp', 'image']].forEach(function (f) { var l = document.createElement('link'); l.rel = 'preload'; l.as = f[1]; l.href = B + f[0]; l.crossOrigin = 'anonymous'; if (f[1] === 'fetch') l.setAttribute('fetchpriority', 'high'); document.head.appendChild(l); });
@@ -322,8 +325,8 @@ class Component extends DCLogic {
       clearTimeout(this._glRe); this._glRe = setTimeout(() => { if (this.dead) return; const shown = (c) => { let e = c, o = 1; for (let i = 0; e && i < 12; i++, e = e.parentElement) { const cs = getComputedStyle(e); if (cs.visibility === 'hidden' || cs.display === 'none') return false; o *= +cs.opacity; } return o > 0.2; };
         const main = [...document.querySelectorAll('canvas')].filter((c) => !c.__released && c.width > 400 && c.offsetWidth > 0 && shown(c));
         const dead = main.filter((c) => { try { const g = c.getContext('webgl2') || c.getContext('webgl'); return g && g.isContextLost(); } catch (er) { return false; } });
-        if (dead.length && !sessionStorage.getItem('__wbGLre')) { sessionStorage.setItem('__wbGLre', '1'); sessionStorage.setItem('__wbGLy', String(scrollY)); location.reload(); } }, 1500); };
-    { const y = sessionStorage.getItem('__wbGLy'); if (y != null) { sessionStorage.removeItem('__wbGLy'); setTimeout(() => scrollTo(0, +y), 600); } setTimeout(() => sessionStorage.removeItem('__wbGLre'), 60000); }
+        if (dead.length && !__wbSS.getItem('__wbGLre')) { __wbSS.setItem('__wbGLre', '1'); __wbSS.setItem('__wbGLy', String(scrollY)); location.reload(); } }, 1500); };
+    { const y = __wbSS.getItem('__wbGLy'); if (y != null) { __wbSS.removeItem('__wbGLy'); setTimeout(() => scrollTo(0, +y), 600); } setTimeout(() => __wbSS.removeItem('__wbGLre'), 60000); }
     document.addEventListener('webglcontextlost', this.onCtxLost, true);
     {
       let lw = innerWidth, lh = innerHeight;
@@ -497,7 +500,7 @@ class Component extends DCLogic {
     if (this.state.page || !this.prepClean) return;
     const snap = this.prepClean(i);
     this.lockScroll(true);
-    history.pushState({ work: i }, '', '#work/' + this.projects[i].title.toLowerCase().replace(/\\s+/g, '-'));
+    try { history.pushState({ work: i }, '', '#work/' + this.projects[i].title.toLowerCase().replace(/\\s+/g, '-')); } catch (eH) {}
     this.openI = i; this.closing = false;
     this.setState({ page: { i, src: '', video: snap.video } });
     snap.src.then((src) => this.setState(s => s.page && s.page.i === i ? { page: { ...s.page, src } } : null));

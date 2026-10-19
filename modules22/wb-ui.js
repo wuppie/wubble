@@ -227,7 +227,7 @@ Object.assign(window.WBM, {
     this.initSvcCard();
   },
   initInk(THREE) {
-    const box = this.inkRef.current; if (!box || this.coarse || !(this.props.cursorInk ?? false)) return;
+    const box = this.inkRef.current; if (!box || this.coarse || !(this.props.cursorInk ?? true)) return;
     const r = new THREE.WebGLRenderer({ alpha: true, premultipliedAlpha: false });
     r.domElement.addEventListener('webglcontextlost', (e) => { e.preventDefault(); setTimeout(() => { if (this.dead || !r.getContext().isContextLost()) return; try { r.domElement.remove(); } catch (er) {} this.initInk(THREE); }, 1500); }, { once: true });
     r.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
@@ -665,6 +665,9 @@ Object.assign(window.WBM, {
     let shown = 0, ready = false, outT = 0;
     const fonts = document.fonts ? document.fonts.ready : Promise.resolve();
     fonts.then(() => { this._fontsOK = true; }); setTimeout(() => { this._fontsOK = true; }, 2500);
+    try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) {}
+    const toTop = () => { scrollTo(0, 0); window.__sliderLenis && window.__sliderLenis.scrollTo(0, { immediate: true, force: true }); };
+    toTop(); this._toTop = toTop; document.documentElement.classList.add('wb-ready');
     this.lockScroll(true);
     this._ldAstroOK = false; // r14.11: the loader waits for the astronaut (model + textures on screen)
     setTimeout(() => { if (this.dead || el.style.display === 'none') return; console.warn('[loader] safety release'); el.style.display = 'none'; if (this._ldStop) this._ldStop(); this.lockScroll(false); if (!this._entered) { this._entered = true; try { this.runEntrance(); } catch (e) {} } }, 36000);
@@ -687,7 +690,7 @@ Object.assign(window.WBM, {
         if (this._ldCv) this._ldCv.style.opacity = String(1 - e);
         cnt.style.transform = 'translate3d(0,' + (-e * 40) + '%,0)';
         if (k > 0.45 && !this._entered) { this._entered = true; this.runEntrance(); }
-        if (k >= 1) { el.style.display = 'none'; this.lockScroll(false); if (this._ldStop) this._ldStop(); return; }
+        if (k >= 1) { el.style.display = 'none'; this._toTop && this._toTop(); this.lockScroll(false); if (this._ldStop) this._ldStop(); return; }
       }
       requestAnimationFrame(step);
     };

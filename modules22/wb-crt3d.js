@@ -98,8 +98,8 @@ Object.assign(window.WBM, {
       // monitor top edge on screen (NDC) for the astronaut to sit on; hold scroll until the text is typed
       if (S.mon) { S.ev.set(0, P.aboutSitY ?? 0.64, P.aboutSitZ ?? -0.07); S.mon.localToWorld(S.ev).project(S.cam); window.__wbMonEdge = { x: S.ev.x, y: S.ev.y }; S.ev.set(P.aboutLandX ?? 0.62, P.aboutLandY ?? 0.04, P.aboutSitZ ?? -0.07); S.mon.localToWorld(S.ev).project(S.cam); window.__wbMonLand = { x: S.ev.x, y: S.ev.y }; window.__wbMonZoom = S.zo || 0; }
       window.__wbAboutOp = op; const done = S.n >= body.length; window.__wbTypeDone = done;
-      if (op > 0.9 && !done && !S.locked && !S.freed && (P.aboutHoldScroll ?? true)) { S.locked = 1; S.lockT = now; this.lockScroll && this.lockScroll(true); }
-      if (S.locked && (done || now - S.lockT > 15000)) { S.locked = 0; S.freed = 1; this.lockScroll && this.lockScroll(false); }
+      if (op > 0.9 && !done && !S.locked && !S.freed && !window.__wbAboutHeld && (P.aboutHoldScroll ?? true)) { S.locked = 1; S.lockT = now; this.lockScroll && this.lockScroll(true); }
+      if (S.locked && (done || now - S.lockT > 15000)) { S.locked = 0; S.freed = 1; window.__wbAboutHeld = 1; /* pin only the first time */ this.lockScroll && this.lockScroll(false); }
       if (op < 0.01) S.freed = 0;
       S.r.render(S.sc, S.cam);
     };
