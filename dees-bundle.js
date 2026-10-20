@@ -875,25 +875,28 @@
           return function () { window.removeEventListener('resize', onR); tl.kill(); stt.kill(); };
         }
 
-        // ---------- STACKED SECTIONS: [data-stack] sections pin when their bottom reaches the viewport, the next section slides over ----------
-        // Attributes (on the section): data-stack · data-stack-scale="0.94" (covered section shrinks, 1 = off) · data-stack-dim="0.4" (darken, 0 = off)
-        // The next section needs its own background color in Webflow, otherwise you see through it.
+        // ---------- STACKED SECTIONS ----------
+        // Add data-stack to a section: it pins and the next section slides over it.
+        // Sections taller than the screen pin when their bottom reaches the screen bottom.
+        // Optional: data-stack-dim="0.2" (darken while covered) · data-stack-scale="0.96" (shrink while covered)
+        // Every section needs a background color in Webflow.
         function stack() {
           if (reduce) return;
-          q('[data-stack]').forEach(function (sec, i) {
+          var secs = q('[data-stack]'); if (!secs.length) return;
+          var parent = secs[0].parentElement, kids = Array.prototype.slice.call(parent.children), z = 1;
+          kids.forEach(function (el) { if (getComputedStyle(el).position === 'static') el.style.position = 'relative'; if (!el.style.zIndex) el.style.zIndex = String(z++); });
+          secs.forEach(function (sec) {
             var next = sec.nextElementSibling; if (!next) return;
-            if (getComputedStyle(next).position === 'static') next.style.position = 'relative';
-            next.style.zIndex = String(10 + i);
-            var sc = parseFloat(sec.getAttribute('data-stack-scale')); if (isNaN(sc)) sc = .94;
-            var dim = parseFloat(sec.getAttribute('data-stack-dim')); if (isNaN(dim)) dim = .4;
             ST.create({ trigger: sec, start: function () { return sec.offsetHeight <= window.innerHeight ? 'top top' : 'bottom bottom'; },
-              endTrigger: next, end: 'top top', pin: true, pinSpacing: false, invalidateOnRefresh: true });
+              endTrigger: next, end: 'top top', pin: true, pinSpacing: false, anticipatePin: 1, invalidateOnRefresh: true });
+            var sc = parseFloat(sec.getAttribute('data-stack-scale')); if (isNaN(sc)) sc = 1;
+            var dim = parseFloat(sec.getAttribute('data-stack-dim')); if (isNaN(dim)) dim = 0;
+            if (sc >= 1 && dim <= 0) return;
             var veil = null;
             if (dim > 0) { veil = document.createElement('div'); veil.setAttribute('aria-hidden', 'true');
-              veil.style.cssText = 'position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:9999;';
-              if (getComputedStyle(sec).position === 'static') sec.style.position = 'relative'; sec.appendChild(veil); }
+              veil.style.cssText = 'position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:9999;'; sec.appendChild(veil); }
             var tl = gsap.timeline({ scrollTrigger: { trigger: next, start: 'top bottom', end: 'top top', scrub: true, invalidateOnRefresh: true } });
-            if (sc < 1) tl.fromTo(sec, { scale: 1 }, { scale: sc, transformOrigin: '50% 100%', ease: 'none' }, 0);
+            if (sc < 1) tl.fromTo(sec, { scale: 1 }, { scale: sc, transformOrigin: '50% 0%', ease: 'none' }, 0);
             if (veil) tl.fromTo(veil, { opacity: 0 }, { opacity: dim, ease: 'none' }, 0);
           });
         }
