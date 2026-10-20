@@ -215,12 +215,22 @@
         atlas.width = Math.floor(SEG * N * sc); atlas.height = Math.floor(SEG * sc);
         var actx = atlas.getContext('2d', { alpha: false });
         var tex = new T.CanvasTexture(atlas); tex.encoding = T.sRGBEncoding; tex.wrapS = tex.wrapT = T.ClampToEdgeWrapping; tex.generateMipmaps = false; tex.minFilter = T.LinearFilter;
+        // Webflow serves images from its CDN (cross-origin): draw a CORS-enabled copy so the WebGL texture isn't tainted.
+        var corsCache = new Map();
+        function corsImg(im) {
+          if (!im) return null;
+          var src = im.currentSrc || im.src; if (!src) return null;
+          if (im.crossOrigin || new URL(src, location.href).origin === location.origin) return im;
+          var c = corsCache.get(src);
+          if (!c) { c = new Image(); c.crossOrigin = 'anonymous'; c.decoding = 'async'; c.onload = function () { drawAtlas(); }; c.src = src; corsCache.set(src, c); }
+          return c;
+        }
         function drawAtlas() {
           var Wt = atlas.width, Ht = atlas.height, ff = getComputedStyle(sec).fontFamily;
           actx.fillStyle = '#111'; actx.fillRect(0, 0, Wt, Ht);
           cards.forEach(function (card, i) {
             var x0 = Math.floor(i / N * Wt), x1 = Math.floor((i + 1) / N * Wt), w = x1 - x0;
-            var img = card.querySelector('img');
+            var img = corsImg(card.querySelector('img'));
             if (img && img.complete && img.naturalWidth) {
               var ir = img.naturalWidth / img.naturalHeight, cr = w / Ht, sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
               if (ir > cr) { sw = img.naturalHeight * cr; sx = (img.naturalWidth - sw) / 2; } else { sh = img.naturalWidth / cr; sy = (img.naturalHeight - sh) / 2; }
@@ -834,7 +844,7 @@
     
         // ---------- CTA particles (GSAP canvas spiral) ----------
         function particles() {
-          var cv = one('[data-particles]'); var srcs = q('[data-particle-src]');
+          var cv = one('[data-particles]'); var srcs = q('[data-particle-src]'); if (!srcs.length) srcs = q('[data-particle-list] img'); srcs.forEach(function (im) { if (im.loading === 'lazy') im.loading = 'eager'; }); // lazy imgs inside display:none never load
           if (!cv || !srcs.length) return null;
           var c2 = cv.getContext('2d'), dpr = Math.min(2, window.devicePixelRatio || 1), cw, ch, radius, base;
           var N = Math.max(10, o.particles | 0);
