@@ -1,7 +1,7 @@
 /*! Dees — single bundle for Webflow. Loads GSAP/Lenis/three from CDN, then runs site code. */
 (function () {
   var s = document.currentScript;
-  var BASE = (s && s.src) ? s.src.replace(/js\/[^\/]*$/, '') : '';
+  var BASE = (s && s.src) ? s.src.replace(/[^\/?#]*([?#].*)?$/, '').replace(/js\/$/, '') : '';
   var libs = [
     'https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js',
     'https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js',
