@@ -836,6 +836,18 @@ Object.assign(window.WBM, {
       this.raf = requestAnimationFrame(tick);
     };
     this.raf = requestAnimationFrame(tick);
+    /* r14.25: warm-up — the slider only renders once on screen, so the first hero→work scroll paid for every shader
+       compile + texture upload in one frame (the stutter). Do that work now, in idle time, with everything forced visible. */
+    { const warm = (pass) => { if (this.dead) return; try {
+        const hid = []; scene.traverse((o) => { if (!o.visible) { hid.push(o); o.visible = true; } });
+        if (renderer.compileAsync && pass === 0) { renderer.compileAsync(scene, camera).catch(() => {}); }
+        else renderer.compile(scene, camera);
+        scene.traverse((o) => { const m = o.material; if (m) [].concat(m).forEach((mm) => { for (const k in mm) { const t = mm[k]; if (t && t.isTexture && t.image) renderer.initTexture(t); } if (mm.uniforms) for (const k in mm.uniforms) { const t = mm.uniforms[k].value; if (t && t.isTexture && t.image) renderer.initTexture(t); } }); });
+        const rt = this._warmRT || (this._warmRT = new THREE.WebGLRenderTarget(8, 8)); renderer.setRenderTarget(rt); renderer.render(scene, camera); renderer.setRenderTarget(null);
+        hid.forEach((o) => { o.visible = false; });
+      } catch (e) { console.warn('[slider] warm-up', e); } };
+      const idle = (f, t) => (window.requestIdleCallback ? requestIdleCallback(f, { timeout: t }) : setTimeout(f, t));
+      idle(() => warm(0), 1200); idle(() => setTimeout(() => warm(1), 2500), 4000); /* second pass picks up covers/letters that loaded later */ }
 
     this.cleanup = () => {
       this.mainTickRunning = false;

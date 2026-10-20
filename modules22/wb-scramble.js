@@ -28,3 +28,23 @@
   const start = () => { scan(); setInterval(scan, 4000); };
   if (document.readyState === 'loading') addEventListener('DOMContentLoaded', () => setTimeout(start, 1200), { once: true }); else setTimeout(start, 1200);
 })();
+(() => {
+  const SEL = '[data-panel],[data-cta-panel],[data-reach-panel]';
+  /* r14.25: pin guard — a sticky panel stops pinning when any ancestor has overflow hidden/auto/scroll
+     (Webflow tablet/phone breakpoints often add this). Swap those to clip (keeps the crop, keeps sticky). */
+  const CLIP = CSS.supports('overflow', 'clip') ? 'clip' : 'visible';
+  const guard = () => {
+    const fixed = [];
+    document.querySelectorAll(SEL).forEach((el) => {
+      if (getComputedStyle(el).position !== 'sticky') { el.style.setProperty('position', 'sticky', 'important'); el.style.setProperty('top', '0', 'important'); fixed.push('panel'); }
+      for (let p = el.parentElement; p && p !== document.body && p !== document.documentElement; p = p.parentElement) {
+        const cs = getComputedStyle(p);
+        ['overflow-x', 'overflow-y'].forEach((k) => { if (/hidden|auto|scroll/.test(cs.getPropertyValue(k))) { p.style.setProperty(k, CLIP, 'important'); fixed.push((p.className || p.tagName) + ' ' + k); } });
+      }
+    });
+    if (fixed.length) console.info('[wubble] pin guard fixed:', fixed.join(', '));
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', guard); else guard();
+  setTimeout(guard, 1500); setTimeout(guard, 4000);
+  let rz = 0; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(guard, 300); });
+})();

@@ -5,7 +5,7 @@
     const back = document.querySelector('[data-clouds-back]'), front = document.querySelector('[data-clouds-front]');
     if (!back || !front || !window.__wbClouds || window.__wbClouds.on === false) return false; if (back.__c) return true; back.__c = 1;
     const MOB = matchMedia('(pointer: coarse)').matches || innerWidth < 820; /* r14.23: phones use the 2D cloud engine (no extra WebGL context, which mobile browsers drop) */
-    if (!MOB && (window.__wbClouds.engine || 'WebGL') === 'WebGL' && window.__wbCloudsGL) { window.__wbCloudsGL(back, front).catch((e) => console.warn('clouds gl failed', e)); return true; }
+    if ((window.__wbClouds.engine || 'WebGL') === 'WebGL' && window.__wbCloudsGL) { window.__wbCloudsGL(back, front).catch((e) => console.warn('clouds gl failed', e)); return true; }
     const img = new Image(); img.src = (window.WB_ASSETS || './') + 'models/cloud10.png';
     const mk = (host) => { const c = document.createElement('canvas'); c.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;'; host.appendChild(c); return { c, g: c.getContext('2d') }; };
     const B = mk(back), F = mk(front), DEPTH = 1500, N = MOB ? 650 : 1400, S = []; /* fewer sprites on phones keeps it smooth */
