@@ -697,6 +697,7 @@ Object.assign(window.WBM, {
     step();
   },
   runEntrance() {
+    try { this.fitHeroTitle && this.fitHeroTitle(); } catch (e) {} /* r14.26: settle the title size BEFORE anything moves */
     setTimeout(() => { this.gsapReady = true; }, 1200);
     const T = this.entranceTargets(), t0 = performance.now();
     const ex = (t) => t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
@@ -794,15 +795,22 @@ Object.assign(window.WBM, {
   fitHeroTitle() {
     // scale the top title so its letters span the full viewport width (capped by height)
     const h1 = this.headlineRef && this.headlineRef.current; if (!h1 || !h1.children.length) return;
+    /* r14.26: measure LAYOUT boxes (offset*), never transformed rects — the entrance animates the letters/lines with
+       translate, so getBoundingClientRect mid-animation changed the font size and moved the services row (the jumping).
+       Also skip refits when nothing relevant changed (mobile fires resize for the address bar during the entrance). */
+    const fk = innerWidth + '|' + (document.fonts ? document.fonts.status : '') + '|' + h1.children.length;
+    if (this._fitK === fk) return; this._fitK = fk;
     const hcs = getComputedStyle(h1), W = h1.clientWidth - (parseFloat(hcs.paddingLeft) || 0) - (parseFloat(hcs.paddingRight) || 0) - 4, kids = Array.from(h1.children);
-    const fs0 = parseFloat(getComputedStyle(h1).fontSize) || 100;
-    const w = kids[kids.length - 1].getBoundingClientRect().right - kids[0].getBoundingClientRect().left;
+    const fs0 = parseFloat(hcs.fontSize) || 100;
+    const a = kids[0], z = kids[kids.length - 1], w = (z.offsetLeft + z.offsetWidth) - a.offsetLeft;
     if (w > 0) { const fs = Math.min(fs0 * W / w, (window.__svh || innerHeight) * 0.62); if (Math.abs(fs - fs0) > 0.5) h1.style.fontSize = fs.toFixed(1) + 'px'; }
     // services row sits just below the title's letters
-    const ul = h1.parentElement && h1.parentElement.querySelector('ul[data-cg]'), wrap = ul && ul.parentElement;
-    if (wrap && wrap !== h1.parentElement) {
-      requestAnimationFrame(() => { const pr = h1.parentElement.getBoundingClientRect(), b = h1.getBoundingClientRect().bottom;
-        wrap.style.bottom = 'auto'; wrap.style.top = (b - pr.top + Math.max(10, innerHeight * 0.02)).toFixed(0) + 'px'; });
+    const par = h1.parentElement, ul = par && par.querySelector('ul[data-cg]'), wrap = ul && ul.parentElement;
+    if (wrap && wrap !== par) {
+      const relTop = h1.offsetParent === par ? h1.offsetTop : h1.offsetTop - (h1.offsetParent === par.offsetParent ? par.offsetTop : 0);
+      const top = Math.round(relTop + h1.offsetHeight + Math.max(10, (window.__svh || innerHeight) * 0.02));
+      if (wrap.style.bottom !== 'auto') wrap.style.bottom = 'auto';
+      if (Math.abs((parseFloat(wrap.style.top) || -1e4) - top) > 1) wrap.style.top = top + 'px';
     }
   }
 });
