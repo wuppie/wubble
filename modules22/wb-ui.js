@@ -802,13 +802,12 @@ Object.assign(window.WBM, {
     if (this._fitK === fk) return; this._fitK = fk;
     const hcs = getComputedStyle(h1), W = h1.clientWidth - (parseFloat(hcs.paddingLeft) || 0) - (parseFloat(hcs.paddingRight) || 0) - 4, kids = Array.from(h1.children);
     const fs0 = parseFloat(hcs.fontSize) || 100;
-    const a = kids[0], z = kids[kids.length - 1], w = (z.offsetLeft + z.offsetWidth) - a.offsetLeft;
+    const w = kids[kids.length - 1].getBoundingClientRect().right - kids[0].getBoundingClientRect().left;
     if (w > 0) { const fs = Math.min(fs0 * W / w, (window.__svh || innerHeight) * 0.62); if (Math.abs(fs - fs0) > 0.5) h1.style.fontSize = fs.toFixed(1) + 'px'; }
     // services row sits just below the title's letters
     const par = h1.parentElement, ul = par && par.querySelector('ul[data-cg]'), wrap = ul && ul.parentElement;
     if (wrap && wrap !== par) {
-      const relTop = h1.offsetParent === par ? h1.offsetTop : h1.offsetTop - (h1.offsetParent === par.offsetParent ? par.offsetTop : 0);
-      const top = Math.round(relTop + h1.offsetHeight + Math.max(10, (window.__svh || innerHeight) * 0.02));
+      const pr = par.getBoundingClientRect(), b = h1.getBoundingClientRect().bottom, top = Math.round(b - pr.top + Math.max(10, (window.__svh || innerHeight) * 0.02));
       if (wrap.style.bottom !== 'auto') wrap.style.bottom = 'auto';
       if (Math.abs((parseFloat(wrap.style.top) || -1e4) - top) > 1) wrap.style.top = top + 'px';
     }
