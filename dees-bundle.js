@@ -38,7 +38,7 @@
         var dl = new T.DirectionalLight(0xffffff, .9); dl.position.set(-300, 500, 600); scene.add(dl);
         var sideMat = new T.MeshStandardMaterial({ color: 0xffffff, roughness: .35, metalness: 0 });
         var W = 1, H = 1, pills = [];
-    
+
         function pillShape(w, h) {
           var r = h / 2, s = new T.Shape(), x = -w / 2, y = -h / 2;
           s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.absarc(x + w - r, 0, r, -Math.PI / 2, Math.PI / 2, false);
@@ -89,7 +89,7 @@
           var order = pills.map(function (p, i) { return i; }).sort(function (a, b) { return Math.abs(a - (pills.length - 1) / 2) - Math.abs(b - (pills.length - 1) / 2); });
           order.forEach(function (idx, k) { gsap.delayedCall(1.0 + k * .09, function () { var p = pills[idx]; p.hold = false; p.vy += 4; }); });
         });
-    
+
         var ray = new T.Raycaster(), ndc = new T.Vector2(), last = null, t0 = performance.now();
         var onMove = function (e) {
           var hb = hero.getBoundingClientRect(), mx = e.clientX - hb.left, my = e.clientY - hb.top;
@@ -106,7 +106,7 @@
         };
         var onLeave = function () { last = null; };
         hero.addEventListener('pointermove', onMove); hero.addEventListener('pointerleave', onLeave);
-    
+
         var active = true, raf = 0;
         function tick() {
           raf = requestAnimationFrame(tick);
@@ -145,8 +145,8 @@
         };
       };
     })();
-    
-    
+
+
     /* ===== dees-clients3d.js ===== */
     /*!
      * Dees — clients: cinematic 3D cylinder (port of Codrops "Cinematic 3D Scroll", demo 1, to three.js)
@@ -174,26 +174,26 @@
           };
         };
         var E = { silk: bez(.45, .05, .55, .95), smooth: bez(.25, .1, .25, 1), flow: bez(.33, 0, .2, 1), linear: bez(.4, 0, .6, 1) };
-    
+
         var canvas = document.createElement('canvas');
         canvas.className = 'clients_canvas';
         canvas.setAttribute('aria-hidden', 'true');
         canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;cursor:grab;touch-action:pan-y;';
         sticky.insertBefore(canvas, sticky.firstChild);
         if (list) list.style.visibility = 'hidden';
-    
+
         var renderer = new T.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
         renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
         renderer.outputEncoding = T.sRGBEncoding;
         var scene = new T.Scene();
         var cam = new T.PerspectiveCamera(45, 1, .01, 100);
-    
+
         function dims() {
           var w = window.innerWidth, m = w < 768, tab = w >= 768 && w < 1024;
           return { radius: m ? 1.8 : tab ? 2.2 : 2.5, height: m ? 1.2 : 2, camZ: m ? 6 : tab ? 7 : 8, fov: m ? 50 : 45 };
         }
         var D = dims();
-    
+
         // ---- cylinder geometry (same construction as the demo) ----
         function cylGeo(radius, height, seg) {
           var pos = [], uv = [], idx = [];
@@ -207,7 +207,7 @@
           g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
           g.setIndex(idx); return g;
         }
-    
+
         // ---- image atlas from the HTML cards ----
         var atlas = document.createElement('canvas'), SEG = 1024;
         var maxW = Math.min(renderer.capabilities.maxTextureSize, window.innerWidth < 768 ? 2048 : 8192);
@@ -228,8 +228,10 @@
         function drawAtlas() {
           var Wt = atlas.width, Ht = atlas.height, ff = getComputedStyle(sec).fontFamily;
           actx.fillStyle = '#111'; actx.fillRect(0, 0, Wt, Ht);
+          var solid = function (v) { return v && v !== 'rgba(0, 0, 0, 0)' && v !== 'transparent' ? v : null; };
           cards.forEach(function (card, i) {
             var x0 = Math.floor(i / N * Wt), x1 = Math.floor((i + 1) / N * Wt), w = x1 - x0;
+            var bg = solid(getComputedStyle(card).backgroundColor); if (bg) { actx.fillStyle = bg; actx.fillRect(x0, 0, w, Ht); }
             var img = corsImg(card.querySelector('img'));
             if (img && img.complete && img.naturalWidth) {
               var ir = img.naturalWidth / img.naturalHeight, cr = w / Ht, sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
@@ -237,21 +239,21 @@
               actx.drawImage(img, sx, sy, sw, sh, x0, 0, w, Ht);
             }
             var num = card.querySelector('.clients_card-number'), name = card.querySelector('.clients_card-name'), s = Ht / 1024;
-            actx.fillStyle = '#ffffff'; actx.textBaseline = 'top';
-            if (num) { actx.font = '700 ' + Math.round(110 * s) + 'px ' + ff; actx.fillText(num.textContent.trim(), x0 + 48 * s, 44 * s); }
-            if (name) { actx.textBaseline = 'alphabetic'; actx.font = '700 ' + Math.round(56 * s) + 'px ' + ff; actx.fillText(name.textContent.trim(), x0 + 50 * s, Ht - 54 * s); }
+            actx.textBaseline = 'top';
+            if (num) { var ns = getComputedStyle(num); actx.fillStyle = ns.color || '#ffffff'; actx.font = (ns.fontWeight || 700) + ' ' + Math.round(110 * s) + 'px ' + (ns.fontFamily || ff); actx.fillText(num.textContent.trim(), x0 + 48 * s, 44 * s); }
+            if (name) { var nm = getComputedStyle(name); actx.fillStyle = nm.color || '#ffffff'; actx.textBaseline = 'alphabetic'; actx.font = (nm.fontWeight || 700) + ' ' + Math.round(56 * s) + 'px ' + (nm.fontFamily || ff); actx.fillText(name.textContent.trim(), x0 + 50 * s, Ht - 54 * s); }
           });
           tex.needsUpdate = true;
         }
         drawAtlas();
         cards.forEach(function (c) { var im = c.querySelector('img'); if (im && !im.complete) im.addEventListener('load', drawAtlas, { once: true }); });
         if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawAtlas);
-    
+
         var mat = new T.MeshBasicMaterial({ map: tex, side: T.DoubleSide, color: new T.Color(.7, .7, .7) }); // uDarkness 0.3
         var cylinder = new T.Mesh(cylGeo(2.5, 2, 64), mat);
         cylinder.rotation.y = .5;
         scene.add(cylinder);
-    
+
         // ---- soft drop shadow under/behind the cylinder (matches the site's -x / +y shadow direction) ----
         var shC = document.createElement('canvas'); shC.width = shC.height = 256;
         var shG = shC.getContext('2d'), shR = shG.createRadialGradient(128, 128, 0, 128, 128, 128);
@@ -263,7 +265,7 @@
         shadow.rotation.x = -Math.PI / 2; shadow.scale.set(8.2, 8.2, 1); shadow.position.set(-.45, -1.32, .35);
         shadow.renderOrder = -1;
         scene.add(shadow);
-    
+
         // ---- arc particles (12 line strips above/below, visible only while rotating) ----
         var PN = 12, PR = 3.3, PS = 20, SPAN = .3, parts = [];
         for (var i = 0; i < PN; i++) {
@@ -280,7 +282,7 @@
           p.line.geometry.attributes.position.needsUpdate = true;
         }
         parts.forEach(layoutParticle);
-    
+
         function applyDims() {
           D = dims();
           var w = sticky.clientWidth, h = sticky.clientHeight;
@@ -292,7 +294,7 @@
           if (typeof shadow !== 'undefined') { shadow.scale.set(8.2 * s, 8.2 * s, 1); shadow.position.y = -1.32 * sy; }
         }
         applyDims();
-    
+
         // ---- scroll timeline (exact camera path from the demo) ----
         var camA = { x: 0, y: 0, z: D.camZ };
         var rot = { y: .5 };
@@ -304,7 +306,7 @@
           .to(camA, { x: -6, y: -1, z: D.camZ, duration: 1, ease: E.smooth });
         tl.to(rot, { y: '+=28.27', duration: 8.5, ease: 'none' }, 0);
         var st = ST.create({ trigger: sec, start: 'top top', end: 'bottom bottom', animation: tl, scrub: 1 });
-    
+
         // ---- overlay copy per segment ----
         var persp = Array.prototype.slice.call(sec.querySelectorAll('[data-perspective]'));
         var ptl = persp.map(function (el, k) {
@@ -314,7 +316,7 @@
           t.to(el, { opacity: 1, duration: first ? .8 : .6, ease: 'none' }).to(el, { opacity: 0, duration: .2, ease: E.smooth });
           return t;
         });
-    
+
         // ---- drag adds rotation (with inertia) ----
         var drag = { v: 0 }, down = false, sx = 0, sv = 0, lx = 0, lt = 0, vel = 0;
         var toAng = function (px) { return px / (canvas.clientWidth || 1) * Math.PI * 1.5; };
@@ -322,12 +324,12 @@
         var onMove = function (e) { if (!down) return; var now = performance.now(); vel = (e.clientX - lx) / Math.max(1, now - lt); lx = e.clientX; lt = now; drag.v = sv + toAng(e.clientX - sx); };
         var onUp = function () { if (!down) return; down = false; canvas.style.cursor = 'grab'; gsap.to(drag, { v: drag.v + toAng(vel * 300), duration: 1.6, ease: 'expo.out' }); };
         canvas.addEventListener('pointerdown', onDown); window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp);
-    
+
         var lastW = window.innerWidth, onResize = function () {
           if (window.innerWidth < 768 && window.innerWidth === lastW) return; lastW = window.innerWidth; applyDims();
         };
         window.addEventListener('resize', onResize);
-    
+
         var active = false, raf = 0, lastRot = cylinder.rotation.y;
         var vis = ST.create({ trigger: sec, start: 'top bottom', end: 'bottom top', onToggle: function (s) { active = s.isActive; } });
         function tick() {
@@ -345,7 +347,7 @@
           renderer.render(scene, cam);
         }
         tick();
-    
+
         return function () {
           cancelAnimationFrame(raf); st.kill(); vis.kill(); tl.kill(); ptl.forEach(function (t) { t.scrollTrigger && t.scrollTrigger.kill(); t.kill(); });
           persp.forEach(function (el) { el.style.opacity = ''; });
@@ -357,8 +359,8 @@
         };
       };
     })();
-    
-    
+
+
     /* ===== dees-site.js ===== */
     /*!
      * Dees kun je krijgen — site interactions
@@ -368,7 +370,7 @@
      */
     (function () {
       var DeesSite = {};
-    
+
       DeesSite.init = function (root, opts) {
         if (!root) return null;
         if (root.__dees) return root.__dees;
@@ -379,7 +381,7 @@
         var q = function (s, el) { return Array.prototype.slice.call((el || root).querySelectorAll(s)); };
         var one = function (s) { return root.querySelector(s); };
         var cleanups = [];
-    
+
         // ---------- smooth scroll (Lenis = the engine under Locomotive Scroll v5) ----------
         var lenis = null;
         if (o.smooth && window.Lenis && !reduce) {
@@ -390,7 +392,7 @@
           gsap.ticker.lagSmoothing(0);
           cleanups.push(function () { gsap.ticker.remove(lraf); lenis.destroy(); });
         }
-    
+
         // ---------- PRELOADER (counter) ----------
         var readyResolve; var ready = new Promise(function (r) { readyResolve = r; });
         function preloader() {
@@ -456,14 +458,14 @@
           gsap.set(pl, { clipPath: 'inset(0% 0% 0% 0%)' });
         }
         preloader();
-    
+
         var ctx = gsap.context(function () {
           nav(); intro(); marquee(); heroIcons(); heroParallax();
-          splits(); reveals(); lines(); linkHovers(); serviceIcons(); clients(); cta(); footerCurve();
+          splits(); reveals(); lines(); linkHovers(); serviceIcons(); clients(); cta(); footerCurve(); stack();
         }, root);
         var use3d = !!(window.THREE && window.DeesBadges3D);
         cleanups.push(use3d ? window.DeesBadges3D({ root: root, energy: o.badgeEnergy, reduce: reduce, ready: ready }) : badges(), particles(), clock(), cursor());
-    
+
         // ---------- NAV: 3 spread words glide into one word ----------
         function nav() {
           var bar = one('[data-nav]'); if (!bar) return;
@@ -483,7 +485,7 @@
             onEnter: function () { gsap.to(bar, { color: bar.getAttribute('data-nav-color-alt') || '#ff003d', duration: .4 }); },
             onLeaveBack: function () { gsap.to(bar, { color: bar.getAttribute('data-nav-color') || '#ffffff', duration: .4 }); } });
         }
-    
+
         // ---------- page-load intro ----------
         function intro() {
           var tl = gsap.timeline({ paused: true, defaults: { ease: 'expo.out' } });
@@ -500,7 +502,7 @@
             duration: 1.4, ease: 'elastic.out(1,0.6)', stagger: { each: .07, from: 'center' }, clearProps: 'transform' }, .9);
           ready.then(function () { tl.play(); });
         }
-    
+
         // ---------- hero marquee (speeds up with scroll velocity) ----------
         function marquee() {
           q('[data-marquee]').forEach(function (m) {
@@ -514,7 +516,7 @@
             } });
           });
         }
-    
+
         // ---------- hero icons: hidden behind the model, float out on hover ----------
         function heroIcons() {
           var wrap = one('[data-hero-model]'); var icons = q('[data-hero-icon]');
@@ -544,13 +546,13 @@
           hit.addEventListener('mouseenter', show); hit.addEventListener('mouseleave', hide);
           cleanups.push(function () { hit.removeEventListener('mouseenter', show); hit.removeEventListener('mouseleave', hide); killFloats(); });
         }
-    
+
         function heroParallax() {
           var hero = one('[data-hero]'); var wrap = one('[data-hero-model]'); if (!hero || !wrap) return;
           gsap.to(wrap, { yPercent: 14, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
           gsap.to(q('[data-marquee]'), { yPercent: -60, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
         }
-    
+
         // ---------- HERO BADGES: scatter + bounce physics ----------
         function badges() {
           var hero = one('[data-hero]'); var box = one('[data-badges]'); var els = q('[data-badge]');
@@ -614,7 +616,7 @@
             els.forEach(function (el) { el.style.transform = ''; });
           };
         }
-    
+
         // ---------- TITLES: a different on-scroll reveal per heading (data-split="…") ----------
         function splits() {
           var pad = function (s) { (s.masks || []).forEach(function (m) { m.style.padding = '0.18em 0.06em 0.22em'; m.style.margin = '-0.18em -0.06em -0.22em'; }); return s; };
@@ -699,7 +701,7 @@
             });
           });
         }
-    
+
         // ---------- LINK HOVERS: rolling chars (+ optional underline wipe) on [data-link-hover] ----------
         function linkHovers() {
           q('a[data-link-hover]').forEach(function (a) {
@@ -740,7 +742,7 @@
             });
           });
         }
-    
+
         // ---------- generic section reveals (data-reveal) ----------
         function reveals() {
           if (reduce) return;
@@ -757,7 +759,7 @@
               scrollTrigger: { trigger: el, start: 'top 92%', toggleActions: 'play none none reverse' } });
           });
         }
-    
+
         // ---------- SERVICES icon rows: 3 locomotive-style behaviours ----------
         function serviceIcons() {
           q('[data-parallax="inview"]').forEach(function (row) {
@@ -779,7 +781,7 @@
             });
           });
         }
-    
+
         // ---------- CLIENTS: pinned (CSS sticky) stack → curved carousel ----------
         function clients() {
           if (window.THREE && window.DeesClients3D && !reduce) { var c3 = window.DeesClients3D({ root: root }); if (c3) { cleanups.push(c3); return; } }
@@ -809,7 +811,7 @@
           render(0);
           ST.create({ trigger: sec, start: 'top top', end: 'bottom bottom', scrub: true, onUpdate: function (s) { render(s.progress); }, onRefresh: function (s) { render(s.progress); } });
           gsap.from(one('[data-client-list]') || cards, { yPercent: 25, autoAlpha: 0, ease: 'none', scrollTrigger: { trigger: sec, start: 'top 85%', end: 'top 20%', scrub: 1 } });
-    
+
           // drag (mouse / touch) with inertia + snap to nearest card
           var area = one('[data-client-drag]');
           if (area) {
@@ -835,13 +837,13 @@
             cleanups.push(function () { area.removeEventListener('pointerdown', onDown); window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); });
           }
         }
-    
+
         function cta() {
           var sec = one('[data-cta]'); if (!sec) return;
           var m = sec.querySelector('[data-cta-model]');
           if (m) gsap.fromTo(m, { yPercent: 18, scale: .82 }, { yPercent: 0, scale: 1, ease: 'none', scrollTrigger: { trigger: sec, start: 'top bottom', end: 'center center', scrub: 1 } });
         }
-    
+
         // ---------- CTA particles (GSAP canvas spiral) ----------
         function particles() {
           var cv = one('[data-particles]'); var srcs = q('[data-particle-src]'); if (!srcs.length) srcs = q('[data-particle-list] img'); srcs.forEach(function (im) { if (im.loading === 'lazy') im.loading = 'eager'; }); // lazy imgs inside display:none never load
@@ -872,7 +874,30 @@
           draw();
           return function () { window.removeEventListener('resize', onR); tl.kill(); stt.kill(); };
         }
-    
+
+        // ---------- STACKED SECTIONS: [data-stack] sections pin when their bottom reaches the viewport, the next section slides over ----------
+        // Attributes (on the section): data-stack · data-stack-scale="0.94" (covered section shrinks, 1 = off) · data-stack-dim="0.4" (darken, 0 = off)
+        // The next section needs its own background color in Webflow, otherwise you see through it.
+        function stack() {
+          if (reduce) return;
+          q('[data-stack]').forEach(function (sec, i) {
+            var next = sec.nextElementSibling; if (!next) return;
+            if (getComputedStyle(next).position === 'static') next.style.position = 'relative';
+            next.style.zIndex = String(10 + i);
+            var sc = parseFloat(sec.getAttribute('data-stack-scale')); if (isNaN(sc)) sc = .94;
+            var dim = parseFloat(sec.getAttribute('data-stack-dim')); if (isNaN(dim)) dim = .4;
+            ST.create({ trigger: sec, start: function () { return sec.offsetHeight <= window.innerHeight ? 'top top' : 'bottom bottom'; },
+              endTrigger: next, end: 'top top', pin: true, pinSpacing: false, invalidateOnRefresh: true });
+            var veil = null;
+            if (dim > 0) { veil = document.createElement('div'); veil.setAttribute('aria-hidden', 'true');
+              veil.style.cssText = 'position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:9999;';
+              if (getComputedStyle(sec).position === 'static') sec.style.position = 'relative'; sec.appendChild(veil); }
+            var tl = gsap.timeline({ scrollTrigger: { trigger: next, start: 'top bottom', end: 'top top', scrub: true, invalidateOnRefresh: true } });
+            if (sc < 1) tl.fromTo(sec, { scale: 1 }, { scale: sc, transformOrigin: '50% 100%', ease: 'none' }, 0);
+            if (veil) tl.fromTo(veil, { opacity: 0 }, { opacity: dim, ease: 'none' }, 0);
+          });
+        }
+
         // ---------- CTA → footer: curve morph on scroll ----------
         function footerCurve() {
           var path = one('[data-curve-path]'); var footer = one('[data-footer]'); if (!path || !footer) return;
@@ -890,7 +915,7 @@
             settle.restart(true);
           } });
         }
-    
+
         // ---------- CUSTOM CURSOR: dot + lagging ring, velocity stretch, contextual states ----------
         // [data-cursor="grow"] enlarges the ring, [data-cursor-text="Drag"] shows a label, [data-cursor-color] recolors it.
         function cursor() {
@@ -912,7 +937,7 @@
             var colEl = t.closest('[data-cursor-color]:not([data-cursor])');
             var next = txtEl ? 'text:' + txtEl.getAttribute('data-cursor-text') : growEl ? 'grow' : '';
             var nc = colEl ? colEl.getAttribute('data-cursor-color') : baseColor;
-            if (nc !== color) { color = nc; gsap.to(dot, { backgroundColor: nc, duration: .3 }); gsap.to(ring, { borderColor: nc, color: nc, duration: .3 }); gsap.to(label, { color: nc === '#ffffff' ? '#ff003d' : '#ffffff', duration: .3 }); }
+            if (nc !== color) { color = nc; gsap.to(dot, { backgroundColor: nc, duration: .3 }); gsap.to(ring, { borderColor: nc, color: nc, duration: .3 }); gsap.to(label, { color: c.getAttribute('data-cursor-label-color') || getComputedStyle(document.body).backgroundColor || '#ff003d', duration: .3 }); }
             if (next === state) return; state = next;
             if (next.indexOf('text:') === 0) {
               label.textContent = next.slice(5);
@@ -948,7 +973,7 @@
             document.removeEventListener('mouseleave', onLeaveDoc);
           };
         }
-    
+
         // ---------- footer live clock ----------
         function clock() {
           var els = q('[data-clock]'); if (!els.length) return null;
@@ -960,19 +985,19 @@
           tick(); var t = setInterval(tick, 10000);
           return function () { clearInterval(t); };
         }
-    
+
         var refresh = function () { ST.refresh(); };
         window.addEventListener('load', refresh);
         var rt = setTimeout(refresh, 700);
         cleanups.push(function () { window.removeEventListener('load', refresh); clearTimeout(rt); });
-    
+
         var api = { lenis: lenis, destroy: function () { ctx.revert(); cleanups.forEach(function (f) { f && f(); }); root.__dees = null; } };
         root.__dees = api;
         return api;
       };
-    
+
       window.DeesSite = DeesSite;
-    
+
       // Webflow / plain-HTML auto init
       function auto() {
         var root = document.querySelector('[data-dees-root]');
@@ -980,8 +1005,8 @@
       }
       if (document.readyState === 'complete') auto(); else window.addEventListener('load', auto);
     })();
-    
-    
+
+
     var root = document.querySelector('[data-dees-root]');
     if (window.DeesSite && root && !root.__deesInit) { root.__deesInit = true; window.DeesSite.init(root); }
     var m = document.createElement('script'); m.type = 'module'; m.src = BASE + 'js/dees-character.js'; document.body.appendChild(m);
