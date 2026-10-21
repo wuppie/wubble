@@ -12,6 +12,7 @@ import * as THREE from 'https://esm.sh/three@0.160.0';
 import { FBXLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/FBXLoader.js';
 import * as SkeletonUtils from 'https://esm.sh/three@0.160.0/examples/jsm/utils/SkeletonUtils.js';
 import { GLTFLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'https://esm.sh/three@0.160.0/examples/jsm/environments/RoomEnvironment.js';
 const gltfLoader = new GLTFLoader();
 const texLoader = new THREE.TextureLoader();
 
@@ -365,6 +366,75 @@ async function cta(el, heroEl) {
   })();
 }
 
+// ---------------- LOOKING HEAD ([data-head-model]) ----------------
+// Attributes: data-head-model="dees-head.glb" · data-head-eyes="false" (keep baked eyes) · data-head-turn="0.55" (max turn, radians)
+// Child [data-head-poster] = fallback image, faded out once the 3D head is on screen.
+const HEAD_EYES = [[.218, .313], [-.237, .317]];
+async function lookingHead(el) {
+  if (el.__deesHead) return; el.__deesHead = true;
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;';
+  el.appendChild(canvas);
+  const r = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  r.setPixelRatio(Math.min(2, window.devicePixelRatio || 1)); r.outputColorSpace = THREE.SRGBColorSpace;
+  const scene = new THREE.Scene();
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xd9c4bc, 2.0));
+  scene.add(new THREE.AmbientLight(0xffffff, .45));
+  const d = new THREE.DirectionalLight(0xffffff, 2.0); d.position.set(-2.5, 3, 4.5); scene.add(d);
+  const fill = new THREE.DirectionalLight(0xfff4ee, 1.1); fill.position.set(1.2, -.6, 6); scene.add(fill);
+  const cam = new THREE.PerspectiveCamera(28, 4 / 3, .05, 50);
+  let model = null, err;
+  for (const u of candidates(el.getAttribute('data-head-model') || 'dees-head.glb')) { try { model = (await gltfLoader.loadAsync(u)).scene; break; } catch (e) { err = e; } }
+  if (!model) { console.warn('[dees] head model', err); canvas.remove(); r.dispose(); return; }
+  model.traverse(o => { if (!o.isMesh) return; const m = o.material; m.side = THREE.DoubleSide; m.metalnessMap = null; m.metalness = 0; m.roughness = .85; if (m.map) m.map.colorSpace = THREE.SRGBColorSpace; });
+  const lids = [];
+  if (el.getAttribute('data-head-eyes') !== 'false') {
+    const env = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), .04).texture;
+    const R = .079, DEPTH = .5, Z = .474 - R * DEPTH;
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0c, roughness: .12, metalness: 0, envMap: env, envMapIntensity: 1 });
+    const lidMat = new THREE.MeshStandardMaterial({ color: new THREE.Color('#fdc08a'), roughness: .85, metalness: 0 });
+    const eyeGeo = new THREE.SphereGeometry(R, 48, 32), lidGeo = new THREE.SphereGeometry(R * 1.035, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2);
+    HEAD_EYES.forEach(([x, y]) => {
+      const g = new THREE.Group(); g.position.set(x, y, Z); g.scale.z = DEPTH; model.add(g);
+      g.add(new THREE.Mesh(eyeGeo, eyeMat));
+      const lid = new THREE.Mesh(lidGeo, lidMat); lid.visible = false; g.add(lid); lids.push(lid);
+    });
+  }
+  const box = new THREE.Box3().setFromObject(model), ctr = box.getCenter(new THREE.Vector3()), sz = box.getSize(new THREE.Vector3());
+  model.position.sub(ctr);
+  const pivot = new THREE.Group(); pivot.add(model); scene.add(pivot);
+  const size = () => { const w = el.clientWidth, h = el.clientHeight; if (!w || !h) return; r.setSize(w, h, false); cam.aspect = w / h;
+    const t = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)), dist = Math.max(sz.y * 1.08 / (2 * t), sz.x * 1.08 / (2 * t * cam.aspect));
+    cam.position.set(0, 0, dist + sz.z / 2); cam.lookAt(0, 0, 0); cam.updateProjectionMatrix(); };
+  new ResizeObserver(size).observe(el); size();
+  const poster = el.querySelector('[data-head-poster]'); if (poster) poster.style.opacity = '0';
+  const turn = parseFloat(el.getAttribute('data-head-turn')) || .55;
+  const aim = { x: 0, y: 0 }, cur = { x: 0, y: 0 }; let pointer = false;
+  window.addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; pointer = true; const rc = el.getBoundingClientRect();
+    aim.x = THREE.MathUtils.clamp((e.clientX - (rc.left + rc.width / 2)) / (window.innerWidth / 2), -1, 1);
+    aim.y = THREE.MathUtils.clamp((e.clientY - (rc.top + rc.height * .4)) / (window.innerHeight / 2), -1, 1); }, { passive: true });
+  const intro = { v: 1 };
+  if (window.gsap && window.ScrollTrigger) { intro.v = 0; window.gsap.to(intro, { v: 1, ease: 'none', scrollTrigger: { trigger: el, start: 'top 95%', end: 'center 55%', scrub: 1 } }); }
+  let on = false; visible(el, v => { on = v; });
+  let nextBlink = performance.now() + 1500, blinkT = -1;
+  el.addEventListener('pointerdown', () => { blinkT = performance.now(); });
+  (function loop(now) {
+    requestAnimationFrame(loop);
+    if (!on) return;
+    now = now || performance.now();
+    if (!pointer) { aim.x = Math.sin(now / 1600) * .35; aim.y = Math.sin(now / 2300) * .2; }
+    cur.x += (aim.x - cur.x) * .08; cur.y += (aim.y - cur.y) * .08;
+    const k0 = 1 - intro.v;
+    pivot.rotation.y = cur.x * turn - k0 * 1.1;
+    pivot.rotation.x = cur.y * turn * .5;
+    pivot.position.y = -k0 * sz.y * .18; pivot.scale.setScalar(.8 + .2 * intro.v);
+    if (now > nextBlink) { blinkT = now; nextBlink = now + 2400 + Math.random() * 3200; if (Math.random() < .2) nextBlink = now + 260; }
+    const p = blinkT > 0 ? (now - blinkT) / 180 : 9, k = p < 1 ? Math.sin(p * Math.PI) : 0;
+    lids.forEach(l => { l.visible = k > .01; l.rotation.x = k * Math.PI / 2; });
+    r.render(scene, cam);
+  })();
+}
+
 (async function boot() {
   if (window.__deesCharacterBooted) return; window.__deesCharacterBooted = true;
   const heroEl = await wait(() => document.querySelector('[data-character="hero"]'), 15000);
@@ -373,4 +443,13 @@ async function cta(el, heroEl) {
   try { if (heroEl) hero(heroEl); } catch (e) { console.warn(e); emit('dees:char-progress', { p: 1 }); }
   const ctaFound = ctaEl || await wait(() => document.querySelector('[data-character="cta"]'), 15000);
   if (ctaFound) cta(ctaFound, heroEl);
+})();
+
+// heads boot on their own — never blocked by the hero/cta characters
+(async function bootHeads() {
+  if (window.__deesHeadsBooted) return; window.__deesHeadsBooted = true;
+  const first = await wait(() => document.querySelector('[data-head-model]'), 20000);
+  if (!first) return;
+  const scan = () => document.querySelectorAll('[data-head-model]').forEach(e => { if (!e.isConnected || e.__deesHead) return; lookingHead(e).catch(er => console.warn('[dees] head', er)); });
+  scan(); setInterval(scan, 1500);
 })();
