@@ -114,7 +114,7 @@ function boot() {
   var off = document.querySelector('[data-w-if="soundOff"]'); if (off && !off.innerHTML.trim()) off.innerHTML = "<svg width=\"14\" height=\"12\" viewBox=\"0 0 14 12\" fill=\"none\" style=\"display:block;\"><path d=\"M1 4h2.5L7 1v10L3.5 8H1z\" fill=\"currentColor\"></path><path d=\"M9.5 4l3 4M12.5 4l-3 4\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linecap=\"round\"></path></svg>";
   // ---------- CMS projects ----------
   var items = Array.prototype.map.call(document.querySelectorAll('[data-wubble="project"]'), function (el) {
-    var img = el.querySelector('[data-wubble="cover"] img, img[data-wubble="cover"], img'); var a = function (k) { return (el.getAttribute('data-' + k) || '').trim(); };
+    var img = el.querySelector('[data-wubble="cover"] img, img[data-wubble="cover"], img'); var a = function (k) { var c = el.querySelector('[data-wubble="' + k + '"]'); /* r14.60: a child text element (works with Rich Text) wins over the attribute */ if (c && !c.classList.contains('w-dyn-bind-empty')) { var t = (c.innerText || c.textContent || '').trim(); if (t) return t; } return (el.getAttribute('data-' + k) || '').trim(); };
     return { title: a('title'), slug: a('slug'), client: a('client'), type: a('services'), year: a('year'), blurb: a('description'), video: a('video'), bg: a('color'), cover: (img && !img.classList.contains('w-dyn-bind-empty') && !/placeholder/i.test(img.getAttribute('src') || '')) ? (img.getAttribute('src') || img.currentSrc || '') : '' };
   }).filter(function (p) { return p.title; });
   console.info('[wubble] CMS projects found: ' + items.length); try { console.table(items.map(function (p) { return { title: p.title, cover: p.cover || '(none)', video: p.video || '(none)' }; })); } catch (e) {}
@@ -122,7 +122,7 @@ function boot() {
   window.__wubbleMerge = function (defs) {
     if (!items.length) return defs;
     return items.map(function (p, i) { var d = defs[i % defs.length], o = Object.assign({}, d);
-      ['title', 'client', 'type', 'year', 'blurb'].forEach(function (k) { if (p[k]) o[k] = p[k]; });
+      ['title', 'client', 'type', 'year', 'blurb'].forEach(function (k) { o[k] = p[k] || ''; }); /* r14.60: CMS is the only source — no baked-in placeholder text */
       if (p.bg) { o.bg = p.bg; o.ink = lum(p.bg) > 0.55 ? '#151412' : '#ece9e2'; }
       if (p.title !== d.title) o.mark = p.title.toUpperCase().split(/\s+/).slice(0, 2).join(' ');
       o.cover = p.cover; o.videoUrl = p.video; return o; });
@@ -575,8 +575,8 @@ class Component extends DCLogic {
       closeRef: this.closeRef, loaderRef: this.loaderRef, soundOn: !!this.state.soundOn, soundOff: !this.state.soundOn, soundLabel: this.state.soundOn ? 'sound on' : 'sound off', toggleSound: () => this.toggleSound(), chromeRef: this.chromeRef, curtainRef: this.curtainRef, hero3dRef: this.hero3dRef, ctaRef: this.ctaRef, ctaGlRef: this.ctaGlRef, reachRef: this.reachRef, rayRef: this.rayRef, astroRef: this.astroRef, handRef: this.handRef, heroImage: !(this.props.hero3D ?? true),
       pageBg: pg && pg.src ? 'url(' + pg.src + ')' : 'none',
       pageVideo: pg ? pg.video : '',
-      titleWords: pp.title.split(' '),
-      pageTitle: pp.title, pageClient: pp.client, pageType: pp.type, pageYear: pp.year, pageBlurb: pp.blurb, blurbWords: pp.blurb.split(' '),
+      titleWords: (pp.title || '').split(' '),
+      pageTitle: pp.title, pageClient: pp.client, pageType: pp.type, pageYear: pp.year, pageBlurb: pp.blurb || '', blurbWords: (pp.blurb || '').split(' ').filter(Boolean),
       nextTitle: this.projects[((pg ? pg.i : 0) + 1) % n].title,
       nextWords: (this.projects[((pg ? pg.i : 0) + 1) % n].title + ' →').split(' '),
       closePage: () => this.requestClose(),
