@@ -114,6 +114,7 @@ Object.assign(window.WBM, {
       if (!S.landed) { S.wkT = 0; S.phi = 0; S.wkW = 0; } else S.wkT = (S.wkT || 0) + dt;
       const walking = WK && S.wkT > (P.footerWalkDelay ?? 3); S.wkW = (S.wkW || 0) + ((walking ? 1 : 0) - (S.wkW || 0)) * (1 - Math.exp(-dt * 3));
       if (walking) S.phi = (S.phi || 0) + dt * S.wkW * (P.footerWalkSpeed ?? 0.12) * ah / rr * 2;
+      { const p0 = S.phi || 0, wx0 = Math.sin(p0) * rr, wy0 = mY + Math.cos(p0) * rr; if (walking && (P.footerWalkWrap ?? true) && p0 > 0 && (wx0 > asp + 0.35 || wy0 < -1.25)) S.phi = -p0; } /* walked out on the right → re-enter from the left */
       const phi = S.phi || 0, wx = Math.sin(phi) * rr, wy = mY + Math.cos(phi) * rr;
       S.astro.position.set(S.landed ? wx : px, S.landed ? wy : py, 0); S.astro.scale.setScalar(ah * (1.5 - 0.5 * u)); S.astro.visible = (P.footerOwnAstro ?? true) && p > 0.3;
       { const dive = 1 - sm(0.7, 0.97, u); S.astro.rotation.z = S.landed ? -phi : dive * 0.9; S.astro.rotation.x = S.landed ? 0 : dive * 0.5; }

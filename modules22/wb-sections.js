@@ -459,7 +459,8 @@ Object.assign(window.WBM, {
       try {
         const mod = (window.DitherViewer || await new Promise((res) => { const t = setInterval(() => { if (window.DitherViewer) { clearInterval(t); res(window.DitherViewer); } }, 50); }));
         if (this.dead) return;
-        const url = (this.props.handModel || '').trim() || 'https://cdn.jsdelivr.net/npm/@webxr-input-profiles/assets@1.0/dist/profiles/generic-hand/right.glb';
+        const url = (this.props.handModel || '').trim() || window.WB_HAND_MODEL || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/shaka.glb'; const SHAKA = /shaka/i.test(url);
+        this._handBase = SHAKA ? [this.props.handRotX ?? 0, this.props.handRotY ?? 0, this.props.handRotZ ?? 0] : [-1.15, 0.5, -0.55 + (this.props.handFlip ?? Math.PI)];
         const LB = !!this.props.reachBg, hc = parseInt(String(this.props.reachHand || '#202ded').replace('#', ''), 16) || 0x202ded; this._handLB = LB;
         if (!(this.props.reachSection ?? false)) return; // Reach is off: don't spend a WebGL context on the hand
         const CH = (this.props.handStyle || 'Chrome') === 'Chrome';
@@ -507,7 +508,7 @@ Object.assign(window.WBM, {
         (this._handLights || []).forEach((L, li) => { if (L.userData.i0 == null) return; L.intensity = L.userData.i0 * (1 + e * (li === 0 ? 3.2 : 1.2)); if (li === 0 && L.position) L.position.set(-1.2 - e * 0.6, 3.2, 1.6); });
         if (sh) { if (sh.__c !== rc0) { sh.__c = rc0; sh.style.background = 'radial-gradient(ellipse 18% 46% at 46% 52%, ' + rc0 + 'cc 0%, ' + rc0 + '55 40%, transparent 72%), radial-gradient(ellipse 34% 30% at 50% 58%, ' + rc0 + '44 0%, transparent 70%)'; sh.style.transform = 'rotate(-12deg)'; }
           const so = (e * (0.55 + 0.1 * Math.sin(t * 0.7))).toFixed(3); if (sh.__o !== so) { sh.__o = so; sh.style.opacity = so; } }
-        const md = this.hand.model; if (md) { const sr = sp - 0.5; md.rotation.set(-1.15 + (1 - e) * 0.8 + Math.sin(t * 0.55) * 0.07, 0.5 + sr * 2.8 + Math.sin(t * 0.37) * 0.12, -0.55 + (this.props.handFlip ?? Math.PI) - sr * 1.0 + Math.sin(t * 0.29 + 1.2) * 0.06); }
+        const md = this.hand.model; if (md) { const sr = sp - 0.5; const B = this._handBase || [-1.15, 0.5, -0.55 + Math.PI]; md.rotation.set(B[0] + (1 - e) * 0.8 + Math.sin(t * 0.55) * 0.07, B[1] + sr * 2.8 + Math.sin(t * 0.37) * 0.12, B[2] - sr * 1.0 + Math.sin(t * 0.29 + 1.2) * 0.06); }
       }
       r.render(scene, cam);
     };

@@ -38,12 +38,12 @@ Object.assign(window.WBM, {
         sg.transform(tf.a, tf.b, tf.c, tf.d, 0, 0); sg.fillText((cs.textTransform === 'uppercase' ? w.textContent.toUpperCase() : w.textContent), 0, 0); sg.restore(); void f; }
       // 2. wave + mouse tilt displacement, then luminance → characters
       const t = performance.now() / 1000 * (P.asciiSpeed ?? 1), A = P.asciiWave ?? 1, D = sg.getImageData(0, 0, cols, rows).data;
-      tx += (mx - tx) * 0.06; ty += (my - ty) * 0.06; const cx = (hr.left + hr.width / 2) / cw, cy = (hr.top + hr.height / 2) / fs;
+      const EZ = P.asciiEase ?? 0.06, TL = P.asciiTilt ?? 1; tx += (mx * TL - tx) * EZ; ty += (my * TL - ty) * EZ; if (P.asciiOpacity != null) pre.style.opacity = P.asciiOpacity; const cx = (hr.left + hr.width / 2) / cw, cy = (hr.top + hr.height / 2) / fs;
       let out = ''; const n = CHARS.length - 1;
       for (let y = 0; y < rows; y++) { for (let x = 0; x < cols; x++) {
           const dx = x - cx, dy = y - cy, persp = 1 + (dx * tx * 0.012 + dy * ty * 0.03);
           const sx = Math.round(cx + dx * persp + Math.sin(t * 1.6 + y * 0.35) * 1.6 * A), sy = Math.round(cy + dy * persp + Math.cos(t * 1.3 + x * 0.06) * 0.7 * A);
-          let v = 0; if (sx >= 0 && sy >= 0 && sx < cols && sy < rows) { const i = (sy * cols + sx) * 4; v = D[i + 3] / 255 * (0.75 + 0.25 * Math.sin(t * 3 + x * 0.2 + y * 0.5)); }
+          let v = 0; if (sx >= 0 && sy >= 0 && sx < cols && sy < rows) { const i = (sy * cols + sx) * 4; v = D[i + 3] / 255 * (0.75 + 0.25 * Math.sin(t * (P.asciiFlicker ?? 3) + x * 0.2 + y * 0.5)); }
           out += v < 0.04 ? ' ' : CHARS[Math.min(n, Math.round(v * n))]; } out += '\n'; }
       { const op = pre.offsetParent, lr = op ? op.getBoundingClientRect() : { left: 0, top: 0 }; pre.style.transform = 'translate(' + (-lr.left).toFixed(1) + 'px,' + (-lr.top).toFixed(1) + 'px)'; }
       if (out !== last) { pre.textContent = out; last = out; } };

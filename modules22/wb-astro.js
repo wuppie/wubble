@@ -560,7 +560,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
       if (NATIVE) { K[1].y = 0.02 + (this.props.astroWorkY ?? 0.3); K[1].s = K1s0 * (this.props.astroWorkScale ?? 0.8); }
       let A, B, t;
       let exitU = 0;
-      if (rq > 0.0005 || r3 > 0.0005) { const LP = this.props; A = K[1]; B = { x: LP.astroLandX ?? 0.42, y: LP.astroLandY ?? -0.12, s: (LP.astroLandSize ?? 1) * K[0].s, ry: -0.2 }; /* About: same size as in the hero */ t = Math.min(1, rq / 0.95); { const ctE = this.ctaRef.current, vhE = window.__svh || innerHeight, intoE = ctE && rq > 0.999 ? -(this._ctT ?? ctE.getBoundingClientRect().top) / vhE : 0; if (rq > 0.999) PH.landInto = Math.min(PH.landInto ?? 1e9, intoE); else PH.landInto = null; const rel = rq > 0.999 ? intoE - (PH.landInto ?? intoE) : 0; const e0 = Math.max(0, Math.min(1, Math.max((this.props.robotMorph ?? false) ? (rel - (this.props.astroExitStart ?? 1.0)) / 1.3 : 0, r3 / 0.4))); exitU = (this.props.reachSection ?? false) ? e0 * e0 * (3 - 2 * e0) : 0; } } else { const HS0 = this.props.heroStart ?? 0.04; A = K[0]; B = K[1]; t = Math.min(1, Math.max(0, (rp - HS0) / ((this.props.heroSpan ?? 0.16) * (this.props.astroPathMul ?? 2.5))));  }
+      if (rq > 0.0005 || r3 > 0.0005) { const LP = this.props; A = K[1]; B = { x: LP.astroLandX ?? 0.42, y: LP.astroLandY ?? -0.12, s: (LP.astroLandSize ?? 1) * 1.45, /* About size stays as before; the mobile hero size change must not shrink it */ ry: -0.2 }; /* About: same size as in the hero */ t = Math.min(1, rq / 0.95); { const ctE = this.ctaRef.current, vhE = window.__svh || innerHeight, intoE = ctE && rq > 0.999 ? -(this._ctT ?? ctE.getBoundingClientRect().top) / vhE : 0; if (rq > 0.999) PH.landInto = Math.min(PH.landInto ?? 1e9, intoE); else PH.landInto = null; const rel = rq > 0.999 ? intoE - (PH.landInto ?? intoE) : 0; const e0 = Math.max(0, Math.min(1, Math.max((this.props.robotMorph ?? false) ? (rel - (this.props.astroExitStart ?? 1.0)) / 1.3 : 0, r3 / 0.4))); exitU = (this.props.reachSection ?? false) ? e0 * e0 * (3 - 2 * e0) : 0; } } else { const HS0 = this.props.heroStart ?? 0.04; A = K[0]; B = K[1]; t = Math.min(1, Math.max(0, (rp - HS0) / ((this.props.heroSpan ?? 0.16) * (this.props.astroPathMul ?? 2.5))));  }
       { const rv = Math.abs(rq - (PH.lastRq ?? rq)) / Math.max(dt, 0.001); PH.lastRq = rq; const tg = rq > 0.0005 && rq < 0.999 && r3 < 0.0005 ? Math.min(1, Math.max(rv * 3, Math.sin(Math.PI * Math.min(1, rq)) * 0.85)) : 0; PH.tq = (PH.tq || 0) + (tg - (PH.tq || 0)) * (1 - Math.exp(-dt * (tg > (PH.tq || 0) ? 4 : 1.5))); }
       const tumbleQ = PH.tq;
       PH.spin = Math.atan2(Math.sin(PH.spin), Math.cos(PH.spin)); if (hv.v > 0.001) { PH.spinV *= 1 - Math.min(1, dt * 6 * hv.v); PH.spin *= 1 - Math.min(1, dt * 2.5 * hv.v); }
@@ -611,7 +611,8 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
           else {
             // random hologram glitch: a scan line sweeps up into the hologram, holds, then sweeps back to the textured suit
             const now = performance.now() / 1000, H = this._holoT || (this._holoT = { next: now + 3 + Math.random() * 4, t0: -1, amt: 0 });
-            if (H.t0 < 0 && now > H.next) { H.t0 = now; H.hold = 1.2 + Math.random() * 1.8; }
+            const inAb = (window.__wbAboutOp || 0) > 0.05; if (inAb && H.t0 < 0) H.next = Math.max(H.next, now + 2);
+            if (H.t0 < 0 && now > H.next && !inAb) { H.t0 = now; H.hold = 1.2 + Math.random() * 1.8; }
             let amt = 0, scan = -1; if (H.t0 >= 0) { const t = now - H.t0, ti = P.astroHoloIn ?? 0.7, to = P.astroHoloOut ?? 0.9, sm = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
               if (t < ti) { amt = sm(t / ti); scan = -0.05 + amt * 1.25; } else if (t < ti + H.hold) amt = 1; else if (t < ti + H.hold + to) { amt = 1 - sm((t - ti - H.hold) / to); scan = 1.2 - (1 - amt) * 1.25; } else { H.t0 = -1; const a = P.astroHoloEvery ?? 9; H.next = now + a * (0.6 + Math.random() * 0.8); } }
             U.uAmt.value = amt; U.uScan.value = scan;
@@ -716,10 +717,16 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
         else this._mS = null; this._moonK = ke; }
       piv.position.set(pwx, pwy, 0);
       piv.scale.setScalar(PH.s * (1 - (this._moonK || 0) * (1 - (this.props.astroMoonScale ?? 0.45))) * (cam.aspect < 0.8 ? 0.75 : 1) * (1 - 0.25 * (PH.exitU || 0) * (1 - Math.min(1, (PH.mt || 0) * 4))));
-      if ((this._abA || 0) > 0.001 && (window.__wbMonLand || window.__wbMonEdge) && ACT.drop) { const hb = this._mL || (this._mL = { l: m.getObjectByName('mixamorigLeftToeBase'), r: m.getObjectByName('mixamorigRightToeBase'), v: new T3.Vector3(), w: new T3.Vector3() });
-        if (hb.l && hb.r) { const E = window.__wbMonLand || window.__wbMonEdge; if (this._abPh === 'drop' || !this._hOff) { piv.updateMatrixWorld(true); const a = hb.l.getWorldPosition(hb.v), b = hb.r.getWorldPosition(hb.w); a.add(b).multiplyScalar(0.5).project(cam); this._hOff = { x: (E.x - a.x) * halfW, y: (E.y + (this.props.astroLandLift ?? 0) - a.y) * halfH }; }
-          piv.position.x += this._hOff.x * this._abA; piv.position.y += this._hOff.y * this._abA; } }
-      { const aoD = Math.min(1, Math.max(0, ((window.__wbAboutOp || 0) - 0.2) / 0.6)); if (aoD > 0) piv.position.y -= (this.props.astroAboutDown ?? 0.3) * halfH * aoD * aoD * (3 - 2 * aoD); } // About: sit lower in the frame
+      const gW = (this.props.astroInGlass ?? true) && window.__wbGlassIn ? Math.min(1, Math.max(0, ((window.__wbAboutOp || 0) - 0.3) / 0.4)) : 0;
+      { const fz = window.__wbGlassFreed ? 1 : 0, nw = performance.now(), dd = Math.min(0.05, (nw - (this._frT || nw)) / 1000); this._frT = nw; this._frE = (this._frE || 0) + (fz - (this._frE || 0)) * (1 - Math.exp(-dd * 3)); }
+      if (gW > 0.001) piv.scale.multiplyScalar(1 - (1 - (this.props.astroGlassScale ?? 0.56)) * gW * gW * (3 - 2 * gW) * (1 - (this._frE || 0))); if (window.__wbGlassIn && (this._frE || 0) > 0.001) piv.scale.multiplyScalar(1 - (1 - (this.props.astroFreeScale ?? 0.72)) * this._frE); /* r14.42: freed -> grows back */ /* r14.38: way smaller inside the glass */ /* r14.35: trapped — glass mode places him inside from the moment About starts */
+      if (((this._abA || 0) > 0.001 || gW > 0.001) && (window.__wbMonLand || window.__wbMonEdge || window.__wbGlassIn) && ACT.drop) { const hb = this._mL || (this._mL = { l: m.getObjectByName('mixamorigLeftToeBase'), r: m.getObjectByName('mixamorigRightToeBase'), v: new T3.Vector3(), w: new T3.Vector3() });
+        this._gMode = !!((this.props.astroInGlass ?? true) && window.__wbGlassIn); const GI = this._gMode && !window.__wbGlassFreed && window.__wbGlassIn; this._gIn = !!GI; /* r14.53: freed -> lands on the top edge */ /* r14.34: glass mode → land inside the screen */
+        if (hb.l && hb.r) { const E = GI || window.__wbMonLand || window.__wbMonEdge; if (GI) this._hOff = null; if (this._abPh === 'drop' || !this._hOff) { piv.updateMatrixWorld(true); const a = hb.l.getWorldPosition(hb.v), b = hb.r.getWorldPosition(hb.w); a.add(b).multiplyScalar(0.5).project(cam); this._hOff = { x: (E.x - a.x) * halfW, y: (E.y + (this.props.astroLandLift ?? 0) - a.y) * halfH }; }
+          const wA = GI ? Math.max(this._abA || 0, gW * gW * (3 - 2 * gW)) : this._abA; piv.position.x += this._hOff.x * wA; piv.position.y += this._hOff.y * wA; } }
+      { const aoD = Math.min(1, Math.max(0, ((window.__wbAboutOp || 0) - 0.2) / 0.6)); if (aoD > 0 && !this._gMode) piv.position.y -= (this.props.astroAboutDown ?? 0.3) * halfH * aoD * aoD * (3 - 2 * aoD); } // About
+      { const gf = Math.max(window.__wbGlassFull || 0, this.props.astroGlassHalf ?? 1) * Math.min(1, Math.max(0, ((window.__wbAboutOp || 0) - 0.6) / 0.3)); /* r14.33: on About he always sinks to half-body (hips on the screen's bottom edge) */
+        if (gf > 0.001 && !this._gMode) { const hb = this._mG || (this._mG = { h: m.getObjectByName('mixamorigHips'), v: new T3.Vector3() }); if (hb.h) { piv.updateMatrixWorld(true); const nd = hb.h.getWorldPosition(hb.v).project(cam); piv.position.y += ((this.props.astroGlassHipY ?? -1.02) - nd.y) * halfH * gf; } } } // About: sit lower in the frame
       if (0) {}
       else if ((this._sitK || 0) > 0.001 && window.__wbMonEdge) { const hb = this._mB || (this._mB = { h: m.getObjectByName('mixamorigHips'), l: m.getObjectByName('mixamorigLeftToeBase'), r: m.getObjectByName('mixamorigRightToeBase'), v: new T3.Vector3(), w: new T3.Vector3() });
         if (hb.h) { piv.updateMatrixWorld(true); const nd = hb.h.getWorldPosition(hb.v).project(cam), E = window.__wbMonEdge, ks = this._sitK; piv.position.x += (E.x - nd.x) * halfW * ks; piv.position.y += (E.y + (this.props.astroSitLift ?? 0.02) - nd.y) * halfH * ks; } }
@@ -803,6 +810,11 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
         const inT = behind && (this.ra || 0) < 0.5 && (this.props.astroInTerminal ?? true) && (this.props.aboutMonitor || 'Model') !== 'Model' && !this.state.page; this._inTerm = inT;
         const zf = inT ? '63' : ((window.__wbFootP || 0) > 0.05 || window.__wbAboutOn ? '60' : zi); if (box.style.zIndex !== zf) box.style.zIndex = zf;
         const now = performance.now();
+        { const R = window.__wbGlassRect, k = !!(this._gIn && !window.__wbGlassFreed && R && (window.__wbAboutOp || 0) > 0.3 && (window.__wbMonZoom || 0) < 0.02); /* r14.34: inside the glass = clipped to it + seen through it */
+          if (k) { const iw = innerWidth, ih = innerHeight, br = this._bxR && now - this._bxRt < 500 ? this._bxR : (this._bxR = box.getBoundingClientRect(), this._bxRt = now, this._bxR);
+            const t = (1 - R.y1) / 2 * ih - br.top, l = (R.x0 + 1) / 2 * iw - br.left, b = br.bottom - (1 - R.y0) / 2 * ih, rr = br.right - (R.x1 + 1) / 2 * iw;
+            window.__wbAstroRect = br; if (!this._gClip) box.style.visibility = 'hidden'; this._gClip = 1; void t; void l; void b; void rr; } /* r14.36: drawn INSIDE the glass scene instead (behind text + glass) */
+          else if (this._gClip) { box.style.visibility = ''; box.style.clipPath = ''; box.style.filter = ''; this._gClip = 0; window.__wbAstroSnapOn = 0; } }
         if (inT && (!this._glR || now - this._glRt > 400)) { const g = document.querySelector('[data-about-glass]'); if (g) { this._glR = g.getBoundingClientRect(); this._glRt = now; } }
         let OV = this._glOv; if (!OV) { OV = this._glOv = document.createElement('div'); OV.setAttribute('aria-hidden', 'true'); OV.style.cssText = 'position:fixed;z-index:64;pointer-events:none;opacity:0;border-radius:4.5vmin;overflow:hidden;background:linear-gradient(162deg,rgba(255,255,255,0.14) 0%,rgba(255,255,255,0.03) 26%,rgba(255,255,255,0) 40%),repeating-linear-gradient(0deg,rgba(0,0,0,0.22) 0px,rgba(0,0,0,0.22) 1px,rgba(0,0,0,0) 1px,rgba(0,0,0,0) 3px);box-shadow:inset 0 0 9vmin rgba(0,0,0,0.85);'; const F = document.createElement('div'); F.style.cssText = 'position:absolute;width:30vmin;height:30vmin;margin:-15vmin 0 0 -15vmin;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.22) 0%,rgba(255,255,255,0.05) 35%,rgba(0,0,0,0) 70%);opacity:0;'; OV.appendChild(F); OV.__f = F; document.body.appendChild(OV); }
         const op = inT ? '1' : '0'; if (OV.style.opacity !== op) OV.style.opacity = op;
@@ -881,6 +893,8 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
               if (!(tl || br || c0)) TM.__vis = [0, 0, 1, 1];
               TM.__ar = (SR.w * (gP.glassW ?? 1)) / Math.max(0.01, SR.h * (gP.glassH ?? 1)); }
             const ac = r.autoClear; r.autoClear = false; r.setRenderTarget(null); r.render(TP.s2, cam); r.autoClear = ac; } } }
+      if (this._gClip) { const c0 = r.domElement, sn = window.__wbAstroSnap || (window.__wbAstroSnap = document.createElement('canvas')), w = Math.max(2, c0.width >> 1), h = Math.max(2, c0.height >> 1);
+        if (sn.width !== w || sn.height !== h) { sn.width = w; sn.height = h; } const g2 = sn.getContext('2d'); g2.clearRect(0, 0, w, h); g2.drawImage(c0, 0, 0, w, h); window.__wbAstroSnapOn = 1; }
     };
     loop();
   },

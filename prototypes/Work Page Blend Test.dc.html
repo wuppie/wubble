@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap">
+<style>nav[data-wb-menu]{visibility:hidden;clip-path:inset(0 0 100% 0);} @keyframes wbAvail{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(0.8)}} html,body{margin:0;background:#050505;} a{color:#ece9e2;text-decoration:none;} a:hover{color:#ffffff;} html.lenis,html.lenis body{height:auto;} .lenis.lenis-smooth{scroll-behavior:auto!important;} @media (max-width:820px){[data-wb-proj-aside]{position:relative!important;width:auto!important;bottom:auto!important;gap:40px;padding:88px 20px 8px!important;}[data-wb-proj-main]{margin-left:0!important;padding:0 20px 24px!important;}[data-wb-proj-main] > section:first-child{padding:24px 0 16px!important;}[data-wb-proj-pair]{grid-template-columns:minmax(0,1fr)!important;}}</style>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script>window.WB_INK_COLOR = '#000000';</script>
+<script>window.WB_INK_READY = new Promise((res) => { const slug = new URLSearchParams(location.search).get('p'); const t0 = performance.now(); const ok = () => slug ? (() => { const h1 = document.querySelector('[data-wb-project] h1'); return h1 && !/\{\{/.test(h1.textContent) && h1.textContent.trim(); })() : (window.__wbWorkFrames || 0) >= 4; const f = () => (ok() || performance.now() - t0 > 5000 ? (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => setTimeout(res, 60)) : setTimeout(f, 30)); f(); });</script>
+<script>window.WB_SWAP_ROUTE = (u) => (window.__wbRoute ? window.__wbRoute(u) : Promise.resolve());</script>
+<script src="./modules22/wb-cursor.js?v=1"></script>
+<script src="./modules22/wb-blurtitle.js?v=2"></script>
+<script src="./modules22/wb-ink.js?v=21"></script>
+<script src="./modules22/wb-swap.js?v=10"></script>
+<script src="./modules22/wb-distort.js?v=2"></script>
+<script src="./modules22/wb-project.js?v=8"></script>
+<script src="./modules22/wb-abyss.js?v=6"></script>
+<script>(function(){function go(){if(!document.querySelector('[data-us-project]')){return setTimeout(go,100);}var u=window.UnicornStudio;if(u&&u.init){u.init();return;}window.UnicornStudio={isInitialized:false};var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.4.3/dist/unicornStudio.umd.js';s.onload=function(){UnicornStudio.init();};document.head.appendChild(s);}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',go);}else{go();}})();</script>
+<script>/* Unicorn light: always drifts on a slow soft path, the real cursor steers it (only the light; other effects keep the real mouse) */
+(function(){var mx=innerWidth*0.5,my=innerHeight*0.5,ox=mx,oy=my,t0=performance.now(),last=t0,has=false;
+addEventListener('mousemove',function(e){if(e.__wbSyn)return;mx=e.clientX;my=e.clientY;has=true;e.stopImmediatePropagation();},true);
+function f(now){requestAnimationFrame(f);if(document.hidden)return;var dt=Math.min(0.05,(now-last)/1000);last=now;var t=(now-t0)/1000,W=innerWidth,H=innerHeight;
+var dx=Math.sin(t*0.11)*0.22*W+Math.sin(t*0.047+1.3)*0.12*W,dy=Math.cos(t*0.083+0.6)*0.2*H+Math.sin(t*0.061)*0.1*H;
+var bx=has?mx:W*0.5,by=has?my:H*0.5,tx=bx+dx*(has?0.55:1),ty=by+dy*(has?0.55:1),k=1-Math.exp(-dt*1.2);ox+=(tx-ox)*k;oy+=(ty-oy)*k;
+var ev=new MouseEvent('mousemove',{clientX:ox,clientY:oy,bubbles:true});ev.__wbSyn=1;(document.querySelector('[data-us-project] canvas')||document).dispatchEvent(ev);}
+requestAnimationFrame(f);})();</script>
+<script src="./modules22/wb-blurword.js?v=1"></script>
+<script src="./modules22/wb-workhelix.js?v=23"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+<script src="./modules22/wb-pages.js?v=18"></script>
+</helmet>
+<div data-wb-site-header="" style="position:fixed;top:16px;left:16px;right:16px;z-index:40;pointer-events:none;mix-blend-mode:difference;color:#ece9e2;">
+  <header style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:20px 24px;pointer-events:auto;font-family:'Switzer',Helvetica,sans-serif;">
+    <div style="justify-self:start;display:flex;align-items:center;">
+      <sc-if value="{{ isWork }}" hint-placeholder-val="{{ true }}"><a href="Site V24 Pages.dc.html" data-wb-back="" onClick="{{ goBack }}" style="display:flex;align-items:center;gap:6px;font-weight:500;font-size:13px;line-height:1;color:inherit;">← Back</a></sc-if>
+      <sc-if value="{{ isProject }}" hint-placeholder-val="{{ false }}"><a href="Site V24 Pages.dc.html" data-wb-swap="" data-logo-w="" style="font-weight:700;font-size:18px;line-height:1;letter-spacing:-0.01em;color:inherit;">wubble</a></sc-if>
+    </div>
+    <div style="font-size:11px;font-weight:500;letter-spacing:0.04em;display:flex;align-items:center;gap:8px;"><span data-avail-dot="" style="width:7px;height:7px;border-radius:50%;background:#2fd27a;box-shadow:0 0 6px 1px rgba(47,210,122,0.75);animation:wbAvail 2.2s ease-in-out infinite;"></span><span data-avail="" style="opacity:0.85;white-space:nowrap;">Awake and creative</span></div>
+    <div style="justify-self:end;display:flex;align-items:center;gap:22px;">
+      <button data-wb-menu-open="" aria-label="Open menu" style="white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0;border:0;background:transparent;color:inherit;font:600 13px 'Switzer',Helvetica,sans-serif;cursor:pointer;"><span>menu</span><span style="display:flex;flex-direction:column;gap:4px;"><span style="display:block;width:18px;height:1.5px;background:currentColor;"></span><span style="display:block;width:18px;height:1.5px;background:currentColor;"></span></span></button></div>
+  </header>
+</div>
+<nav data-wb-menu="" aria-hidden="true" data-screen-label="Menu" style="visibility:hidden;clip-path:inset(0 0 100% 0);position:fixed;inset:0;z-index:150;background:#0e0e0d;color:#ece9e2;display:flex;flex-direction:column;justify-content:space-between;padding:36px 40px 32px;box-sizing:border-box;font-family:'Switzer',Helvetica,sans-serif;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:24px;">
+      <a href="Site V24 Pages.dc.html" data-wb-swap="" data-wb-menu-fade="" style="font-weight:700;font-size:18px;letter-spacing:-0.01em;color:inherit;" style-hover="opacity:0.6;">wubble</a>
+      <button data-wb-menu-close="" aria-label="Close menu" style="display:flex;align-items:center;gap:10px;padding:0;border:0;background:transparent;color:inherit;font:600 13px 'Switzer',Helvetica,sans-serif;cursor:pointer;"><span>close</span><span style="position:relative;width:18px;height:18px;"><span style="position:absolute;left:0;top:8px;width:18px;height:1.5px;background:currentColor;transform:rotate(45deg);"></span><span style="position:absolute;left:0;top:8px;width:18px;height:1.5px;background:currentColor;transform:rotate(-45deg);"></span></span></button>
+    </div>
+    <div style="display:flex;flex-direction:column;">
+      <a data-wb-menu-item="" data-wb-swap="" href="Work Page.dc.html" style="display:block;overflow:hidden;color:inherit;font-weight:700;font-size:clamp(56px,11vw,180px);line-height:0.9;letter-spacing:-0.04em;" style-hover="color:#ffffff;"><span style="display:block;">Work</span></a>
+      <a data-wb-menu-item="" data-wb-swap="" href="About Page.dc.html" style="display:block;overflow:hidden;color:inherit;font-weight:700;font-size:clamp(56px,11vw,180px);line-height:0.9;letter-spacing:-0.04em;" style-hover="color:#ffffff;"><span style="display:block;">About</span></a>
+      <a data-wb-menu-item="" data-wb-swap="" href="Services Page.dc.html" style="display:block;overflow:hidden;color:inherit;font-weight:700;font-size:clamp(56px,11vw,180px);line-height:0.9;letter-spacing:-0.04em;" style-hover="color:#ffffff;"><span style="display:block;">Services</span></a>
+      <a data-wb-menu-item="" data-wb-swap="" href="Contact Page.dc.html" style="display:block;overflow:hidden;color:inherit;font-weight:700;font-size:clamp(56px,11vw,180px);line-height:0.9;letter-spacing:-0.04em;" style-hover="color:#ffffff;"><span style="display:block;">Contact</span></a>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px 32px;font-size:13px;font-weight:500;">
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:16px 28px;"><a data-wb-menu-fade="" data-wb-swap="" href="Contact Page.dc.html" style="display:inline-flex;align-items:center;gap:10px;padding:14px 24px;border-radius:999px;background:#ece9e2;color:#0e0e0d;font-weight:600;font-size:14px;line-height:1;white-space:nowrap;" style-hover="background:#ffffff;">let's talk <span aria-hidden="true">→</span></a><a data-wb-menu-fade="" href="mailto:hello@wubble.agency" style="color:inherit;">hello@wubble.agency</a></div>
+      <div data-wb-menu-fade="" style="display:flex;gap:24px;"><a href="#" style="color:inherit;">Instagram</a><a href="#" style="color:inherit;">LinkedIn</a></div>
+    </div>
+  </nav>
+<div data-wb-blurword="" data-c1="#0f1011" data-c2="#020202" data-ink="#232426" data-blur="0.7" data-y="0.62" aria-hidden="true" style="position:fixed;inset:0;pointer-events:none;"><span data-wb-blurword-text="" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);font-family:'Switzer',Helvetica,sans-serif;font-weight:800;">work</span></div>
+<div data-us-project="RugEEY28kv5kuCqQGB8P" aria-hidden="true" style="position:fixed;inset:0;width:100vw;height:100vh;z-index:1;mix-blend-mode:screen;opacity:0.45;"></div>
+<div aria-hidden="true" style="position:fixed;inset:0;z-index:1;pointer-events:none;background:#1c1c1e;mix-blend-mode:color;"></div>
+<main data-wb-work="" data-screen-label="Work" style="background:transparent;z-index:2;display:{{ workDisplay }};position:fixed;inset:0;overflow:hidden;color:#ece9e2;font-family:'Switzer',Helvetica,sans-serif;">
+  <div data-wb-work-stage="" style="position:absolute;inset:0;z-index:1;"></div>
+
+  <header style="position:absolute;top:50%;transform:translateY(-50%);left:32px;right:32px;display:flex;justify-content:space-between;align-items:center;gap:24px;z-index:2;pointer-events:none;">
+    <h1 style="margin:0;font-weight:700;font-size:clamp(20px,2vw,30px);line-height:0.9;letter-spacing:-0.02em;text-transform:uppercase;">Work</h1>
+    <div style="display:flex;align-items:center;gap:10px;pointer-events:auto;font-size:12px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;">
+      <button data-wb-work-prev="" aria-label="Previous project" style="width:44px;height:44px;border:1px solid rgba(236,233,226,0.25);border-radius:50%;background:transparent;color:#ece9e2;font:500 14px 'Switzer',sans-serif;cursor:pointer;">←</button>
+      <span data-wb-work-current="" style="min-width:170px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#ece9e2;">1. Tidewater Atlas</span>
+      <button data-wb-work-next="" aria-label="Next project" style="width:44px;height:44px;border:1px solid rgba(236,233,226,0.25);border-radius:50%;background:transparent;color:#ece9e2;font:500 14px 'Switzer',sans-serif;cursor:pointer;">→</button>
+    </div>
+  </header>
+
+  <div style="position:absolute;right:32px;bottom:32px;z-index:2;font-size:12px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:#6a6964;">Scroll to explore</div>
+
+  <div data-wb-work-list="" style="display:none;">
+    <a data-wb-work-item="" href="?p=tidewater-atlas" data-title="Tidewater Atlas" data-accent="#c9542f" data-type="Interactive atlas" data-cat="interactive, websites" data-mark="TIDE/ WATER" data-bg="#d8d3c6" data-ink="#151412">Tidewater Atlas</a>
+    <a data-wb-work-item="" href="?p=northfield-records" data-title="Northfield Records" data-accent="#d9c36a" data-type="Label identity" data-cat="identity, websites" data-mark="NRTH FLD" data-bg="#1e3a2c" data-ink="#ebe5d3">Northfield Records</a>
+    <a data-wb-work-item="" href="?p=oda-ceramics" data-title="Oda Ceramics" data-accent="#1b1a17" data-type="E-commerce" data-cat="e-commerce" data-mark="ODA" data-bg="#c4512d" data-ink="#f4ede1">Oda Ceramics</a>
+    <a data-wb-work-item="" href="?p=kinetic-type-lab" data-title="Kinetic Type Lab" data-accent="#f0a8c0" data-type="WebGL experiment" data-cat="webgl, interactive" data-mark="KINE TIC" data-bg="#242a66" data-ink="#e9e7f1">Kinetic Type Lab</a>
+    <a data-wb-work-item="" href="?p=halden-observatory" data-title="Halden Observatory" data-accent="#3a5bd9" data-type="Museum website" data-cat="websites" data-mark="HAL DEN" data-bg="#e9e4d7" data-ink="#141414">Halden Observatory</a>
+    <a data-wb-work-item="" href="?p=sunday-garden" data-title="Sunday Garden" data-accent="#c7de5b" data-type="Restaurant" data-cat="websites, identity" data-mark="SUN DAY" data-bg="#121212" data-ink="#ece9e2">Sunday Garden</a>
+  </div>
+</main>
+<sc-if value="{{ isProject }}" hint-placeholder-val="{{ false }}">
+<div data-wb-project="" data-screen-label="Project" style="position:relative;z-index:3;background:transparent;color:#ece9e2;font-family:'Switzer',Helvetica,sans-serif;min-height:100vh;">
+  <aside data-wb-proj-aside="" style="position:fixed;top:0;left:0;bottom:0;width:40vw;box-sizing:border-box;padding:96px 32px 32px;display:flex;flex-direction:column;justify-content:space-between;z-index:2;">
+    <div style="display:flex;flex-direction:column;gap:28px;">
+      <a href="{{ workHref }}" data-wb-swap="" data-wb-enter="0" style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:500;">← Back to work</a>
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div data-wb-enter="1" style="display:flex;flex-wrap:wrap;gap:6px 16px;font-size:15px;color:#8a8984;white-space:nowrap;"><span>{{ num }}</span><span>({{ p.type }})</span></div>
+        <div style="overflow:hidden;padding-bottom:0.08em;"><h1 data-wb-enter-mask="" style="margin:0;font-weight:700;font-size:clamp(48px,6.4vw,128px);line-height:0.9;letter-spacing:-0.04em;text-wrap:balance;">{{ p.title }}</h1></div>
+      </div>
+    </div>
+    <div data-wb-enter="2" style="display:flex;flex-direction:column;gap:12px;">
+      <div style="font-size:15px;font-weight:500;">Tools</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;max-width:440px;">
+        <sc-for list="{{ p.tools }}" as="t" hint-placeholder-count="5">
+          <span style="padding:8px 14px;border:1px solid rgba(236,233,226,0.22);border-radius:999px;font-size:14px;color:#ece9e2;">{{ t }}</span>
+        </sc-for>
+      </div>
+    </div>
+  </aside>
+
+  <main data-wb-proj-main="" style="margin-left:40vw;box-sizing:border-box;padding:0 32px 32px;display:flex;flex-direction:column;gap:clamp(24px,3vw,48px);">
+    <section data-wb-align-intro="" style="display:flex;flex-direction:column;justify-content:flex-start;gap:40px;padding-top:160px;padding-bottom:clamp(16px,2vw,32px);padding-right:clamp(0px,6vw,120px);">
+      <p data-wb-reveal="" style="margin:0;font-size:clamp(24px,2.3vw,40px);line-height:1.2;letter-spacing:-0.02em;text-wrap:pretty;">{{ p.intro }}</p>
+      <div data-wb-reveal="150" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;max-width:640px;font-size:15px;">
+        <div style="display:flex;flex-direction:column;gap:6px;"><span style="color:#8a8984;">Client</span><span>{{ p.client }}</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px;"><span style="color:#8a8984;">Year</span><span>{{ p.year }}</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px;"><span style="color:#8a8984;">Type</span><span>{{ p.type }}</span></div>
+      </div>
+    </section>
+
+    <div data-wb-reveal="" data-wb-distort="" style="position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#1b1b19;">
+      <div data-wb-parallax="0.1" style="position:absolute;inset:0;background:{{ p.bg }};display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:15px;font-weight:500;color:{{ p.ink }};opacity:0.7;">Project video</span>
+      </div>
+    </div>
+    <div data-wb-reveal="" data-wb-distort="" style="position:relative;aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:#1b1b19;">
+      <div data-wb-parallax="0.14" style="position:absolute;inset:0;background:{{ p.accent }};display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:15px;font-weight:500;color:{{ p.bg }};opacity:0.8;">Project image</span>
+      </div>
+    </div>
+    <div data-wb-proj-pair="" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(24px,3vw,48px);">
+      <div data-wb-reveal="" data-wb-distort="" style="position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:#1b1b19;">
+        <div data-wb-parallax="0.16" style="position:absolute;inset:0;background:{{ p.ink }};display:flex;align-items:center;justify-content:center;"><span style="font-size:15px;font-weight:500;color:{{ p.bg }};opacity:0.7;">Project image</span></div>
+      </div>
+      <div data-wb-reveal="180" data-wb-distort="" style="position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:#1b1b19;">
+        <div data-wb-parallax="0.16" style="position:absolute;inset:0;background:{{ p.bg }};display:flex;align-items:center;justify-content:center;"><span style="font-size:15px;font-weight:500;color:{{ p.ink }};opacity:0.7;">Project image</span></div>
+      </div>
+    </div>
+
+    <a href="{{ nextHref }}" data-wb-swap="" data-wb-reveal="" style="display:flex;flex-direction:column;gap:12px;padding:clamp(80px,14vh,160px) 0 clamp(40px,8vh,80px);">
+      <span style="font-size:15px;color:#8a8984;">Next project</span>
+      <span style="font-weight:700;font-size:clamp(40px,5vw,96px);line-height:0.9;letter-spacing:-0.04em;">{{ next.title }} →</span>
+    </a>
+  </main>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  projects = [
+    { slug: 'tidewater-atlas', title: 'Tidewater Atlas', type: 'Interactive atlas', year: '2026', client: 'Coastal Trust', bg: '#d8d3c6', ink: '#151412', accent: '#c9542f', tools: ['Webflow', 'Three.js', 'Mapbox GL', 'GSAP', 'Blender'], intro: 'A living map of a changing coastline — tides, erosion and decades of survey data layered into one explorable atlas.' },
+    { slug: 'northfield-records', title: 'Northfield Records', type: 'Label identity', year: '2025', client: 'Northfield', bg: '#1e3a2c', ink: '#ebe5d3', accent: '#d9c36a', tools: ['Figma', 'Webflow', 'GSAP', 'After Effects'], intro: 'Identity and web presence for an independent label: a flexible mark, a release system and a site that plays as you browse.' },
+    { slug: 'oda-ceramics', title: 'Oda Ceramics', type: 'E-commerce', year: '2025', client: 'Oda Studio', bg: '#c4512d', ink: '#f4ede1', accent: '#1b1a17', tools: ['Webflow', 'Shopify', 'Lenis', 'Cinema 4D'], intro: 'A quiet storefront for handmade ceramics where every piece gets room to breathe, from studio to checkout.' },
+    { slug: 'kinetic-type-lab', title: 'Kinetic Type Lab', type: 'WebGL experiment', year: '2024', client: 'Self-initiated', bg: '#242a66', ink: '#e9e7f1', accent: '#f0a8c0', tools: ['Three.js', 'GLSL', 'Vite', 'Tweakpane'], intro: 'An ongoing playground of type in motion — shaders, physics and letterforms pushed until they break.' },
+    { slug: 'halden-observatory', title: 'Halden Observatory', type: 'Museum website', year: '2024', client: 'Halden Foundation', bg: '#e9e4d7', ink: '#141414', accent: '#3a5bd9', tools: ['Webflow', 'Webflow CMS', 'GSAP', 'Lottie'], intro: 'Digital home for a historic observatory: exhibitions, night-sky events and an archive of two centuries of observations.' },
+    { slug: 'sunday-garden', title: 'Sunday Garden', type: 'Restaurant', year: '2023', client: 'Sunday Garden', bg: '#121212', ink: '#ece9e2', accent: '#c7de5b', tools: ['Figma', 'Webflow', 'Resy API', 'Photoshop'], intro: 'Brand and booking experience for a seasonal garden restaurant — the menu changes weekly, the site keeps up.' }
+  ];
+  state = { slug: new URLSearchParams(location.search).get('p') || '' };
+  componentDidMount() {
+    window.__wbRoute = (u) => new Promise((res) => { const slug = new URLSearchParams(u.search).get('p') || ''; if (!slug && window.wbProjectStop) window.wbProjectStop(); if (slug === this.state.slug) return res(); this.setState({ slug }, () => { this.applyView(false); if (slug) return setTimeout(res, 50); /* back to Work: hold the ink until the spiral has drawn a few frames */ window.__wbWorkWarm = 1; const f0 = window.__wbWorkFrames || 0, t0 = performance.now(); const chk = () => ((window.__wbWorkFrames || 0) - f0 >= 4 || performance.now() - t0 > 1500 ? (window.__wbWorkWarm = 0, res()) : setTimeout(chk, 16)); chk(); }); });
+    this.applyView(true);
+  }
+  applyView(first) {
+    const proj = !!this.state.slug, el = document.documentElement;
+    [el, document.body].forEach((n) => { n.style.setProperty('overflow', proj ? 'visible' : 'hidden', 'important'); n.style.setProperty('height', proj ? 'auto' : '100%', 'important'); });
+    window.__wbWorkPaused = proj;
+    if (proj && window.wbProjectInit) requestAnimationFrame(() => window.wbProjectInit(first ? undefined : window.__wbInkOpen));
+  }
+  renderVals() {
+    let i = this.projects.findIndex((x) => x.slug === this.state.slug); const isProject = i >= 0; if (i < 0) i = 0;
+    const p = this.projects[i], next = this.projects[(i + 1) % this.projects.length];
+    const goBack = (e) => { e.preventDefault(); e.stopPropagation(); const ref = document.referrer, own = e.currentTarget.getAttribute('href') || 'Site V24 Pages.dc.html'; let to = own; try { const r = new URL(ref); if (r.origin === location.origin && r.pathname !== location.pathname) to = r.href; } catch (er) {} if (window.wbInkGo) window.wbInkGo(to, e.clientX, e.clientY); else location.href = to; };
+    return { isWork: !isProject, goBack, isProject, workDisplay: isProject ? 'none' : 'block', p, next, num: String(i + 1).padStart(2, '0'), nextHref: '?p=' + next.slug, workHref: location.pathname.split('/').pop() || '?' };
+  }
+}
+</script>
+</body>
+</html>

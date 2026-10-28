@@ -661,7 +661,10 @@ Object.assign(window.WBM, {
     this.prepEntrance();
     const el = this.loaderRef.current; if (!el) return;
     const cnt = el.querySelector('[data-ld-count]'), bar = el.querySelector('[data-ld-bar]'), word = el.querySelector('[data-ld-word]');
-    const t0 = performance.now(), MIN = 2600, MAX = 30000;
+    let seen = false; try { seen = sessionStorage.getItem('wbLoaded') === '1'; sessionStorage.setItem('wbLoaded', '1'); } catch (e) {}
+    /* the full preloader only on the first visit of the session; afterwards the page boots straight in (hidden under the ink when arriving from another page) */
+    if (seen || window.__wbInkArrive) { window.WB_LOADER_FAST = 1; el.style.opacity = '0'; el.style.pointerEvents = 'none'; }
+    const t0 = performance.now(), MIN = (seen || window.__wbInkArrive) ? 0 : 2600, MAX = 30000; /* arriving under the ink: no need to show off the loader */
     let shown = 0, ready = false, outT = 0;
     const fonts = document.fonts ? document.fonts.ready : Promise.resolve();
     fonts.then(() => { this._fontsOK = true; }); setTimeout(() => { this._fontsOK = true; }, 2500);
@@ -678,12 +681,13 @@ Object.assign(window.WBM, {
       if (window.__wbAstroReady) this._ldAstroOK = true;
       // real progress: model download 0→80%, textures + first frame 80→99%, 100 only once the astronaut is on screen
       const gp = (window.__glbProg && window.__wbAstroUrl && window.__glbProg[window.__wbAstroUrl]) || 0, creep = Math.min(0.08, el2 / 12000);
-      const target = (this._ldAstroOK && this._fontsOK && el2 > MIN) || el2 > MAX ? 1 : Math.min(this._ldAstroOK ? 0.99 : 0.97, Math.max(creep, gp * 0.8 + (gp >= 1 ? 0.12 : 0) + (this._ldAstroOK ? 0.07 : 0)));
+      const target = (this._ldAstroOK && this._fontsOK && el2 > MIN) || (window.WB_LOADER_FAST && this._fontsOK && (this._ldAstroOK || el2 > 2500)) || el2 > MAX ? 1 : /* WB_LOADER_FAST: a page that opens under the ink (About) skips the loader */ Math.min(this._ldAstroOK ? 0.99 : 0.97, Math.max(creep, gp * 0.8 + (gp >= 1 ? 0.12 : 0) + (this._ldAstroOK ? 0.07 : 0)));
       shown += (target - shown) * (target >= 1 ? 0.12 : 0.06); if (target >= 1 && shown > 0.995) shown = 1; if (target < 1) shown = Math.min(shown, 0.99);
       cnt.textContent = String(Math.round(shown * 100)).padStart(3, '0');
       bar.style.transform = 'scaleX(' + shown.toFixed(4) + ')';
       if (this._ldU) this._ldU.value = shown;
-      if (shown >= 1 && !ready) { ready = true; outT = now + 250; document.documentElement.classList.add('wb-reveal'); }
+      if (window.WB_LOADER_FAST && target >= 1) shown = 1;
+      if (shown >= 1 && !ready) { ready = true; outT = now + (window.WB_LOADER_FAST ? 0 : 250); document.documentElement.classList.add('wb-reveal'); }
       if (ready && now > outT) {
         const k = Math.min(1, (now - outT) / 1100), e = io(k);
         el.style.clipPath = 'inset(0 0 ' + (e * 100).toFixed(2) + '% 0)';

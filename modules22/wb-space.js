@@ -38,7 +38,7 @@
       if (fc) fc.style.display = '';
       if (!fc && op < 0.003 && (!window.__wbStudio || Math.abs((window.__wbStudio.__bgO ?? 1) - 1) < 0.002)) return;
       const wr = Math.min(1, Math.abs(vel) * 1.1), warp = wr * wr * (3 - 2 * wr) * (P.warp ?? 0.5), spd = 0.025 + warp * 0.45; drift += dt * 0.01;
-      g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = '#030303'; g.fillRect(0, 0, W, H);
+      g.setTransform(dpr, 0, 0, dpr, 0, 0); if (window.__wbAbyss) g.clearRect(0, 0, W, H); else { g.fillStyle = '#030303'; g.fillRect(0, 0, W, H); } /* teal abyss underneath: stars + nebula draw over it */
       g.globalAlpha = 0.9; const ns = Math.max(W, H) * 1.5; g.drawImage(neb, W / 2 - ns / 2 + Math.sin(drift) * 40, H / 2 - ns / 2 + (window.__wbAscend ? 1 : -1) * rp * H * 0.3, ns, ns); g.globalAlpha = 1;
       const cx = W / 2, cy = window.__wbAscend ? -H * 0.6 : H * 0.45, f = Math.max(W, H) * 0.5;
       for (const s of S) { const z0 = s.z; s.z -= dt * spd * (vel >= 0 ? 1 : -1); if (s.z <= 0.02) { s.z += 1; s.x = Math.random() * 2 - 1; s.y = Math.random() * 2 - 1; } else if (s.z > 1) s.z -= 1;

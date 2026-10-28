@@ -57,7 +57,8 @@ Object.assign(window.WBM, {
     // Work stays pinned until every project has been in view: section height follows the project count and the same vh the slider progress uses
     { const sizeWork = () => { const el = this.workRef.current; if (!el) return; const vh = window.__svh || innerHeight, hold = this.props.workHold ?? 0.8;
         const nx = this.ctaRef && this.ctaRef.current, ov = nx ? Math.max(0, -parseFloat(getComputedStyle(nx).marginTop) || 0) : 0; // next section overlaps Work's bottom and starts the exit early
-        el.style.height = Math.round(vh * (0.5 + 0.55 * Math.max(1, N - 1) + hold) + vh + ov) + 'px'; };
+        /* home: Work pins and is never released; the ribbon is driven by wheel/touch from then on (wb-pages.js), so only the pin entry needs scroll room */
+        el.style.height = (window.__wbPage === 'home' ? Math.round(Math.max(vh * 2.8 + ov, vh * (2.4 + Math.max(0, this.props.astroFlight ?? 120) / 100) + vh * 0.25 - (el.getBoundingClientRect().top + scrollY) + vh)) : Math.round(vh * (0.5 + 0.55 * Math.max(1, N - 1) + hold) + vh + ov)) + 'px'; };
       sizeWork(); setTimeout(sizeWork, 600); setTimeout(sizeWork, 2000); addEventListener('resize', sizeWork); this._sizeWork = sizeWork; }
     const common = { uWeaveY: { value: 0.55 }, uWeave: { value: 0 }, uWeaveP: { value: new THREE.Vector3(-4, 2.6, 0.9) }, uRing: { value: 0 }, uRingR: { value: 1 }, uRingT: { value: new THREE.Vector2(0.38, 0.26) }, uCurve: { value: 0.11 }, uVel: { value: 0 }, uRadius: { value: 0.14 }, uTime: { value: 0 }, uHoverAmt: { value: 1 }, uRibbon: { value: new THREE.Matrix4() }, uTwist: { value: 0 }, uIntro: { value: 0 }, uCover: { value: new THREE.Vector2(1, 1) } };
     const ribbonEuler = new THREE.Euler();
@@ -418,6 +419,7 @@ Object.assign(window.WBM, {
     let base = 0, dragOff = 0, lastP2 = -1, scrollSnapT = null;
     const snap = () => { dragOff = Math.round((base + dragOff) / STEP) * STEP - base; };
     this.sliderGo = (d) => go(d);
+    this._ribNudge = (d) => { dragOff += d; clearTimeout(snapT); snapT = setTimeout(() => { if (!dragging) snap(); }, 240); }; /* continuous: trackpads glide, mouse wheels step; settles on the nearest card */
     const go = (d) => { dragOff = (Math.round((base + dragOff) / STEP) + d) * STEP - base; };
     const pickCard = () => {
       if (!mouse || dragging || introS < 0.9 || this.state.page) return null;
@@ -469,7 +471,11 @@ Object.assign(window.WBM, {
       if (moved < 5) {
         const hit = pickCard();
       this.cardHover = !!hit;
-        if (hit) { dragOff = cur - base; this.openProject(hit.card.i, [hit.u, hit.v]); }
+        if (hit) { dragOff = cur - base; /* r15: cards open the real project page (ink + page swap) instead of the popup */
+          const p = this.projects[hit.card.i] || {}, slug = p.slug || String(p.title || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          const href = (window.WB_PROJECT_URL && window.WB_PROJECT_URL(p, slug)) || p.url || p.href || ((window.WB_PROJECT_BASE ?? '/work/') + slug);
+          if (this.playClick) this.playClick();
+          if (window.wbSwapGo && window.WB_SWAP_SAME_SITE) wbSwapGo(href, e.clientX, e.clientY); else if (window.wbInkGo) wbInkGo(href, e.clientX, e.clientY); else location.href = href; }
       } else { dragOff += Math.max(-STEP * 1.5, Math.min(STEP * 1.5, dvx * 260)); snap(); }
     };
     const onWheel = (e) => {
@@ -505,10 +511,10 @@ Object.assign(window.WBM, {
       const p = Math.max(0, Math.min(1, (vh * 0.85 - sec.top) / (vh * 1.15)));
       { const g0 = Math.max(0, Math.min(1, ((this.rp ?? 1) - 0.8) / 0.2)), g = g0 * g0 * (3 - 2 * g0); this._ribG = g; }
       introS += (p * (this._ribG ?? 1) - introS) * 0.05; this._introS = introS;
-      const p2 = Math.max(0, Math.min(1, (-sec.top - vh * 0.5) / (vh * 0.55 * (N - 1))));
-      base = p2 * (N - 1) * STEP;
-      if (p2 !== lastP2) {
-        lastP2 = p2; clearTimeout(scrollSnapT);
+      const p2r = Math.max(0, (-sec.top - vh * 0.5) / (vh * 0.55 * (N - 1))), p2 = Math.min(1, p2r);
+      base = window.__wbPage === 'home' ? 0 : p2 * (N - 1) * STEP; /* home: scroll no longer moves the ribbon, input does (infinite) */
+      if (p2r !== lastP2) {
+        lastP2 = p2r; clearTimeout(scrollSnapT);
         scrollSnapT = setTimeout(() => { if (!dragging && !this.state.page) snap(); }, 260);
       }
       if (Math.abs(p * (this._ribG ?? 1) - introS) < 0.0005) introS = p * (this._ribG ?? 1);
@@ -524,7 +530,7 @@ Object.assign(window.WBM, {
         const rot = (P.sectionRotate ?? true);
         const FX = Math.max(0, P.astroFlight ?? 120) / 100; if (this.workRef.current && this._fx !== FX) { this._fx = FX; this.workRef.current.style.marginTop = 'calc(' + (-100 + FX * 100) + 'vh)'; }
         const rp0 = Math.max(0, Math.min(1, sY / (vh * (2.4 + FX))));
-        this.rp = this.sceneTween('rp', rp0); window.__wbRP = this.rp; window.__wbRQ = this.rq || 0;
+        this.rp = this.sceneTween('rp', rp0); window.__wbRP = this.rp; window.__wbRQ = this.rq || 0; window.__wbR3 = this.r3 || 0;
         
         const e = this.rp < 0.5 ? 4 * this.rp * this.rp * this.rp : 1 - Math.pow(-2 * this.rp + 2, 3) / 2;
         const bell = Math.sin(Math.PI * e);
@@ -644,8 +650,8 @@ Object.assign(window.WBM, {
             if (h3.style.transform) h3.style.transform = '';
             // About first, then Services: ra = About→Services handover
             this.ra = this.sceneTween('ra', Math.max(0, Math.min(1, (into - 2.2) / 1.2))); window.__wbRA = this.ra;
-            const ka = this.ra; h3.style.opacity = String(sst(0.4, 0.8, ka)); this._svcOn = ka > 0.95;
-            if (ab) { ab.style.opacity = String(1 - sst(0.0, 0.5, ka)); ab.style.pointerEvents = ka < 0.5 ? 'auto' : 'none'; const inMon = (this._monZoom || 0) > 0.5; if (ab.__bg0 == null) { ab.__bg0 = ab.style.backgroundColor; ab.__bi0 = ab.style.backgroundImage; ab.__inMon = false; } if (ab.__inMon !== inMon) { ab.__inMon = inMon; ab.style.backgroundColor = inMon ? 'transparent' : ab.__bg0; ab.style.backgroundImage = inMon ? 'none' : ab.__bi0; } } } }
+            const ka = this.ra; const DK = !!window.__wbAboutDesk; h3.style.opacity = String(DK ? sst(0.35, 0.75, ka) : sst(0.4, 0.8, ka)); /* V23: Services text arrives over the craning desk shot */ this._svcOn = ka > 0.95;
+            if (ab) { ab.style.opacity = String(1 - (DK ? sst(0.6, 0.97, ka) : sst(0.0, 0.5, ka))); ab.style.pointerEvents = ka < 0.5 ? 'auto' : 'none'; const inMon = (this._monZoom || 0) > 0.5; if (ab.__bg0 == null) { ab.__bg0 = ab.style.backgroundColor; ab.__bi0 = ab.style.backgroundImage; ab.__inMon = false; } if (ab.__inMon !== inMon) { ab.__inMon = inMon; ab.style.backgroundColor = inMon ? 'transparent' : ab.__bg0; ab.style.backgroundImage = inMon ? 'none' : ab.__bi0; } } } }
         if (stk) { stk.style.opacity = String((this.pnlOp ?? 1) * (rot ? outOp : (1 - eout * 0.8))); const po = this.pnlOp ?? 1, tr = false && window.__wbAscend && po < 0.999 ? '0 ' + (-(1 - (1 - Math.pow(1 - po, 3))) * vh * 0.5).toFixed(1) + 'px' : ''; if (stk.__atr !== tr) { stk.__atr = tr; stk.style.translate = tr; } }
         const rs = this.reachRef.current, rpn = this.reachPanel || (this.reachPanel = rs && rs.querySelector('[data-reach-panel]'));
         const rct = this.reachContent || (this.reachContent = rs && rs.querySelector('[data-reach-content]'));
