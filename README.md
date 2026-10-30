@@ -42,7 +42,7 @@ Unlike a usual design handoff, most of this is **real, live code**: the `modules
 6. Decide: apply "Work Page Blend Test" background (blur wordmark + Unicorn light + grey tint) to the real Work page.
 
 ## Third-party
-- three.js 0.160 (esm.sh), GSAP 3.11, Lenis 1.1.13, Unicorn Studio embed (v2.4.3) — Unicorn Studio scene code is under their commercial licence; only embed, don't copy shaders.
+- three.js 0.186.1 (esm.sh, one version for every module), GSAP 3.11, Lenis 1.1.13, Unicorn Studio embed (v2.4.3) — Unicorn Studio scene code is under their commercial licence; only embed, don't copy shaders.
 - 3D models in `models/` (astronaut rig + baked textures, moon, CRT, surfboard icon).
 
 ## Files in this folder

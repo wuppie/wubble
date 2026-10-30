@@ -10,7 +10,7 @@
     const neb = document.createElement('canvas'); neb.width = neb.height = 512; { const n = neb.getContext('2d');
       const blob = (x, y, r, c) => { const gr = n.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, c); gr.addColorStop(1, 'rgba(0,0,0,0)'); n.fillStyle = gr; n.fillRect(0, 0, 512, 512); };
       blob(150, 200, 260, 'rgba(60,60,64,0.35)'); blob(380, 330, 230, 'rgba(38,38,42,0.4)'); blob(300, 120, 160, 'rgba(90,90,96,0.16)'); blob(90, 420, 180, 'rgba(30,30,34,0.35)'); }
-    let lastRP = 0, vel = 0, op = 0, t0 = performance.now(), drift = 0;
+    let starK = 0, lastRP = 0, vel = 0, op = 0, t0 = performance.now(), drift = 0;
     const frame = () => { requestAnimationFrame(frame);
       const now = performance.now(), dt = Math.min(0.05, (now - t0) / 1000); t0 = now;
       const rp = window.__wbRP || 0, rq = window.__wbRQ || 0, P = window.__wbSpace || {};
@@ -25,11 +25,11 @@
         if (hideW !== window.__gW) { window.__gW = hideW; const w = document.querySelector('[data-panel]'); if (w) w.style.visibility = hideW ? 'hidden' : ''; }
         if (hideC !== window.__gC) { window.__gC = hideC; const c = document.querySelector('[data-cta-panel]'); if (c) c.style.visibility = hideC ? 'hidden' : ''; } }
       else if (window.__wbSpaceForce) window.__wbSpaceForce = 0;
-      { const tg3 = Math.max(tg2, window.__wbSpaceForce || 0); op += (tg3 - op) * (1 - Math.exp(-dt * 16)); } host.style.opacity = op.toFixed(3);
+      { const tg3 = host.hasAttribute('data-space-hero') ? 1 : Math.max(tg2, window.__wbSpaceForce || 0); /* data-space-hero: this background shows in the hero too */ op += (tg3 - op) * (1 - Math.exp(-dt * 16)); } host.style.opacity = op.toFixed(3);
       // hero white bg = its own layer, faded with opacity only (GPU, no repaint) and eased in/out
-      { const st = window.__wbStudio || (window.__wbStudio = document.querySelector('[data-hero-studio]'));
-        const L = st && st.querySelector('[data-hero-bg]'); if (L) { if (st.__bgO == null) st.__bgO = 1;
-          const k = Math.min(1, Math.max(op, tg2) / Math.max(0.05, P.rest ?? 0.45)), tgtO = 1 - (k * k * (3 - 2 * k)) * (P.see ?? 1);
+      { const st = (window.__wbStudio && window.__wbStudio.isConnected) ? window.__wbStudio : (window.__wbStudio = document.querySelector('[data-hero-studio]')); /* re-find it if the page re-rendered the hero */
+        const L = st && st.querySelector('[data-hero-bg]'); if (st && host.hasAttribute('data-space-hero') && st.style.background !== 'transparent') st.style.background = 'transparent'; if (L) { if (st.__bgO == null) st.__bgO = 1;
+          const k = Math.min(1, Math.max(op, tg2) / Math.max(0.05, P.rest ?? 0.45)), tgtO = host.hasAttribute('data-space-hero') ? 0 : 1 - (k * k * (3 - 2 * k)) * (P.see ?? 1);
           st.__bgO += (tgtO - st.__bgO) * (1 - Math.exp(-dt * (P.bgSpeed ?? 14))); const ov = st.__bgO.toFixed(3); if (L.__o !== ov) { L.__o = ov; L.style.opacity = ov; } } }
       // footer: same galaxy, mirrored into a canvas behind the footer content while the footer is on screen
       const FT = window.__wbFt || (window.__wbFt = document.querySelector('[data-footer]')); let fc = null;
@@ -38,12 +38,14 @@
       if (fc) fc.style.display = '';
       if (!fc && op < 0.003 && (!window.__wbStudio || Math.abs((window.__wbStudio.__bgO ?? 1) - 1) < 0.002)) return;
       const wr = Math.min(1, Math.abs(vel) * 1.1), warp = wr * wr * (3 - 2 * wr) * (P.warp ?? 0.5), spd = 0.025 + warp * 0.45; drift += dt * 0.01;
-      g.setTransform(dpr, 0, 0, dpr, 0, 0); if (window.__wbAbyss) g.clearRect(0, 0, W, H); else { g.fillStyle = '#030303'; g.fillRect(0, 0, W, H); } /* teal abyss underneath: stars + nebula draw over it */
+      g.setTransform(dpr, 0, 0, dpr, 0, 0); if (window.__wbAbyss || host.hasAttribute('data-space-clear')) g.clearRect(0, 0, W, H); else { g.fillStyle = '#030303'; g.fillRect(0, 0, W, H); } /* data-space-clear: stars + warp trails only, over a background below */ /* teal abyss underneath: stars + nebula draw over it */
       g.globalAlpha = 0.9; const ns = Math.max(W, H) * 1.5; g.drawImage(neb, W / 2 - ns / 2 + Math.sin(drift) * 40, H / 2 - ns / 2 + (window.__wbAscend ? 1 : -1) * rp * H * 0.3, ns, ns); g.globalAlpha = 1;
       const cx = W / 2, cy = window.__wbAscend ? -H * 0.6 : H * 0.45, f = Math.max(W, H) * 0.5;
-      for (const s of S) { const z0 = s.z; s.z -= dt * spd * (vel >= 0 ? 1 : -1); if (s.z <= 0.02) { s.z += 1; s.x = Math.random() * 2 - 1; s.y = Math.random() * 2 - 1; } else if (s.z > 1) s.z -= 1;
+      /* data-space-stars="scroll": stars only show while moving between sections (as trails), the sky is clean when still */
+      const SOM = host.getAttribute('data-space-stars') === 'scroll', mvg = warp > 0.05 ? 1 : 0; starK += ((SOM ? mvg : 1) - starK) * (1 - Math.exp(-dt * (mvg ? 8 : 2.5)));
+      if (starK > 0.01) for (const s of S) { const z0 = s.z; s.z -= dt * spd * (vel >= 0 ? 1 : -1); if (s.z <= 0.02) { s.z += 1; s.x = Math.random() * 2 - 1; s.y = Math.random() * 2 - 1; } else if (s.z > 1) s.z -= 1;
         const px = cx + s.x / s.z * f * 0.5, py = cy + s.y / s.z * f * 0.5; if (px < -50 || px > W + 50 || py < -50 || py > H + 50) continue;
-        const a = Math.min(1, (1 - s.z) * 1.4) * s.b, rad = Math.max(0.4, (1 - s.z) * 1.8);
+        const a = Math.min(1, (1 - s.z) * 1.4) * s.b * starK, rad = Math.max(0.4, (1 - s.z) * 1.8);
         g.strokeStyle = g.fillStyle = s.c ? 'rgba(210,210,215,' + a + ')' : 'rgba(255,255,255,' + a + ')';
         if (warp > 0.05) { const zt = Math.min(1, z0 + dt * spd * 6 * warp), qx = cx + s.x / zt * f * 0.5, qy = cy + s.y / zt * f * 0.5; g.lineWidth = rad; g.beginPath(); g.moveTo(qx, qy); g.lineTo(px, py); g.stroke(); }
         else { g.beginPath(); g.arc(px, py, rad, 0, 6.283); g.fill(); } }

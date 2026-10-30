@@ -312,7 +312,7 @@ Object.assign(window.WBM, {
     const loadAstro = async () => {
       astroLoading = true;
       try {
-        const [T3, GL, MO] = await Promise.all([import('https://esm.sh/three@0.160.0'), import('https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js'), import('https://esm.sh/three@0.160.0/examples/jsm/libs/meshopt_decoder.module.js')]);
+        const [T3, GL, MO] = await Promise.all([import('https://esm.sh/three@0.186.1'), import('https://esm.sh/three@0.186.1/examples/jsm/loaders/GLTFLoader.js'), import('https://esm.sh/three@0.186.1/examples/jsm/libs/meshopt_decoder.module.js')]);
         if (this.dead) return;
         const loader = new GL.GLTFLoader(); loader.setMeshoptDecoder(MO.MeshoptDecoder);
         const url = (this.props.galaxyModel || '').trim() || 'https://raw.githubusercontent.com/wuppie/wubble/main/galaxy.glb';
@@ -327,7 +327,7 @@ Object.assign(window.WBM, {
         const rim = new T3.DirectionalLight(0xdfe8ff, 2.0); rim.position.set(2.4, 1.4, -2.2); sc.add(rim);
         const fillL = new T3.DirectionalLight(0x8fa6c8, 0.35); fillL.position.set(0, -2, 1.5); sc.add(fillL);
         sc.add(new T3.HemisphereLight(0xcfd8e8, 0x050506, 0.25));
-        try { const RE = await import('https://esm.sh/three@0.160.0/examples/jsm/environments/RoomEnvironment.js'); const pm = new T3.PMREMGenerator(r); sc.environment = pm.fromScene(new RE.RoomEnvironment(), 0.04).texture; } catch (e) {}
+        try { const RE = await import('https://esm.sh/three@0.186.1/examples/jsm/environments/RoomEnvironment.js'); const pm = new T3.PMREMGenerator(r); sc.environment = pm.fromScene(new RE.RoomEnvironment(), 0.04).texture; } catch (e) {}
         const bb2 = new T3.Box3().setFromObject(pivot), s2 = bb2.getSize(new T3.Vector3()); AS.visor = new T3.Vector3(-s2.x * 0.08, bb2.max.y - s2.y * 0.12, bb2.max.z * 0.9); AS.T3 = T3;
         const cam = new T3.PerspectiveCamera(24, 1, 0.1, 50); cam.position.set(0, 0, 4.2);
         AS.scene = sc; AS.cam = cam; AS.model = pivot;

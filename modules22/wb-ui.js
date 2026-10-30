@@ -159,8 +159,8 @@ Object.assign(window.WBM, {
     // click sound on every button / link / project
     const SRC = (this.props.clickSound || '').trim() || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/sound.mp3';
     const pool = [0, 1, 2].map(() => { const a = new Audio(SRC); a.preload = 'auto'; a.volume = this.props.clickVolume ?? 0.5; return a; }); let pi = 0;
-    this.playClick = () => { const a = pool[pi++ % pool.length]; try { a.volume = this.props.clickVolume ?? 0.5; a.currentTime = 0; a.play().catch(() => {}); } catch (e) {} };
-    document.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('a,button,[data-w-click],[role="button"]')) this.playClick(); }, true);
+    this.playClick = window.__wbPlayClick = () => { const a = pool[pi++ % pool.length]; try { a.volume = this.props.clickVolume ?? 0.5; a.currentTime = 0; a.play().catch(() => {}); } catch (e) {} };
+    document.addEventListener('click', (e) => { const t = e.target; if (!t.closest) return; if (t.closest('a,button,[data-w-click],[role="button"],[data-wb-row],[data-wb-work-item]')) return this.playClick(); for (let n = t; n && n !== document.body; n = n.parentElement) if (n.style && n.style.cursor === 'pointer') return this.playClick(); }, true); /* also clicks on 3D projects (canvas shows a hand cursor) */
     // W logo: random gooey squeeze
     const w = document.querySelector('[data-logo-w]');
     if (w && G && false) { const go = () => { if (this.dead) return; G.timeline().to(w, { scaleX: 0.62, scaleY: 1.18, duration: 0.5, ease: 'expo.out' }).to(w, { scaleX: 1, scaleY: 1, duration: 1.3, ease: 'elastic.out(1, 0.45)' }); this._wT = setTimeout(go, 2600 + Math.random() * 3200); }; this._wT = setTimeout(go, 2200); }
@@ -230,7 +230,7 @@ Object.assign(window.WBM, {
     const box = this.inkRef.current; if (!box || this.coarse || !(this.props.cursorInk ?? true)) return;
     const r = new THREE.WebGLRenderer({ alpha: true, premultipliedAlpha: false });
     r.domElement.addEventListener('webglcontextlost', (e) => { e.preventDefault(); setTimeout(() => { if (this.dead || !r.getContext().isContextLost()) return; try { r.domElement.remove(); } catch (er) {} this.initInk(THREE); }, 1500); }, { once: true });
-    r.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    r.setPixelRatio(1); /* perf: the ink is soft and blurry, 1x looks the same and halves the per-frame fill */
     r.setClearColor(0x000000, 0);
     r.domElement.style.cssText = 'display:block;width:100%;height:100%;';
     box.appendChild(r.domElement);
@@ -302,9 +302,9 @@ Object.assign(window.WBM, {
       const dx = (m.x - m.px) * simU.uAspect.value, dy = m.y - m.py;
       speed += (Math.min(Math.hypot(dx, dy) * 40, 1) - speed) * 0.15;
       const size0 = 2;
-      this.inkFade = (this.inkFade ?? 1) + ((this.cardHover ? 0 : 1) - (this.inkFade ?? 1)) * (this.cardHover ? 0.14 : 0.06);
+      const hideInk = this.cardHover || window.__wbCursorHide; this.inkFade = (this.inkFade ?? 1) + ((hideInk ? 0 : 1) - (this.inkFade ?? 1)) * (hideInk ? 0.14 : 0.06);
       box.style.opacity = String(this.inkFade);
-      rad += ((m.has && !this.cardHover ? (0.018 + speed * 0.07) * size0 : 0) - rad) * 0.2;
+      rad += ((m.has && !hideInk ? (0.018 + speed * 0.07) * size0 : 0) - rad) * 0.2;
       simU.uA.value.set(m.has ? m.px : -9, m.has ? m.py : -9);
       simU.uB.value.set(m.has ? m.x : -9, m.has ? m.y : -9);
       simU.uR.value = rad; simU.uT.value = t; outU.uT.value = t;
@@ -418,10 +418,10 @@ Object.assign(window.WBM, {
   },
   async initFooterFig() {
     const box = this.footerFigRef.current; if (!box || !(this.props.footerFigure ?? false)) return;
-    const [T, GL] = await Promise.all([import('https://esm.sh/three@0.160.0'), import('https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js')]);
+    const [T, GL] = await Promise.all([import('https://esm.sh/three@0.186.1'), import('https://esm.sh/three@0.186.1/examples/jsm/loaders/GLTFLoader.js')]);
     const loader = new GL.GLTFLoader();
-    try { const MO = await import('https://esm.sh/three@0.160.0/examples/jsm/libs/meshopt_decoder.module.js'); loader.setMeshoptDecoder(MO.MeshoptDecoder); } catch (e) {}
-    try { const DL = await import('https://esm.sh/three@0.160.0/examples/jsm/loaders/DRACOLoader.js'); const dl = new DL.DRACOLoader(); dl.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/'); loader.setDRACOLoader(dl); } catch (e) {}
+    try { const MO = await import('https://esm.sh/three@0.186.1/examples/jsm/libs/meshopt_decoder.module.js'); loader.setMeshoptDecoder(MO.MeshoptDecoder); } catch (e) {}
+    try { const DL = await import('https://esm.sh/three@0.186.1/examples/jsm/loaders/DRACOLoader.js'); const dl = new DL.DRACOLoader(); dl.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/'); loader.setDRACOLoader(dl); } catch (e) {}
     const url = (this.props.footerModel || '').trim() || 'https://raw.githubusercontent.com/wuppie/wubble/main/chibi-figure-compressed.glb';
     let g; try { g = await loader.loadAsync(url); } catch (e1) { try { g = await loader.loadAsync(url.replace('https://raw.githubusercontent.com/wuppie/wubble/main/', 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/')); } catch (e2) { console.warn('footer figure failed', e2); return; } }
     if (this.dead) return;
@@ -477,7 +477,7 @@ Object.assign(window.WBM, {
     if (AS.isConnected && this.footerAstro) this.footerAstro(ft, AS);
     if ((this.props.footerHover || 'None') === 'None') return;
     if ((this.props.footerHover || 'None') === 'Sprite') { this.footerSprites(ft, word, spans); return; }
-    const T = await import('https://esm.sh/three@0.160.0'); if (this.dead) return;
+    const T = await import('https://esm.sh/three@0.186.1'); if (this.dead) return;
     await new Promise((res) => { const w = () => { if (this.dead) return; if (getComputedStyle(ft).visibility !== 'hidden') res(); else setTimeout(w, 250); }; w(); });
     if (this.dead) return;
     const r = new T.WebGLRenderer({ antialias: true, alpha: true, premultipliedAlpha: false }); r.setClearColor(0x000000, 0);
@@ -747,12 +747,18 @@ Object.assign(window.WBM, {
   initFooter() {
     const sp = document.querySelector('[data-footer-spacer]'), ft = document.querySelector('[data-footer]'); if (!sp || !ft) return;
     const dim = ft.querySelector('[data-footer-dim]'), inner = ft.querySelector('[data-footer-inner]'); let lastH = 0;
+    /* the footer background (colour + waves) is its own layer underneath, so the homepage astronaut (z 60) walks between it and the footer content (z 61) */
+    let back = document.querySelector('[data-footer-back]');
+    if (!back) { back = document.createElement('div'); back.setAttribute('data-footer-back', ''); back.setAttribute('aria-hidden', 'true');
+      back.style.cssText = 'position:fixed;left:0;right:0;bottom:0;height:100vh;height:100lvh;z-index:54;pointer-events:none;visibility:hidden;overflow:hidden;background:' + (ft.style.background || 'var(--bg-footer,#ece9e2)') + ';';
+      const wv = ft.querySelector('[data-wb-waves]'); if (wv) back.appendChild(wv); ft.parentNode.insertBefore(back, ft);
+      ft.style.background = 'transparent'; ft.style.zIndex = '61'; }
     const tick = () => {
       if (this.dead) return; this.ftRaf = requestAnimationFrame(tick);
       const vh = innerHeight, H = ft.offsetHeight; if (H && H !== lastH) { lastH = H; sp.style.height = H + 'px'; }
       const r = sp.getBoundingClientRect();
-      if (r.top >= vh || this.state.page) { if (ft.style.visibility !== 'hidden') ft.style.visibility = 'hidden'; return; }
-      ft.style.visibility = 'visible';
+      if (r.top >= vh || this.state.page) { if (ft.style.visibility !== 'hidden') ft.style.visibility = 'hidden'; back.style.visibility = 'hidden'; return; }
+      ft.style.visibility = 'visible'; back.style.visibility = 'visible';
       const p = Math.max(0, Math.min(1, (vh - r.top) / Math.max(1, H))), e = 1 - Math.pow(1 - p, 3);
       // tall footer: top pinned at 0 while revealing, then it scrolls with the spacer (bottom lines up at max scroll)
       const topW = H > vh ? (r.top > 0 ? 0 : r.top) : vh - H;
@@ -769,6 +775,7 @@ Object.assign(window.WBM, {
       else if (!window.__wbAscend) ft.style.clipPath = 'inset(' + ct.toFixed(1) + 'px 0 0 0)';
       const FL = this._flEls; if (FL) { const n = FL.length; for (let i = 0; i < n; i++) { const a = Math.max(0, Math.min(1, (p - 0.35 - i * 0.045) / 0.4)), q = 1 - Math.pow(1 - a, 3), st = FL[i].style, tf = q > 0.999 ? '' : 'translate3d(0,' + ((1 - q) * 115).toFixed(2) + '%,0) rotate(' + ((1 - q) * 10).toFixed(2) + 'deg) skewY(' + ((1 - q) * 7).toFixed(2) + 'deg)'; if (st.transform !== tf) st.transform = tf; st.opacity = q > 0.999 ? '' : q.toFixed(3); } }
       if (dim) dim.style.opacity = '0';
+      if (back.style.transform !== ft.style.transform) back.style.transform = ft.style.transform; if (back.style.clipPath !== ft.style.clipPath) back.style.clipPath = ft.style.clipPath; if (back.style.height !== H + 'px') back.style.height = H + 'px';
       if (inner && inner.style.transform) inner.style.transform = '';
     };
     tick();

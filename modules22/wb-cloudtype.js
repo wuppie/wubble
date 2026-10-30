@@ -35,20 +35,23 @@ Object.assign(window.WBM, {
           mg.fillText(ec.textTransform === 'uppercase' ? mt[0].toUpperCase() : mt[0], x, base); } }
       GW.forEach((e, i) => { e.style.transform = GT[i]; });
       fs = (fs || parseFloat(cs.fontSize)) * DPR; unit = fs / 60 * 12.5; // pen: 60px texture font, 0.08 scene units per px
-      const d = mg.getImageData(0, 0, W, H).data, step = Math.max(1, Math.round(fs / 60 * (this.props.cloudTypeStep ?? 2.2))), old = P; P = [];
+      const d = mg.getImageData(0, 0, W, H).data, MAXP = this.props.cloudTypeMax ?? 1400, old = P; P = [];
+      let step = Math.max(1, Math.round(fs / 60 * (this.props.cloudTypeStep ?? 2.2)));
+      { let n = 0; for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) if (d[(y * W + x) * 4 + 3] > 128) n++; if (n > MAXP) step = Math.ceil(step * Math.sqrt(n / MAXP)); } /* perf: draw cost is per puff, every frame */
       for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) if (d[(y * W + x) * 4 + 3] > 128) {
         const o = old[P.length]; const p = { x: x + unit * 0.15 * (Math.random() - 0.5) * 2, y: y + unit * 0.15 * (Math.random() - 0.5) * 2, grow: true, s: o ? o.s : 0, ms: 0.1 + 1.5 * Math.pow(Math.random(), 10), ds: 0.03 + 0.03 * Math.random(), age: Math.PI * Math.random(), da: 0.01 + 0.02 * Math.random(), rz: 0.5 * Math.random() * Math.PI, dr: 0.01 * (Math.random() - 0.5) };
         if (o && !o.grow) p.grow = false; P.push(p); }
       built = 1;
     };
+    const now0 = () => performance.now();
     const tick = () => { requestAnimationFrame(tick); if (!on || !built || !img.complete) return;
       const vis = (window.__wbRP || 0) < 0.6; if (!vis) return;
-      const col = this.props.cloudTypeColor || getComputedStyle(h1).color || '#fff'; if (col !== tintCol || !tint) { tint = mkTint(col); tintCol = col; if (!tint) return; }
+      if (!tick.cc || now0() - tick.ct > 500) { tick.cc = this.props.cloudTypeColor || getComputedStyle(h1).color || '#fff'; tick.ct = now0(); } const col = tick.cc; if (col !== tintCol || !tint) { tint = mkTint(col); tintCol = col; if (!tint) return; }
       g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H); g.globalAlpha = this.props.cloudTypeOpacity ?? 0.3;
       for (const p of P) { p.age += p.da; p.rz += p.dr; if (p.grow) { p.s += p.ds; if (p.s >= p.ms) p.grow = false; } else p.s = p.ms + 0.2 * Math.sin(p.age);
         const sz = Math.max(0, p.s) * unit * (this.props.cloudTypeSize ?? 0.75); if (sz < 0.5) continue; const c = Math.cos(p.rz), s = Math.sin(p.rz);
         g.setTransform(c, s, -s, c, p.x, p.y); g.drawImage(tint, -sz / 2, -sz / 2, sz, sz); } };
-    const rb = () => { clearTimeout(this._ctT); this._ctT = setTimeout(build, 150); };
+    let lastW = 0, lastH = 0; const rb = () => { const w = h1.offsetWidth, h = h1.offsetHeight; if (Math.abs(w - lastW) < 3 && Math.abs(h - lastH) < 3) return; lastW = w; lastH = h; clearTimeout(this._ctT); this._ctT = setTimeout(build, 150); };
     addEventListener('resize', rb); new ResizeObserver(rb).observe(h1);
     (document.fonts ? document.fonts.ready : Promise.resolve()).then(build); [2500, 6000].forEach((t) => setTimeout(build, t)); img.onload = () => { tint = null; };
     tick(); return build;

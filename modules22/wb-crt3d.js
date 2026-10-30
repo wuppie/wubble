@@ -72,7 +72,7 @@ Object.assign(window.WBM, {
     };
     const boot = async () => {
       booting = true;
-      const B = GLASS ? 'https://esm.sh/three@0.170.0' : 'https://esm.sh/three@0.160.0', E = B + '/examples/jsm/'; /* 0.170: glass dispersion */
+      const B = GLASS ? 'https://esm.sh/three@0.186.1' : 'https://esm.sh/three@0.186.1', E = B + '/examples/jsm/'; /* 0.170: glass dispersion */
       const [T, GL, RE, RB] = await Promise.all([import(B), GLASS ? null : import(E + 'loaders/GLTFLoader.js'), import(E + 'environments/RoomEnvironment.js'), GLASS ? import(E + 'geometries/RoundedBoxGeometry.js') : null]);
       const r = new T.WebGLRenderer({ antialias: (devicePixelRatio || 1) < 1.5, alpha: true }); r.setPixelRatio(Math.min(1.25, devicePixelRatio || 1)); r.setClearColor(0, 0);
       // GPU resets drop every context at once: keep this one restorable instead of letting the section vanish

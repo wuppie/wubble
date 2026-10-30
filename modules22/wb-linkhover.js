@@ -2,7 +2,7 @@
    roll up and a copy rolls in from below, staggered. Works on any <a> (Webflow: edit link text as usual).
    Opt out: data-wb-nohover on the link or a parent. */
 (() => {
-  const SKIP = '[data-wb-nohover],[data-rw],[data-gt],[data-gw],[aria-hidden="true"]';
+  const SKIP = '[data-wb-nohover],[data-wb-btn],[data-rw],[data-gt],[data-gw],[aria-hidden="true"]';
   const prep = (a) => {
     if (a.__lh || a.closest(SKIP) || a.querySelector('img,svg,canvas,video,[data-rw]')) return;
     const txt = a.textContent; if (!txt || !txt.trim() || txt.length > 60 || a.children.length) return;

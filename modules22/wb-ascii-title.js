@@ -6,7 +6,7 @@
 Object.assign(window.WBM, {
   initAsciiTitle() {
     const hosts = [...document.querySelectorAll('[data-about-title] h2, [data-fl-word], [data-wb-ascii]')]; if (!hosts.length) return;
-    for (const h of hosts) if (!h.__ascii) { h.__ascii = 1; this.asciiOn(h); }
+    for (const h of hosts) if (!h.__ascii && !h.closest('[data-no-ascii]')) { h.__ascii = 1; this.asciiOn(h); } /* data-no-ascii: keep this heading plain */
   },
   asciiOn(h) {
     const CHARS = " .'`^\",:;Il!i~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";

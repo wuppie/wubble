@@ -4,7 +4,7 @@
    Attributes: data-logos="greensock,figma,webgl,webflow,shopify" (Simple Icons slugs) · data-speed="1" · data-mouse="1"
    · data-astro="1" · data-astro-size="1" · data-accent="#ff7a2e" (edge light) */
 (() => {
-  const A = () => window.WB_ASSETS || './', B = 'https://esm.sh/three@0.160.0', E = B + '/examples/jsm/';
+  const A = () => window.WB_ASSETS || './', B = 'https://esm.sh/three@0.186.1' /* one three.js version site-wide (latest) */, E = B + '/examples/jsm/';
   const RAF = (f) => (window.__wbRawRAF || requestAnimationFrame)(f);
   const ICON = (s) => 'https://cdn.jsdelivr.net/npm/simple-icons@13/icons/' + s + '.svg';
   const init = async (host) => {
@@ -24,6 +24,12 @@
     const wall = new T.Mesh(new T.PlaneGeometry(120, 80), new T.ShadowMaterial({ opacity: +at('shadow', 0.16) })); wall.position.z = -9; wall.receiveShadow = true; sc.add(wall);
     sc.add(key, warm, rim, new T.AmbientLight(0xffffff, 0.04));
     const world = new T.Group(); world.rotation.x = 0.32; sc.add(world);
+    /* data-look="glass": astronaut + logos in the shared see-through glass (wb-glass.js; its options are data attributes here) */
+    const GLASS = at('look', '') === 'glass' && window.WBGlass ? WBGlass(T, sc, r, at) : null;
+    /* data-look="chrome": the About crystal look (faceted mirror chrome, bright exposure) for astronaut + logos. data-roughness="0" · data-env="1" · data-exposure="2.3" */
+    const CHROME = at('look', '') === 'chrome' ? new T.MeshPhysicalMaterial({ color: 0xd6d4cf, metalness: 1, roughness: +at('roughness', 0.14), flatShading: true, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: +at('env', 1.3) }) : null;
+    if (CHROME) r.toneMappingExposure = +at('exposure', 2.3);
+    const LOOK = GLASS || CHROME;
     /* orbit rings: thin ellipses, slightly offset */
     const RX = 12, RZ = 7.2, rings = [];
     for (const [k, y, o] of [[1, 0, 0.16], [0.94, 0.35, 0.1], [1.06, -0.3, 0.08]]) { const pts = []; for (let i = 0; i <= 160; i++) { const a = i / 160 * Math.PI * 2; pts.push(new T.Vector3(Math.cos(a) * RX * k, y, Math.sin(a) * RZ * k)); }
@@ -35,11 +41,11 @@
         const fl = g.animations.find((x) => /float/i.test(x.name)) || g.animations[0]; mixer = new T.AnimationMixer(m); if (fl) mixer.clipAction(fl).play(); mixer.update(0);
         m.updateMatrixWorld(true); const bx = new T.Box3().setFromObject(m, true), sz = bx.getSize(new T.Vector3()), cn = bx.getCenter(new T.Vector3()), s = 7.2 * +at('astro-size', 1.7) / sz.y;
         m.scale.setScalar(s); m.position.set(-cn.x * s, -cn.y * s, -cn.z * s);
-        const mat = new T.MeshPhysicalMaterial({ color: 0xd6d4cf, metalness: 1, roughness: 0.14, flatShading: true, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.3 });
+        const mat = LOOK || new T.MeshPhysicalMaterial({ color: 0xd6d4cf, metalness: 1, roughness: 0.14, flatShading: true, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.3 });
         m.traverse((o) => { if (o.isMesh) { o.material = mat; o.frustumCulled = false; o.castShadow = true; } }); }).catch((e) => console.warn('[orbit] astronaut', e)); }
     /* logos: Simple Icons SVG → extruded, glossy black body + warm metallic edge */
-    const body = new T.MeshPhysicalMaterial({ color: 0x0b0b0c, metalness: 0.6, roughness: 0.18, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.4 });
-    const edge = new T.MeshPhysicalMaterial({ color: 0x2a2a2c, metalness: 1, roughness: 0.22, envMapIntensity: 1.6 });
+    const body = LOOK || new T.MeshPhysicalMaterial({ color: 0x0b0b0c, metalness: 0.6, roughness: 0.18, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.4 });
+    const edge = LOOK || new T.MeshPhysicalMaterial({ color: 0x2a2a2c, metalness: 1, roughness: 0.22, envMapIntensity: 1.6 });
     const slugs = at('logos', 'greensock,figma,webgl,webflow,shopify').split(',').map((s) => s.trim()).filter(Boolean), logos = [];
     const loader = new SV.SVGLoader();
     await Promise.all(slugs.map(async (slug, i) => { try { const txt = await (await fetch(ICON(slug))).text(), data = loader.parse(txt), shapes = [];

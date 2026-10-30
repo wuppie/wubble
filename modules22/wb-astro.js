@@ -19,7 +19,7 @@ Object.assign(window.WBM, {
     const box = this.astroGRef.current; if (!box) return;
     let T3, GL, MO;
     { const u0 = (this.props.astroModel || '').trim() || (this.props.astroRigUrl || (window.WB_ASSETS || './') + 'models/astronaut-rig.glb'); this.loadGLB({ parse: () => {} }, u0).catch(() => {}); window.__wbAstroUrl = u0; } // r14.8: model download starts with the three.js imports
-    try { [T3, GL, MO] = await Promise.all([import('https://esm.sh/three@0.160.0'), import('https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js'), import('https://esm.sh/three@0.160.0/examples/jsm/libs/meshopt_decoder.module.js')]); } catch (e) { return; }
+    try { [T3, GL, MO] = await Promise.all([import('https://esm.sh/three@0.186.1'), import('https://esm.sh/three@0.186.1/examples/jsm/loaders/GLTFLoader.js'), import('https://esm.sh/three@0.186.1/examples/jsm/libs/meshopt_decoder.module.js')]); } catch (e) { return; }
     if (this.dead) return;
     if ((this.props.astroLook || 'Textured') === 'Textured') this.astroTexMat(T3).catch(() => {}); // start textures in parallel with the model, not after it
     const r = new T3.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance', });
@@ -41,7 +41,7 @@ Object.assign(window.WBM, {
     const hemiA = new T3.HemisphereLight(0xcfd8e8, 0x050506, 0.25); sc.add(hemiA);
     const softA = new T3.DirectionalLight(0xffffff, 0); softA.position.set(0.3, 2.6, 3.4); sc.add(softA);
     const fillA = new T3.DirectionalLight(0xffffff, 0); fillA.position.set(-2.2, 0.4, 2.0); sc.add(fillA);
-    import('https://esm.sh/three@0.160.0/examples/jsm/environments/RoomEnvironment.js').then((RE) => { if (this.dead) return; const pm = new T3.PMREMGenerator(r); sc.environment = pm.fromScene(new RE.RoomEnvironment(), 0.04).texture; }).catch(() => {}); // r14.8: doesn't block the model
+    import('https://esm.sh/three@0.186.1/examples/jsm/environments/RoomEnvironment.js').then((RE) => { if (this.dead) return; const pm = new T3.PMREMGenerator(r); sc.environment = pm.fromScene(new RE.RoomEnvironment(), 0.04).texture; }).catch(() => {}); // r14.8: doesn't block the model
     const cam = new T3.PerspectiveCamera(24, 1, 0.1, 50); cam.position.set(0, 0, 4.2);
     const loader = new GL.GLTFLoader(); loader.setMeshoptDecoder(MO.MeshoptDecoder);
     let g; const aUrl = (this.props.astroModel || '').trim() || ((this.props.astroRig ?? true) ? (this.props.astroRigUrl || (window.WB_ASSETS || './') + 'models/astronaut-rig.glb') : 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/Meshy_AI_Character_output-compressed.glb');
@@ -283,7 +283,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
           ' float I = body * edge * uA * 1.8;' +
           ' vec3 c = mix(vec3(1.0), vec3(0.5), smoothstep(0.1, 0.8, y));' +
           ' gl_FragColor = vec4(c * I, I); }' });
-      const flames = feet.map(() => { const fm = new T3.Mesh(fGeo, fMat.clone()); fm.frustumCulled = false; sc.add(fm); return fm; });
+      const flames = feet.map(() => { const fm = new T3.Mesh(fGeo, fMat.clone()); fm.frustumCulled = false; sc.add(fm); return fm; }); this._jetFlames = flames;
       const UP = new T3.Vector3(0, -1, 0);
       let head = 0; const fp = new T3.Vector3(), pp = new T3.Vector3(), dir = new T3.Vector3(), toe = new T3.Vector3(), knee = new T3.Vector3();
       return (dt, boost) => { const now = performance.now();
@@ -525,7 +525,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
     const hRay = new T3.Raycaster(), hN = new T3.Vector2(); let hOn = false, hFrame = 0, tapOn = false, tapT = null; const hv = { v: 0 };
     // touch: tap the astronaut to toggle the reveal (auto-releases after a few seconds)
     addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'mouse' || this.state.page) return;
+      if (e.pointerType === 'mouse' || this.state.page || window.WB_ASTRO_HOVER === false) return;
       const tn = new T3.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1), tr = new T3.Raycaster();
       tr.setFromCamera(tn, cam); piv.updateMatrixWorld();
       const hit = tr.intersectObject(piv, true).length > 0;
@@ -620,7 +620,9 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
               if (!c.holo) { const h = new T3.SkinnedMesh(c.o.geometry, this._holoM); h.bind(c.o.skeleton, c.o.bindMatrix); h.position.copy(c.o.position); h.quaternion.copy(c.o.quaternion); h.scale.copy(c.o.scale); h.frustumCulled = false; h.renderOrder = 3; c.o.parent.add(h); c.holo = h; }
               c.holo.visible = amt > 0.002; if (c.texM) { if (!c.texM.transparent) { c.texM.transparent = true; c.texM.needsUpdate = true; } c.texM.opacity = 1 - amt * (P.astroHoloHide ?? 0.85); c.texM.depthWrite = amt < 0.5; } } }
         }
-        if (LOOK() === 'Hologram') {}
+        /* test switch: window.WB_ASTRO_GLASS = { ...wb-glass options } puts the About page's see-through glass on him (remove it to revert) */
+        if (window.WB_ASTRO_GLASS && window.WBGlass) { const GO = window.WB_ASTRO_GLASS; if (!this._glassM) this._glassM = WBGlass(T3, sc, r, (k, d) => GO[k] ?? (k === 'exposure' ? r.toneMappingExposure : d)); for (const c of CHM) if (c.o.material !== this._glassM) c.o.material = this._glassM; }
+        else if (LOOK() === 'Hologram') {}
         else if (LOOK() === 'Textured' && this._texReady) { const P = this.props; for (const c of CHM) if (c.texM) { if (c.o.material !== c.texM) c.o.material = c.texM; c.texM.envMapIntensity = P.astroTexEnv ?? 1; c.texM.metalness = P.astroTexMetal ?? 1; c.texM.roughness = P.astroTexRough ?? 1; c.texM.normalScale.setScalar(P.astroTexNormal ?? 1); } }
         else if (LOOK() === 'Textured') { if (!this._waitM) { this._waitM = new T3.MeshStandardMaterial({ color: 0xd6d4cf, metalness: 1, roughness: 0.32, envMapIntensity: 1.2, side: T3.DoubleSide }); this._waitT0 = performance.now(); } for (const c of CHM) if (c.o.isMesh) { if (c.o.material !== this._waitM) c.o.material = this._waitM; c.o.visible = performance.now() - this._waitT0 > 6000; } } // r14.9: stays hidden until the metallic textures are on (they now download in parallel); metallic fallback after 6 s // neutral suit while textures stream in (no blue chrome)
         else if (PLAIN) { if (!this._plainM) this._plainM = new T3.MeshStandardMaterial({ color: 0xd2d1cd, metalness: 0, roughness: 0.6, side: T3.DoubleSide }); for (const c of CHM) if (c.o.material !== this._plainM) c.o.material = this._plainM; }
@@ -773,7 +775,8 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
       PH.camZ += (4.2 - PH.camZ) * (1 - Math.exp(-dt * 1.4)); if (!exOn) PH.roll += (-PH.vx * 0.08 - PH.roll) * (1 - Math.exp(-dt * 2));
       if (PH.camLock) { const L = PH.camLock; cam.position.set(L.x, L.y, PH.camZ); cam.lookAt(L.lx, L.ly, 0); cam.rotateZ(L.roll); } else { PH.lkX = wx * 0.45; PH.lkY = wy * 0.45; cam.position.set(PH.camX, PH.camY, PH.camZ); cam.lookAt(PH.lkX, PH.lkY, 0); cam.rotateZ(PH.roll); }
       const fov = 24; if (Math.abs(cam.fov - fov) > 0.01) { cam.fov = fov; cam.updateProjectionMatrix(); }
-      if ((++hFrame & 3) === 0) { hN.set(ms.x, ms.y); hRay.setFromCamera(hN, cam); piv.updateMatrixWorld(); setH(!this.state.page && rp < 0.05 && rq < 0.0005 && (tapOn || (ms.on && !this.coarse && hRay.intersectObject(piv, true).length > 0))); }
+      if (window.WB_ASTRO_HOVER === false) setH(false); /* hover reveal off: no per-frame raycast against the skinned model (expensive), no morph */
+      else if ((++hFrame & 3) === 0) { hN.set(ms.x, ms.y); hRay.setFromCamera(hN, cam); piv.updateMatrixWorld(); setH(!this.state.page && rp < 0.05 && rq < 0.0005 && (tapOn || (ms.on && !this.coarse && hRay.intersectObject(piv, true).length > 0))); }
       qM.uniforms.uH.value = (this.props.astroHoverDither ?? true) ? 1 - hv.v : (this.props.astroHoverReveal ?? true) ? hv.v : 0; // default: clean render, hover dissolves the dither in
       qM.uniforms.uPhoto.value = (this.props.heroStudio ?? true) ? 1 : 0;
       { const w = (this.props.heroStudio ?? true) ? Math.round(hv.v * 50) / 50 : 0;
@@ -792,7 +795,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
       { const ch = this.chromeRef && this.chromeRef.current || document.querySelector('[data-w="chrome"],[data-wh="chrome"]');
         if (ch) { const dark = (this.props.heroStudio ?? true) && (this.rp || 0) < 0.5 && !this.state.page, k = dark ? 'd' : 'l';
           if (ch.__ink !== k) { ch.__ink = k; ch.style.mixBlendMode = dark ? 'normal' : ''; ch.style.color = dark ? (this.props.heroLightInk || '#ffffff') : ''; ch.style.setProperty('--chrome-inv', dark ? 'var(--bg-hero,#202ded)' : '#0e0e0d'); } } }
-      const onMoon = (this._moonK || 0) > 0.03; if (JET && (this.props.astroJets ?? !NATIVE) && shown && !onMoon) JET(dt, speed); if (this._jetPts && onMoon) this._jetPts.visible = false; else if (this._jetPts && !this._robot) this._jetPts.visible = true; // no jet boots once he's on the moon
+      const onMoon = (this._moonK || 0) > 0.03; if (JET && (this.props.astroJets ?? !NATIVE) && shown && !onMoon) JET(dt, speed); if (this._jetPts && onMoon) { this._jetPts.visible = false; (this._jetFlames || []).forEach((fm) => { fm.visible = false; }); } /* flames too: JET() stops updating them once he has landed */ else if (this._jetPts && !this._robot) this._jetPts.visible = true; // no jet boots once he's on the moon
       const inWork = rp > 0.97;
       if (!this._hbub) { const el = document.querySelector('[data-hover-bubble]'); if (el) { this._hbub = { el, x: 0, y: 0, op: 0 };
           const G = window.gsap, blobs = el.querySelectorAll('[data-hb-blob]'), main = el.querySelector('[data-hb-main]');
@@ -844,16 +847,20 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
       const op = vis ? fade.toFixed(3) : '0'; if (box.style.opacity !== op) box.style.opacity = op; shown = vis;
       // moon walk: once landed, walk clockwise along the moon's rim, off screen on the right, back in from the left
       { const WK = this._wk || (this._wk = { t: 0, phi: 0, w: 0 }), P = this.props, asp0 = halfW / Math.max(0.001, halfH), MC = window.__wbMoonC || { r: (P.footerMoonSize ?? 2.4) * Math.max(1, asp0 * 0.6) }, landed = (this._moonK || 0) > 0.98; // footer moon camera is ortho with half-height 1, so its radius is already in screen units
-        if (!landed) { WK.t = 0; WK.phi = 0; WK.w = 0; }
+        /* footer data-moon="0": no moon, he walks in a straight line (right, then back in from the left) */
+        const LINE = this._line ?? (this._line = (document.querySelector('[data-footer]') || {}).getAttribute?.('data-moon') === '0');
+        if (!landed) { WK.t = 0; WK.phi = 0; WK.w = 0; WK.x = 0; }
         else { WK.t += dt; const go = (P.footerWalk ?? true) && WK.t > (P.footerWalkDelay ?? 3); WK.w += ((go ? 1 : 0) - WK.w) * (1 - Math.exp(-dt * 2.5));
           const Rw = Math.max(0.1, MC.r * halfH), lim = Math.asin(Math.min(1, (halfW * 1.25) / Rw));
           WK.phi += dt * WK.w * (P.footerWalkSpeed ?? 0.12) * 2.2 / Rw; if (WK.phi > lim) WK.phi = -lim;
+          if (LINE) { WK.phi = 0; WK.x = (WK.x || 0) + dt * WK.w * (P.footerWalkSpeed ?? 0.12) * 2.2; const lim = halfW + Math.max(halfW * 0.25, piv.scale.x * 1.6); if (piv.position.x + WK.x > lim) WK.x = -lim - piv.position.x; /* wrap only once his whole body is past the edge */ piv.position.x += WK.x; }
           const ph = WK.phi; piv.position.x += Math.sin(ph) * Rw; piv.position.y += (Math.cos(ph) - 1) * Rw;
           const WQ = this._wkQ || (this._wkQ = { a: new T3.Quaternion(), b: new T3.Quaternion(), z: new T3.Vector3(0, 0, 1), y: new T3.Vector3(0, 1, 0) });
           WQ.a.setFromAxisAngle(WQ.z, -ph); WQ.b.setFromAxisAngle(WQ.y, WK.w * Math.PI / 2); piv.quaternion.premultiply(WQ.a).multiply(WQ.b); }
         // floor shadow follows him on the moon: under his feet, tilted to the rim (it was left flat at the landing spot)
         if (FLOOR) { const om = (this._moonK || 0), ph = WK.phi || 0, sF = piv.scale.x, dn = (0.5 + (P.astroFloorGap ?? 0.12)) * sF;
-          if (om > 0.02) { FLOOR.position.set(piv.position.x + Math.sin(ph) * dn, piv.position.y - Math.cos(ph) * dn, 0);
+          if (om > 0.02 && LINE) { FLOOR.position.set(piv.position.x, piv.position.y - dn, 0); FLOOR.rotation.set(-Math.PI / 2, 0, 0); }
+          else if (om > 0.02) { FLOOR.position.set(piv.position.x + Math.sin(ph) * dn, piv.position.y - Math.cos(ph) * dn, 0);
             const FQ = this._flQ || (this._flQ = { x: new T3.Quaternion().setFromAxisAngle(new T3.Vector3(1, 0, 0), -Math.PI / 2), z: new T3.Quaternion(), ax: new T3.Vector3(0, 0, 1) });
             FQ.z.setFromAxisAngle(FQ.ax, -ph); FLOOR.quaternion.copy(FQ.z).multiply(FQ.x); FLOOR.material.opacity *= 1 - 0.5 * Math.min(1, Math.abs(ph) * 3); }
           else FLOOR.rotation.set(-Math.PI / 2, 0, 0); } }
@@ -900,10 +907,10 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
   },
   async initLoaderAstro(el) {
     try {
-      const [T, GL, MO] = await Promise.all([import('https://esm.sh/three@0.160.0'), import('https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js'), import('https://esm.sh/three@0.160.0/examples/jsm/libs/meshopt_decoder.module.js')]);
+      const [T, GL, MO] = await Promise.all([import('https://esm.sh/three@0.186.1'), import('https://esm.sh/three@0.186.1/examples/jsm/loaders/GLTFLoader.js'), import('https://esm.sh/three@0.186.1/examples/jsm/libs/meshopt_decoder.module.js')]);
       if (this.dead) return;
       const loader = new GL.GLTFLoader(); loader.setMeshoptDecoder(MO.MeshoptDecoder);
-      try { const DL = await import('https://esm.sh/three@0.160.0/examples/jsm/loaders/DRACOLoader.js'); const dl = new DL.DRACOLoader(); dl.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/'); loader.setDRACOLoader(dl); } catch (e) {}
+      try { const DL = await import('https://esm.sh/three@0.186.1/examples/jsm/loaders/DRACOLoader.js'); const dl = new DL.DRACOLoader(); dl.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/'); loader.setDRACOLoader(dl); } catch (e) {}
       const url = (this.props.astroModel || '').trim() || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/Meshy_AI_Character_output-compressed.glb'; this._ldUrl = url;
       let g = await this.loadGLB(loader, url);
       if (this.dead || el.style.display === 'none') return;
@@ -917,7 +924,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
       const rimL = new T.DirectionalLight(0xdfe8ff, 2.4); rimL.position.set(-2.6, 1.8, -2.0); sc.add(rimL);
       const fil = new T.DirectionalLight(0xc8d4e6, 0.45); fil.position.set(-1.8, -0.6, 1.6); sc.add(fil);
       sc.add(new T.HemisphereLight(0xcfd8e8, 0x050506, 0.25));
-      try { const RE = await import('https://esm.sh/three@0.160.0/examples/jsm/environments/RoomEnvironment.js'); const pm = new T.PMREMGenerator(r); sc.environment = pm.fromScene(new RE.RoomEnvironment(), 0.04).texture; } catch (e) {}
+      try { const RE = await import('https://esm.sh/three@0.186.1/examples/jsm/environments/RoomEnvironment.js'); const pm = new T.PMREMGenerator(r); sc.environment = pm.fromScene(new RE.RoomEnvironment(), 0.04).texture; } catch (e) {}
       const m = g.scene;
       m.traverse((o) => { if (o.isMesh && o.geometry && !o.geometry.attributes.normal) o.geometry.computeVertexNormals(); });
       const bb = new T.Box3().setFromObject(m, true), sz = bb.getSize(new T.Vector3()), k = 1 / Math.max(sz.x, sz.y, sz.z);
@@ -991,7 +998,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
   },
   async addScreenVideo() {
     const P = this.props, pt = this.portrait; if (!pt) return;
-    const T = await import('https://esm.sh/three@0.160.0'); if (this.dead) return;
+    const T = await import('https://esm.sh/three@0.186.1'); if (this.dead) return;
     { const k = P.computerLight ?? 0.6, sc = pt.scene;
       const hemi = new T.HemisphereLight(0xfff4e8, 0x1a1816, 1.2 * k), key = new T.DirectionalLight(0xfff1e0, 2.2 * k);
       key.position.set(1.6, 2.4, 3.2); sc.add(hemi); sc.add(key); this._cLights = [hemi, key]; }

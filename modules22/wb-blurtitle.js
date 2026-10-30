@@ -36,7 +36,7 @@ void main(){ vec2 p = vUv * uRes; vec4 c0 = tx(p); float d = distance(p, uM), fa
   const make = (h) => { if (h.__bt) return; const S = h.__bt = { h, pad: 0 };
     h.__wbCol = getComputedStyle(h).color; h.querySelectorAll('*').forEach((e) => { e.__wbCol = getComputedStyle(e).color; });
     const fs = parseFloat(getComputedStyle(h).fontSize) || 40; S.pad = Math.max(24, fs * 0.6);
-    const cv = S.cv = document.createElement('canvas'); cv.setAttribute('aria-hidden', 'true'); cv.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;z-index:2147482000;will-change:transform;';
+    const cv = S.cv = document.createElement('canvas'); cv.setAttribute('aria-hidden', 'true'); cv.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;z-index:30;will-change:transform; /* above page content, below the header (40) and menu (150) */';
     document.body.appendChild(cv); const gl = S.gl = cv.getContext('webgl', { premultipliedAlpha: false, alpha: true, antialias: false }); if (!gl) { cv.remove(); h.__bt = null; return; }
     const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); return o; };
     const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, 'attribute vec2 p; varying vec2 vUv; void main(){ vUv = p * 0.5 + 0.5; gl_Position = vec4(p, 0.0, 1.0); }')); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr); gl.useProgram(pr);

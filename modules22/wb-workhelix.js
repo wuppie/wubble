@@ -9,7 +9,7 @@
    Scroll / swipe / arrow keys spin the helix forever; the astronaut in the centre turns with it. */
 (() => {
   if (window.__wbWork) return; window.__wbWork = 1;
-  const B = 'https://esm.sh/three@0.170.0', /* 0.170: glass dispersion */ E = B + '/examples/jsm/';
+  const B = 'https://esm.sh/three@0.186.1', /* 0.170: glass dispersion */ E = B + '/examples/jsm/';
   const wait = () => new Promise((r) => { const f = () => (document.querySelector('[data-wb-work-stage]') ? r() : setTimeout(f, 60)); f(); });
   const ss = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
 
@@ -91,10 +91,12 @@
     { const ld = new GL.GLTFLoader(); ld.setMeshoptDecoder(MO.MeshoptDecoder); const url = (window.WB_ASSETS || './') + 'models/astronaut-rig.glb';
       ld.load(url, (g) => { const m = g.scene; pivot.add(m);
         { const clip0 = g.animations.find((x) => /float/i.test(x.name)) || g.animations[0]; if (clip0) { const mx0 = new T.AnimationMixer(m); mx0.clipAction(clip0).play(); mx0.update(0); } }
-        m.updateMatrixWorld(true); const bx = new T.Box3().setFromObject(m, true) /* skinned: real posed size */, sz = bx.getSize(new T.Vector3()), cn = bx.getCenter(new T.Vector3()), s = (window.WB_WORK_ASTRO_H || 5.4) / Math.max(1e-6, sz.y);
+        m.updateMatrixWorld(true); const bx = new T.Box3().setFromObject(m, true) /* skinned: real posed size */, sz = bx.getSize(new T.Vector3()), cn = bx.getCenter(new T.Vector3()), s = (window.WB_WORK_ASTRO_H || +(root.getAttribute('data-astro-h') || 5.4)) / Math.max(1e-6, sz.y); /* data-astro-h: his height in scene units */
         m.scale.setScalar(s); m.position.set(-cn.x * s, -cn.y * s, -cn.z * s);
         const waitM = new T.MeshStandardMaterial({ color: 0xd6d4cf, metalness: 1, roughness: 0.32, envMapIntensity: 1.2, side: T.DoubleSide }); m.traverse((o) => { if (o.isMesh) { o.frustumCulled = false; o.material = waitM; } }); window.__wbWorkAstro = { m, bx: bx.getSize(new T.Vector3()).toArray(), s };
-        const glassA = new T.MeshPhysicalMaterial({ color: 0x15161a, metalness: 0.05, roughness: 0.0, transmission: 1, thickness: 1.4, ior: 1.5, dispersion: window.WB_WORK_DISPERSION ?? 6, attenuationColor: new T.Color(0x0a0a0d), attenuationDistance: 1.2,
+        /* data-look="glass" on [data-wb-work]: the shared About glass (wb-glass.js, options as data attributes on [data-wb-work]) */
+        const WAT = (k, d) => root.getAttribute('data-' + k) ?? d;
+        const glassA = WAT('look', '') === 'glass' && window.WBGlass ? WBGlass(T, sc, r, WAT) : new T.MeshPhysicalMaterial({ color: 0x15161a, metalness: 0.05, roughness: 0.0, transmission: 1, thickness: 1.4, ior: 1.5, dispersion: window.WB_WORK_DISPERSION ?? 6, attenuationColor: new T.Color(0x0a0a0d), attenuationDistance: 1.2,
           flatShading: true, clearcoat: 1, clearcoatRoughness: 0, envMapIntensity: 2.6, specularIntensity: 1, side: T.FrontSide });
         m.traverse((o) => { if (o.isMesh) o.material = glassA; });
 
@@ -123,7 +125,10 @@
     size(); new ResizeObserver(size).observe(stage);
     let last = performance.now(), lastCur = '';
     const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - last) / 1000); last = now; if (window.__wbWorkPaused || !root.isConnected || root.offsetParent === null && getComputedStyle(root).position !== 'fixed') return; if (root.style.display === 'none' || root.closest('[data-wb-hidden]')) return;
-      if (now - idleT > 280) tgt += (Math.round(tgt) - tgt) * (1 - Math.exp(-dt * 3)); /* settle on a card */
+      /* data-auto="0.08" (cards per second): after 2.5 s without input the helix drifts on by itself, easing in; hover pauses it, any input takes over */
+      const AUTO = +(root.getAttribute('data-auto') || 0), idl = now - idleT, ramp = Math.max(0, Math.min(1, (idl - 2500) / 2000));
+      if (AUTO && !hovered && ramp > 0) tgt += AUTO * dt * ramp * ramp * (3 - 2 * ramp);
+      else if (idl > 280) tgt += (Math.round(tgt) - tgt) * (1 - Math.exp(-dt * 3)); /* settle on a card */
       if (pmE) { doHover(pmE); pmE = null; }
       const pOff = off; { const k = 70, dmp = 2 * Math.sqrt(k); ov += ((tgt - off) * k - ov * dmp) * dt; off += ov * dt; } vel += (Math.max(-6, Math.min(6, (off - pOff) / Math.max(dt, 1e-3) * 1.6)) - vel) * (1 - Math.exp(-dt * 6));
       const N = list.length, base = Math.floor(off);
@@ -138,7 +143,7 @@
       GU.uT.value = now / 1000; GU.uOff.value = off; GU.uRot.value = -off * dA * 0.25; GU.uV.value = vel; GU.neb.position.x = Math.sin(now / 9000) * 0.6; GU.neb.position.y = Math.sin(off * 0.05) * 0.4;
       { const k = 1 - Math.exp(-dt * 2.2); MS.x += (MS.tx - MS.x) * k; MS.y += (MS.ty - MS.y) * k; }
       gal.rotation.y = MS.x * 0.12; gal.rotation.x = MS.y * 0.06; gal.position.x = MS.x * 0.25; gal.position.y = -MS.y * 0.18; GU.neb.position.x += -MS.x * 0.5;
-      pivot.rotation.y = -off * dA + MS.x * 0.28; pivot.rotation.x = MS.y * 0.1; pivot.position.x = MS.x * 0.12; pivot.position.y = Math.sin(now / 2200) * 0.05 - MS.y * 0.08; pivot.position.z = -0.4; if (mixer) mixer.update(dt);
+      pivot.rotation.y = -off * dA + MS.x * 0.28; pivot.rotation.x = MS.y * 0.1; pivot.position.x = MS.x * 0.12; pivot.position.y = Math.sin(now / 2200) * 0.05 - MS.y * 0.08 + +(root.getAttribute('data-astro-y') || 0); /* data-astro-y: move him up (+) or down (-) */ pivot.position.z = -0.4; if (mixer) mixer.update(dt);
       
       cam.position.set(0, 0.35, R + 7.6); cam.lookAt(0, 0, 0);
       if (!r.domElement.isConnected) { const s2 = document.querySelector('[data-wb-work-stage]'); if (s2) s2.appendChild(r.domElement); } /* the page re-rendered its stage (DC/Webflow re-mount): re-attach the canvas */

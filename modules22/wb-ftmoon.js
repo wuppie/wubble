@@ -12,7 +12,7 @@ Object.assign(window.WBM, {
     let S = null, booting = false;
     const boot = async () => {
       booting = true;
-      const B = 'https://esm.sh/three@0.160.0', E = B + '/examples/jsm/';
+      const B = 'https://esm.sh/three@0.186.1', E = B + '/examples/jsm/';
       const [T, GL, RE] = await Promise.all([import(B), import(E + 'loaders/GLTFLoader.js'), import(E + 'environments/RoomEnvironment.js')]);
       const r = new T.WebGLRenderer({ antialias: (devicePixelRatio || 1) < 1.5, alpha: true }); r.setPixelRatio(Math.min(1.25, devicePixelRatio || 1)); r.setClearColor(0, 0);
       // GPU resets drop every context at once: keep this one restorable instead of letting the section vanish
@@ -24,7 +24,7 @@ Object.assign(window.WBM, {
       const rim = new T.DirectionalLight(0xa9c6ff, 0.9); rim.position.set(3, 2.5, -2.5); sc.add(rim); const amb = new T.AmbientLight(0x8fa6c8, 0.04); sc.add(amb);
       // low raking sun: long crater shadows, bright limb, near-black night side (real moon photo look)
       const sun = new T.DirectionalLight(0xfff3e2, 6); sc.add(sun); sc.add(sun.target);
-      const LD = new GL.GLTFLoader(); try { const MO = await import('https://esm.sh/three@0.160.0/examples/jsm/libs/meshopt_decoder.module.js'); LD.setMeshoptDecoder(MO.MeshoptDecoder); } catch (e) {}
+      const LD = new GL.GLTFLoader(); try { const MO = await import('https://esm.sh/three@0.186.1/examples/jsm/libs/meshopt_decoder.module.js'); LD.setMeshoptDecoder(MO.MeshoptDecoder); } catch (e) {}
       const [mg, ag] = await Promise.all([LD.loadAsync((window.WB_ASSETS || './') + 'models/moon-2k.glb'), LD.loadAsync((window.WB_ASSETS || './') + 'models/astronaut-rig.glb')]);
       // moon: the file uses the old spec-gloss material, so rebuild it from its own texture
       let mtx = null; try { mtx = await mg.parser.getDependency('texture', 0); mtx.colorSpace = T.SRGBColorSpace; mtx.anisotropy = 8; } catch (e) {}
@@ -39,7 +39,9 @@ Object.assign(window.WBM, {
         sh.vertexShader = 'varying vec3 vOP; varying vec3 vON;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vOP = position; vON = normal;');
         sh.fragmentShader = 'uniform sampler2D uDet, uDN; uniform vec2 uRep; uniform float uDA, uDB; varying vec3 vOP; varying vec3 vON;\nvec3 triD(sampler2D t){ vec3 w = pow(abs(normalize(vON)), vec3(4.0)); w /= (w.x + w.y + w.z); vec3 p = vOP * uRep.x; return texture2D(t, p.yz).rgb * w.x + texture2D(t, p.xz).rgb * w.y + texture2D(t, p.xy).rgb * w.z; }\n' + sh.fragmentShader;
         sh.fragmentShader = sh.fragmentShader.replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n { vec3 tn = triD(uDN) * 2.0 - 1.0; normal = normalize(normal + (tn.x * normalize(cross(normal, vec3(0.0, 1.0, 0.001))) + tn.y * normalize(cross(normal, vec3(1.0, 0.0, 0.0)))) * uDB); }'); sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n diffuseColor.rgb = pow(diffuseColor.rgb, vec3(1.2)) * 1.1;\n { vec3 dc = triD(uDet); float dl = dot(dc, vec3(0.299, 0.587, 0.114)); diffuseColor.rgb *= mix(1.0, dl * 1.55, uDA); diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.333))), 0.85); }').replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n { float fr = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 3.0); totalEmissiveRadiance += vec3(0.0); }'); };
-      const moonR = mg.scene; moonR.traverse((o) => { if (o.isMesh) { o.material = moonM; o.frustumCulled = false; } }); moonR.updateMatrixWorld(true);
+      /* test switch: window.WB_MOON_GLASS = { ...wb-glass options } makes the moon the same see-through glass as the astronaut (remove it to revert) */
+      const MG = window.WB_MOON_GLASS && window.WBGlass ? WBGlass(T, sc, r, (k, d) => window.WB_MOON_GLASS[k] ?? (k === 'exposure' ? r.toneMappingExposure : d)) : null;
+      const moonR = mg.scene; moonR.traverse((o) => { if (o.isMesh) { o.material = MG || moonM; o.frustumCulled = false; } }); moonR.updateMatrixWorld(true);
       const mb = new T.Box3().setFromObject(moonR), mr = Math.max(...mb.getSize(new T.Vector3()).toArray()) / 2, mc = mb.getCenter(new T.Vector3()); moonR.scale.setScalar(1 / mr); moonR.position.copy(mc).multiplyScalar(-1 / mr);
       const moon = new T.Group(), tilt = new T.Group(); tilt.rotation.x = 1.25; tilt.add(moonR); moon.add(tilt); sc.add(moon); // pole turned toward the camera (off-screen) so the crown shows clean craters
       // astronaut
@@ -95,6 +97,7 @@ Object.assign(window.WBM, {
       if (wd && hb.height) { const wr = wd.getBoundingClientRect(); const yAt = (py) => 1 - 2 * (py - hb.top) / hb.height; topY = yAt(wr.top + wr.height * (1 - (P.footerMoonCover ?? 0.45))); }
       topY += P.footerMoonTop ?? 0; window.__wbMoonTop = topY;
       const mIn = 1 - Math.pow(1 - sm(0.05, 0.7, p), 3);
+      S.moon.visible = ft.getAttribute('data-moon') !== '0'; // data-moon="0": no moon (the astronaut still lands and walks at its crown height)
       S.moon.scale.setScalar(R); const mY = (topY - R) - (1 - mIn) * (R + 1.2); S.moon.position.set(0, mY, 0);
       { const c0 = S.moon.position.clone().project(S.cam), t0 = S.moon.position.clone(); t0.y += R; t0.project(S.cam); window.__wbMoonC = { cy: c0.y, r: t0.y - c0.y }; } // moon circle in screen space, for the main astronaut's rim walk
       // WUBBLE bends along the moon's curve: letters sit on a circle concentric with the moon
@@ -115,7 +118,9 @@ Object.assign(window.WBM, {
       const walking = WK && S.wkT > (P.footerWalkDelay ?? 3); S.wkW = (S.wkW || 0) + ((walking ? 1 : 0) - (S.wkW || 0)) * (1 - Math.exp(-dt * 3));
       if (walking) S.phi = (S.phi || 0) + dt * S.wkW * (P.footerWalkSpeed ?? 0.12) * ah / rr * 2;
       { const p0 = S.phi || 0, wx0 = Math.sin(p0) * rr, wy0 = mY + Math.cos(p0) * rr; if (walking && (P.footerWalkWrap ?? true) && p0 > 0 && (wx0 > asp + 0.35 || wy0 < -1.25)) S.phi = -p0; } /* walked out on the right → re-enter from the left */
-      const phi = S.phi || 0, wx = Math.sin(phi) * rr, wy = mY + Math.cos(phi) * rr;
+      /* data-moon="0": no moon to walk around, so he walks in a straight line at the crown height (right, then back in from the left) */
+      const NOM = ft.getAttribute('data-moon') === '0'; if (NOM) { S.phi = 0; if (!S.landed) S.wx = 0; else if (walking) { S.wx = (S.wx || 0) + dt * S.wkW * (P.footerWalkSpeed ?? 0.12) * ah * 2; if (S.wx > asp + 0.35) S.wx = -(asp + 0.35); } }
+      const phi = S.phi || 0, wx = NOM ? (S.wx || 0) : Math.sin(phi) * rr, wy = mY + Math.cos(phi) * rr;
       S.astro.position.set(S.landed ? wx : px, S.landed ? wy : py, 0); S.astro.scale.setScalar(ah * (1.5 - 0.5 * u)); S.astro.visible = (P.footerOwnAstro ?? true) && p > 0.3;
       { const dive = 1 - sm(0.7, 0.97, u); S.astro.rotation.z = S.landed ? -phi : dive * 0.9; S.astro.rotation.x = S.landed ? 0 : dive * 0.5; }
       if (S.ACT.fly) S.ACT.fly.setEffectiveWeight((1 - S.wLook) * (1 - sm(0.75, 0.97, u)));

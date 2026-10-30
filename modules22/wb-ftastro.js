@@ -9,7 +9,7 @@ Object.assign(window.WBM, {
         await new Promise((res) => { const w = () => { if (this.dead) return; const rc = ft.getBoundingClientRect(); if (getComputedStyle(ft).visibility !== 'hidden' && rc.top < innerHeight && rc.bottom > 0) res(); else setTimeout(w, 300); }; w(); });
         if (started) return; started = true;
         try {
-          const [T, GL, RE] = await Promise.all([import('https://esm.sh/three@0.160.0'), import('https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js'), import('https://esm.sh/three@0.160.0/examples/jsm/environments/RoomEnvironment.js')]);
+          const [T, GL, RE] = await Promise.all([import('https://esm.sh/three@0.186.1'), import('https://esm.sh/three@0.186.1/examples/jsm/loaders/GLTFLoader.js'), import('https://esm.sh/three@0.186.1/examples/jsm/environments/RoomEnvironment.js')]);
           if (this.dead) return;
           const g = await new GL.GLTFLoader().loadAsync((this.props.footerAstroModel || '').trim() || './models/astronaut-rig.glb');
           let r = null; const sc = new T.Scene();

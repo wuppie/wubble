@@ -3,9 +3,11 @@
    in Webflow they become real pages swapped by wb-swap.js. Navigation uses ?page=about|services|contact (home = no param).
    Menu (Webflow attributes): [data-wb-menu] overlay · [data-wb-menu-open] / [data-wb-menu-close] buttons ·
    [data-wb-menu-item] links (each with one inner element that slides up) · [data-wb-menu-fade] small extras.
-   Tune page windows with window.WB_PAGE_RANGES = { about:[start,end], … } in viewport-heights from the about/services section top. */
+   Tune page windows with window.WB_PAGE_RANGES = { about:[start,end], … } in viewport-heights from the about/services section top.
+   Menu only (no page windows / scroll takeover): set window.WB_PAGES_MENU_ONLY = true before this script. */
 (() => {
   if (window.__wbPagesInit) return; window.__wbPagesInit = 1;
+  const MO = !!window.WB_PAGES_MENU_ONLY; /* menu only: no page windows, no wheel/scroll takeover (pages with their own scroll story) */
   const PAGES = ['home', 'about', 'services', 'contact'];
   const RANGE = Object.assign({ about: [0.7, 2.9], services: [4.3, 6.1], contact: [6.6, 99] }, window.WB_PAGE_RANGES || {});
   const RAF = (f) => (window.__wbRawRAF || requestAnimationFrame)(f);
@@ -27,7 +29,7 @@
     ribAcc = Math.max(0, ribAcc + d); a._ribNudge(d * (window.WB_RIBBON_WHEEL || 0.0075)); return true; };
   const pinClamp = () => { RAF(pinClamp); if (page !== 'home' || (app() && app().scrollLocked)) return; const py = pinY(), L = window.__sliderLenis;
     if (L) { if (L.targetScroll > py) L.targetScroll = py; /* ease into the pin, never snap */ if (L.animatedScroll > py + 1) jump(py); } else if (scrollY > py + 1) scrollTo(0, py); };
-  RAF(pinClamp);
+  if (!MO) RAF(pinClamp);
   const atEnd = () => { const L = window.__sliderLenis, m = maxY(); return scrollY >= m - 24 || (L && L.targetScroll >= m - 2); };
   const bounds = () => { if (page === 'home') return null; const c = els().cta; if (!c) return null; const t = c.getBoundingClientRect().top + scrollY, r = RANGE[page], m = maxY();
     return [Math.min(m, t + r[0] * vh()), Math.min(m, t + r[1] * vh())]; };
@@ -56,8 +58,8 @@
   const prerun = async () => { const g = glide; if (!g) return; for (let i = 1; i <= 8; i++) { jump(g.from + (g.to - g.from) * i / 8); snapScenes(120); await frames(2); } await frames(6); await new Promise((r) => setTimeout(r, HOLD[page] || 0)); jump(g.from); snapScenes(200); await frames(4); };
   /* keep each page inside its window */
   const clamp = () => { RAF(clamp); const b = bounds(); if (!b || glide || (app() && app().scrollLocked)) return; const y = scrollY; if (y < b[0] - 1) jump(b[0]); else if (y > b[1] + 1) jump(b[1]); };
-  RAF(clamp);
-  addEventListener('wheel', (e) => { const b = bounds(), d = e.deltaY;
+  if (!MO) RAF(clamp);
+  addEventListener('wheel', (e) => { if (MO) return; const b = bounds(), d = e.deltaY;
     if (b && glide) { e.preventDefault(); e.stopImmediatePropagation(); return; }
     if (b) { if ((d < 0 && scrollY <= b[0] + 2) || (d > 0 && scrollY >= b[1] - 2)) { e.preventDefault(); e.stopImmediatePropagation(); } return; }
     /* home: at the end of the page the ribbon keeps going forever */
@@ -65,7 +67,7 @@
   }, { capture: true, passive: false });
   let ty = null;
   addEventListener('touchstart', (e) => { ty = e.touches[0].clientY; }, { passive: true });
-  addEventListener('touchmove', (e) => { const a = app(); if (ty == null || page !== 'home' || !a || !a._ribNudge) return; const y = e.touches[0].clientY, d = ty - y; ty = y;
+  addEventListener('touchmove', (e) => { const a = app(); if (MO || ty == null || page !== 'home' || !a || !a._ribNudge) return; const y = e.touches[0].clientY, d = ty - y; ty = y;
     if (homeInput(d * 1.6, e) && e.cancelable) e.preventDefault(); }, { passive: false });
   /* router for wb-swap.js: ink covers → page changes → ink opens */
   const route = async (url) => { /* kept for single-document use; pages now navigate for real (like work → project) */
@@ -78,6 +80,7 @@
   const menu = (on, instant) => { const M = q('[data-wb-menu]'); if (!M || (on === open && !instant)) return; open = on;
     const items = M.querySelectorAll('[data-wb-menu-item] > *'), fades = M.querySelectorAll('[data-wb-menu-fade]'), G = window.gsap;
     if (tl) tl.kill(); M.setAttribute('aria-hidden', on ? 'false' : 'true');
+    M.style.pointerEvents = on ? '' : 'none'; /* a closing menu stops catching clicks at once, so a quick re-click reaches the open button under it */
     const L = window.__sliderLenis; if (L) on ? L.stop() : (!(app() && app().scrollLocked) && L.start());
     if (G && instant) { G.set(M, { visibility: on ? 'visible' : 'hidden', clipPath: on ? 'inset(0% 0 0% 0)' : 'inset(0% 0 100% 0)' }); G.set(items, { yPercent: on ? 0 : 110, y: 0 }); G.set(fades, { opacity: on ? 1 : 0, y: 0 }); return; }
     if (!G || instant) { M.style.visibility = on ? 'visible' : 'hidden'; M.style.clipPath = on ? 'inset(0 0 0 0)' : 'inset(0 0 100% 0)'; items.forEach((i) => { i.style.transform = on ? 'none' : 'translate3d(0,110%,0)'; }); fades.forEach((f) => { f.style.opacity = on ? '1' : '0'; }); return; }
@@ -108,5 +111,5 @@
       if (p !== 'home') { goTo(p); await prerun(); }
       await frames(8); const V = document.querySelector('[data-wb-veil]'); if (V) { V.style.transition = 'opacity 0.6s ease'; V.style.opacity = '0'; setTimeout(() => V.remove(), 700); } if (window.__wbInkReadyRes) window.__wbInkReadyRes(); if (p !== 'home') window.WB_SWAP_ENTER(); };
     wait(); };
-  boot();
+  if (!MO) boot();
 })();

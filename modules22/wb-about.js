@@ -70,6 +70,8 @@
   /* the page content may render after this script (Design Component / page swap): retry until it exists */
   let n = 0; const poll = () => { init(); if (++n < 40 && !document.querySelector('[data-wb-img-reveal]')?.__r) setTimeout(poll, 150); else setTimeout(fit, 300); };
   addEventListener('resize', fit);
+  /* the page can re-render after the first fit (fresh element, no size): refit when that happens */
+  let fitT = 0; loops.push((now) => { if (now - fitT < 500) return; fitT = now; for (const el of document.querySelectorAll('[data-wb-fit]')) if (!el.style.fontSize) { fit(); break; } });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', poll); else poll();
   document.addEventListener('wb:swap', () => { n = 0; poll(); });
   RAF(tick);

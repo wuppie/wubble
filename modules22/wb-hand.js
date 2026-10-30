@@ -4,7 +4,7 @@
 (window.WBM = window.WBM || {});
 Object.assign(window.WBM, {
   async createChromeHand(host, url, P) {
-    const B = 'https://esm.sh/three@0.160.0', E = B + '/examples/jsm/';
+    const B = 'https://esm.sh/three@0.186.1', E = B + '/examples/jsm/';
     const [T, GL, RG, EC, RP, SP, AP, UB, OP] = await Promise.all([import(B), import(E + 'loaders/GLTFLoader.js'), import(E + 'loaders/RGBELoader.js'), import(E + 'postprocessing/EffectComposer.js'), import(E + 'postprocessing/RenderPass.js'), import(E + 'postprocessing/ShaderPass.js'), import(E + 'postprocessing/AfterimagePass.js'), import(E + 'postprocessing/UnrealBloomPass.js'), import(E + 'postprocessing/OutputPass.js')]);
     const r = new T.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
     r.setPixelRatio(Math.min(P.maxPR || 2, devicePixelRatio || 1)); r.setClearColor(0x000000, 1); r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 0.75; r.outputColorSpace = T.SRGBColorSpace;

@@ -5,7 +5,7 @@
    Webflow: empty div [data-wb-about-astro] (size it in the Designer).
    Attributes: data-scale="1" · data-clip="wave" (wave | look | floating) · data-panels="5" · data-dispersion="6" */
 (() => {
-  const A = () => window.WB_ASSETS || './', B = 'https://esm.sh/three@0.160.0', E = B + '/examples/jsm/';
+  const A = () => window.WB_ASSETS || './', B = 'https://esm.sh/three@0.186.1' /* one three.js version site-wide (latest) */, E = B + '/examples/jsm/';
   const RAF = (f) => (window.__wbRawRAF || requestAnimationFrame)(f);
   const clip = (n) => window.WB_CLIPS && window.WB_CLIPS[n] ? Promise.resolve() : new Promise((res) => { const s = document.createElement('script'); s.src = A() + 'modules22/wb-clip-' + n + '.min.js'; s.onload = s.onerror = () => res(); document.head.appendChild(s); });
   const init = async (host) => {
@@ -75,13 +75,21 @@
         const texM = new T.MeshPhysicalMaterial({ color: new T.Color(at('metal-color', '#141416')), normalMap: tx[2], metalness: 1, roughness: +at('roughness', 0.22), clearcoat: 1, clearcoatRoughness: 0.12, envMapIntensity: +at('env', 1.6) });
         m.traverse((o) => { if (!o.isSkinnedMesh) return; const g0 = o.geometry, g2 = g0.index ? g0.toNonIndexed() : g0; if (g2.attributes.position.count * 2 !== uv.length) return; g2.setAttribute('uv', new T.BufferAttribute(uv, 2, true)); o.geometry = g2; o.material = texM; });
       } catch (e) { console.warn('[about astro] textures', e); } }
+    /* 'glass' look: shared see-through glass (wb-glass.js, options as data attributes there) */
+    let GLASS = null; // the hover logos reuse it
+    if (at('look', 'chrome') === 'glass' && window.WBGlass) { GLASS = WBGlass(T, sc, r, at); m.traverse((o) => { if (o.isMesh) o.material = GLASS; }); }
     mixer = new T.AnimationMixer(m); let act = null;
     if (!CUSTOM && CL !== 'floating' && window.WB_CLIPS && WB_CLIPS[CL]) { const c = T.AnimationClip.parse(WB_CLIPS[CL]); c.uuid = T.MathUtils.generateUUID();
       for (const tr of c.tracks) if (/Hips\.position$/.test(tr.name)) { const v = tr.values, x0 = v[0], z0 = v[2]; for (let i = 0; i < v.length; i += 3) { v[i] = x0; v[i + 2] = z0; } } act = mixer.clipAction(c); }
     if (!act) { const fl = g.animations.find((a) => /float/i.test(a.name)) || g.animations[0]; if (fl) act = mixer.clipAction(fl); } if (act) act.play();
+    /* calmer clip: data-clip-speed="0.5" (slower) · data-clip-pingpong="1" (plays back and forth, no jump at the loop seam)
+       · data-clip-rest="4" (seconds he holds still at each end before moving again) */
+    if (act) { act.timeScale = +at('clip-speed', 1); if (at('clip-pingpong', '') === '1') act.setLoop(T.LoopPingPong, Infinity);
+      const REST = +at('clip-rest', 0); if (REST > 0) mixer.addEventListener('loop', (e) => { if (e.action !== act) return; act.paused = true; setTimeout(() => { act.paused = false; }, REST * 1000); }); }
     /* hover morph: the astronaut shatters into the Services 3D tool logos, floating where he stood (reverse on leave) */
     const HV = {}, MORPH = at('morph', '1') !== '0', mlogos = []; let hov = 0, hovT = 0;
-    if (MORPH) { const body = new T.MeshPhysicalMaterial({ color: 0x0b0b0c, metalness: 0.6, roughness: 0.18, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.4, transparent: true }), edge = new T.MeshPhysicalMaterial({ color: 0x2a2a2c, metalness: 1, roughness: 0.22, envMapIntensity: 1.6, transparent: true });
+    if (MORPH) { let body = new T.MeshPhysicalMaterial({ color: 0x0b0b0c, metalness: 0.6, roughness: 0.18, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.4, transparent: true }), edge = new T.MeshPhysicalMaterial({ color: 0x2a2a2c, metalness: 1, roughness: 0.22, envMapIntensity: 1.6, transparent: true });
+      { const LM = GLASS || (at('look', 'chrome') === 'chrome' ? glassA : null); if (LM) { body = LM.clone(); body.transparent = true; edge = body; } } /* logos in the astronaut's own look (glass or crystal chrome) */
       const ldr = new SV.SVGLoader(), slugs = at('logos', 'glb:models/icon-surfboard.glb,ph:beer-stein,fluent-emoji-high-contrast:dog-face,ph:film-slate,ph:music-notes').split(',').map((s) => s.trim()).filter(Boolean);
       /* icon source: 'surfboard' = built 3D board · 'ph:name' = Phosphor fill icon · 'set:name' = any Iconify icon · plain slug = Simple Icons brand logo · full URL = any SVG */
       const iconURL = (s) => /^https?:/.test(s) ? s : s.startsWith('ph:') ? 'https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/fill/' + s.slice(3) + '-fill.svg' : s.includes(':') ? 'https://api.iconify.design/' + s.replace(':', '/') + '.svg' : 'https://cdn.jsdelivr.net/npm/simple-icons@13/icons/' + s + '.svg';
@@ -100,18 +108,19 @@
         const mesh = new T.Mesh(geo, mats); mesh.visible = false; sc.add(mesh); const a = i / slugs.length * Math.PI * 2; const smp = new MS3.MeshSurfaceSampler(new T.Mesh(geo)).build();
         mlogos.push({ mesh, smp, idx: i, a, r: 1.4 + (i % 2) * 0.6, y: Math.sin(a * 2) * 0.9, sp: new T.Vector3(Math.random() - 0.5, 0.6 + Math.random() * 0.4, Math.random() - 0.5), ph: Math.random() * 6 }); })).catch((e) => console.warn('[about astro] logos', e));
       const ray = new T.Raycaster(), pt = new T.Vector2(); let px = -1, py = -1;
-      addEventListener('pointermove', (e) => { px = e.clientX; py = e.clientY; }, { passive: true }); addEventListener('pointerdown', (e) => { px = e.clientX; py = e.clientY; }, { passive: true, capture: true }); addEventListener('pointerleave', () => { px = -1; }, { passive: true });
+      let uiOver = false; /* pointer over the header, a link or a button: no hover morph, no badge (keeps the menu clickable) */
+      addEventListener('pointermove', (e) => { px = e.clientX; py = e.clientY; uiOver = !!(e.target.closest && e.target.closest('header,a,button,[role=button],[data-wb-menu],[data-wb-menu-open]')); }, { passive: true }); addEventListener('pointerdown', (e) => { px = e.clientX; py = e.clientY; }, { passive: true, capture: true }); addEventListener('pointerleave', () => { px = -1; }, { passive: true });
       HV.rect = null; HV.ctr = new T.Vector3(); window.__wbAboutHV = { HV, mlogos, get px() { return px; } };
       HV.measure = () => { const b = new T.Box3().setFromObject(pivot); b.getCenter(HV.ctr); const pts = [[b.min.x, b.min.y, b.min.z], [b.max.x, b.max.y, b.max.z], [b.min.x, b.max.y, b.max.z], [b.max.x, b.min.y, b.min.z]].map((q) => new T.Vector3(...q).project(cam));
         const xs = pts.map((q) => (q.x + 1) / 2 * innerWidth), ys = pts.map((q) => (1 - q.y) / 2 * innerHeight); HV.rect = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]; };
       HV.touch = matchMedia('(hover: none)').matches; HV.tap = false; addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse' || !e.pointerType) HV.touch = false; }, { passive: true }); addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch' || e.pointerType === 'pen') HV.touch = true; }, { passive: true }); /* touch: tap the hero to morph, tap again (or elsewhere) to reverse */
       addEventListener('pointerup', (e) => { if (!HV.touch) return; const hr = host.closest('section') ? host.closest('section').getBoundingClientRect() : host.getBoundingClientRect(); const inside = e.clientY > hr.top && e.clientY < hr.bottom; if (e.target.closest && e.target.closest('a,button,[data-wb-menu]')) return; HV.tap = inside ? !HV.tap : false; }, { passive: true });
       addEventListener('scroll', () => { if (HV.tap) { const hr = host.getBoundingClientRect(); if (hr.bottom < innerHeight * 0.3) HV.tap = false; } }, { passive: true });
-      HV.hit = () => { if (HV.touch) return HV.tap; if (px < 0 || !HV.rect) return false; let [x0, y0, x1, y1] = HV.rect; const MINW = Math.max(260, innerWidth * 0.22), MINH = Math.max(260, innerHeight * 0.38); if (x1 - x0 < MINW) { const c = (x0 + x1) / 2; x0 = c - MINW / 2; x1 = c + MINW / 2; } if (y1 - y0 < MINH) { const c = (y0 + y1) / 2; y0 = c - MINH / 2; y1 = c + MINH / 2; } const pad = HV.on ? 60 : 0; /* hysteresis: once on, a wider zone keeps it on */
+      HV.hit = () => { if (HV.touch) return HV.tap; if (px < 0 || !HV.rect || uiOver) return false; let [x0, y0, x1, y1] = HV.rect; const MINW = Math.max(260, innerWidth * 0.22), MINH = Math.max(260, innerHeight * 0.38); if (x1 - x0 < MINW) { const c = (x0 + x1) / 2; x0 = c - MINW / 2; x1 = c + MINW / 2; } if (y1 - y0 < MINH) { const c = (y0 + y1) / 2; y0 = c - MINH / 2; y1 = c + MINH / 2; } const pad = HV.on ? 60 : 0; /* hysteresis: once on, a wider zone keeps it on */
         return px > x0 + (x1 - x0) * 0.18 - pad && px < x1 - (x1 - x0) * 0.18 + pad && py > y0 + (y1 - y0) * 0.05 - pad && py < y1 - (y1 - y0) * 0.05 + pad; };
     }
     /* click/tap toggles the morph; gooey badge (homepage style) follows the cursor over him */
-    const BADGE = (() => { const lbl = at('badge', 'click me'), lbl2 = at('badge-back', 'click to return');
+    const BADGE = at('badge', 'click me') === 'off' ? { tick() {} } /* data-badge="off": no gooey badge */ : (() => { const lbl = at('badge', 'click me'), lbl2 = at('badge-back', 'click to return');
       if (!document.getElementById('wbGooAbout')) document.body.insertAdjacentHTML('beforeend', '<svg width="0" height="0" style="position:absolute"><defs><filter id="wbGooAbout" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur in="SourceGraphic" stdDeviation="6" result="b"></feGaussianBlur><feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8"></feColorMatrix></filter></defs></svg>');
       const el = document.createElement('div'); el.setAttribute('aria-hidden', 'true'); el.setAttribute('data-wb-persist', ''); el.style.cssText = 'position:fixed;left:0;top:0;z-index:60;pointer-events:none;opacity:0;will-change:transform,opacity;';
       el.innerHTML = '<div style="position:relative;width:150px;height:84px;transform-origin:50% 50%;"><div style="position:absolute;inset:0;filter:url(#wbGooAbout);"><div data-m style="position:absolute;left:10px;top:16px;width:130px;height:46px;border-radius:999px;background:#ece9e2;"></div><div data-b style="position:absolute;left:18px;top:50px;width:26px;height:26px;border-radius:50%;background:#ece9e2;"></div><div data-b style="position:absolute;left:100px;top:12px;width:30px;height:30px;border-radius:50%;background:#ece9e2;"></div><div data-b style="position:absolute;left:62px;top:44px;width:22px;height:22px;border-radius:50%;background:#ece9e2;"></div></div><div data-t style="position:absolute;left:10px;top:16px;width:130px;height:46px;display:flex;align-items:center;justify-content:center;font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:12px;font-weight:500;letter-spacing:0.02em;color:#050505;white-space:nowrap;"></div></div>';

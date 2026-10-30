@@ -9,7 +9,7 @@ Object.assign(window.WBM, {
     return { out: e <= 0.5, r: e <= 0.5 ? PI * e : -PI + PI * e, blur: blur * Math.min(1, p * 40, (1 - p) * 40) };
   },
   async init() {
-    const THREE = await import('https://esm.sh/three@0.160.0');
+    const THREE = await import('https://esm.sh/three@0.186.1');
     if (this.dead) return;
     this.initInk(THREE);
     this.initAstroGlobal();
@@ -651,7 +651,7 @@ Object.assign(window.WBM, {
             // About first, then Services: ra = About→Services handover
             this.ra = this.sceneTween('ra', Math.max(0, Math.min(1, (into - 2.2) / 1.2))); window.__wbRA = this.ra;
             const ka = this.ra; const DK = !!window.__wbAboutDesk; h3.style.opacity = String(DK ? sst(0.35, 0.75, ka) : sst(0.4, 0.8, ka)); /* V23: Services text arrives over the craning desk shot */ this._svcOn = ka > 0.95;
-            if (ab) { ab.style.opacity = String(1 - (DK ? sst(0.6, 0.97, ka) : sst(0.0, 0.5, ka))); ab.style.pointerEvents = ka < 0.5 ? 'auto' : 'none'; const inMon = (this._monZoom || 0) > 0.5; if (ab.__bg0 == null) { ab.__bg0 = ab.style.backgroundColor; ab.__bi0 = ab.style.backgroundImage; ab.__inMon = false; } if (ab.__inMon !== inMon) { ab.__inMon = inMon; ab.style.backgroundColor = inMon ? 'transparent' : ab.__bg0; ab.style.backgroundImage = inMon ? 'none' : ab.__bi0; } } } }
+            if (ab) { ab.style.opacity = String(1 - (DK ? sst(0.6, 0.97, ka) : sst(0.0, 0.5, ka))); ab.style.pointerEvents = ka < 0.5 ? 'auto' : 'none'; if (ab.__noCrt == null) ab.__noCrt = !document.querySelector('[data-about-glass]'); if (ab.__noCrt) { const rr = ab.getBoundingClientRect(), onS = rr.top < innerHeight * 0.5 && rr.bottom > innerHeight * 0.5 && getComputedStyle(ab.parentElement).visibility !== 'hidden'; window.__wbAboutOp = onS ? +ab.style.opacity : 0; } /* no 3D monitor: the astronaut's About landing reads the panel's own fade, only while it is on screen */ const inMon = (this._monZoom || 0) > 0.5; if (ab.__bg0 == null) { ab.__bg0 = ab.style.backgroundColor; ab.__bi0 = ab.style.backgroundImage; ab.__inMon = false; } if (ab.__inMon !== inMon) { ab.__inMon = inMon; ab.style.backgroundColor = inMon ? 'transparent' : ab.__bg0; ab.style.backgroundImage = inMon ? 'none' : ab.__bi0; } } } }
         if (stk) { stk.style.opacity = String((this.pnlOp ?? 1) * (rot ? outOp : (1 - eout * 0.8))); const po = this.pnlOp ?? 1, tr = false && window.__wbAscend && po < 0.999 ? '0 ' + (-(1 - (1 - Math.pow(1 - po, 3))) * vh * 0.5).toFixed(1) + 'px' : ''; if (stk.__atr !== tr) { stk.__atr = tr; stk.style.translate = tr; } }
         const rs = this.reachRef.current, rpn = this.reachPanel || (this.reachPanel = rs && rs.querySelector('[data-reach-panel]'));
         const rct = this.reachContent || (this.reachContent = rs && rs.querySelector('[data-reach-content]'));

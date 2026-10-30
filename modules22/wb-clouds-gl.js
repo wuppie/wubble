@@ -7,7 +7,7 @@
       float near = 1.0 - smoothstep(uSplit * 0.85, uSplit * 1.15, vD); c.w *= uOp * mix(1.0 - near, near, uFront);
       if (c.w < 0.002) discard; gl_FragColor = c; }`;
   window.__wbCloudsGL = async (back, front) => {
-    const [T, BU] = await Promise.all([import('https://esm.sh/three@0.160.0'), import('https://esm.sh/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js')]);
+    const [T, BU] = await Promise.all([import('https://esm.sh/three@0.186.1'), import('https://esm.sh/three@0.186.1/examples/jsm/utils/BufferGeometryUtils.js')]);
     const tex = await new T.TextureLoader().loadAsync((window.WB_ASSETS || './') + 'models/cloud10.png'); tex.colorSpace = T.SRGBColorSpace; tex.magFilter = T.LinearFilter; tex.minFilter = T.LinearMipMapLinearFilter;
     const N = (matchMedia('(pointer: coarse)').matches || innerWidth < 820 || (navigator.hardwareConcurrency || 8) <= 4) ? 3200 : 8000, pg = new T.PlaneGeometry(64, 64), o = new T.Object3D(), gs = [];
     for (let i = 0; i < N; i++) { o.position.set(Math.random() * 1000 - 500, -Math.random() * Math.random() * 200 - 15, i * 8000 / N); /* r14.25: spread over the full 8000 depth — with N=3200 (phones) the clouds sat 4800+ away, past the 3000 far plane, and only drifted into view after ~10 s */ o.rotation.z = Math.random() * Math.PI; o.scale.x = o.scale.y = Math.random() * Math.random() * 1.5 + 0.5; o.updateMatrix(); const g = pg.clone(); g.applyMatrix4(o.matrix); gs.push(g); }

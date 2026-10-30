@@ -15,13 +15,13 @@
 <script>window.WB_INK_COLOR = '#000000';</script>
 <script>window.WB_INK_READY = new Promise((res) => { const slug = new URLSearchParams(location.search).get('p'); const t0 = performance.now(); const ok = () => slug ? (() => { const h1 = document.querySelector('[data-wb-project] h1'); return h1 && !/\{\{/.test(h1.textContent) && h1.textContent.trim(); })() : (window.__wbWorkFrames || 0) >= 4; const f = () => (ok() || performance.now() - t0 > 5000 ? (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => setTimeout(res, 60)) : setTimeout(f, 30)); f(); });</script>
 <script>window.WB_SWAP_ROUTE = (u) => (window.__wbRoute ? window.__wbRoute(u) : Promise.resolve());</script>
-<script src="./modules22/wb-cursor.js?v=1"></script>
-<script src="./modules22/wb-blurtitle.js?v=2"></script>
-<script src="./modules22/wb-ink.js?v=21"></script>
-<script src="./modules22/wb-swap.js?v=10"></script>
-<script src="./modules22/wb-distort.js?v=2"></script>
-<script src="./modules22/wb-project.js?v=8"></script>
-<script src="./modules22/wb-abyss.js?v=6"></script>
+<script src="./modules22/wb-cursor.js?v=2-t186"></script>
+<script src="./modules22/wb-blurtitle.js?v=3-t186"></script>
+<script src="./modules22/wb-ink.js?v=21-t186"></script>
+<script src="./modules22/wb-swap.js?v=11-t186"></script>
+<script src="./modules22/wb-distort.js?v=2-t186"></script>
+<script src="./modules22/wb-project.js?v=8-t186"></script>
+<script src="./modules22/wb-abyss.js?v=6-t186"></script>
 <script>(function(){function go(){if(!document.querySelector('[data-us-project]')){return setTimeout(go,100);}var u=window.UnicornStudio;if(u&&u.init){u.init();return;}window.UnicornStudio={isInitialized:false};var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.4.3/dist/unicornStudio.umd.js';s.onload=function(){UnicornStudio.init();};document.head.appendChild(s);}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',go);}else{go();}})();</script>
 <script>/* Unicorn light: always drifts on a slow soft path, the real cursor steers it (only the light; other effects keep the real mouse) */
 (function(){var mx=innerWidth*0.5,my=innerHeight*0.5,ox=mx,oy=my,t0=performance.now(),last=t0,has=false;
@@ -31,25 +31,25 @@ var dx=Math.sin(t*0.11)*0.22*W+Math.sin(t*0.047+1.3)*0.12*W,dy=Math.cos(t*0.083+
 var bx=has?mx:W*0.5,by=has?my:H*0.5,tx=bx+dx*(has?0.55:1),ty=by+dy*(has?0.55:1),k=1-Math.exp(-dt*1.2);ox+=(tx-ox)*k;oy+=(ty-oy)*k;
 var ev=new MouseEvent('mousemove',{clientX:ox,clientY:oy,bubbles:true});ev.__wbSyn=1;(document.querySelector('[data-us-project] canvas')||document).dispatchEvent(ev);}
 requestAnimationFrame(f);})();</script>
-<script src="./modules22/wb-blurword.js?v=1"></script>
-<script src="./modules22/wb-workhelix.js?v=23"></script>
+<script src="./modules22/wb-blurword.js?v=1-t186"></script>
+<script src="./modules22/wb-workhelix.js?v=23-t186"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
-<script src="./modules22/wb-pages.js?v=18"></script>
+<script src="./modules22/wb-pages.js?v=19-t186"></script>
 </helmet>
 <div data-wb-site-header="" style="position:fixed;top:16px;left:16px;right:16px;z-index:40;pointer-events:none;mix-blend-mode:difference;color:#ece9e2;">
   <header style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:20px 24px;pointer-events:auto;font-family:'Switzer',Helvetica,sans-serif;">
     <div style="justify-self:start;display:flex;align-items:center;">
-      <sc-if value="{{ isWork }}" hint-placeholder-val="{{ true }}"><a href="Site V24 Pages.dc.html" data-wb-back="" onClick="{{ goBack }}" style="display:flex;align-items:center;gap:6px;font-weight:500;font-size:13px;line-height:1;color:inherit;">← Back</a></sc-if>
-      <sc-if value="{{ isProject }}" hint-placeholder-val="{{ false }}"><a href="Site V24 Pages.dc.html" data-wb-swap="" data-logo-w="" style="font-weight:700;font-size:18px;line-height:1;letter-spacing:-0.01em;color:inherit;">wubble</a></sc-if>
+      <sc-if value="{{ isWork }}" hint-placeholder-val="{{ true }}"><a href="Project Slider V22 Modular.dc.html" data-wb-back="" onClick="{{ goBack }}" style="display:flex;align-items:center;gap:6px;font-weight:500;font-size:13px;line-height:1;color:inherit;">← Back</a></sc-if>
+      <sc-if value="{{ isProject }}" hint-placeholder-val="{{ false }}"><a href="Project Slider V22 Modular.dc.html" data-wb-swap="" data-logo-w="" style="font-weight:700;font-size:18px;line-height:1;letter-spacing:-0.01em;color:inherit;">wubble</a></sc-if>
     </div>
     <div style="font-size:11px;font-weight:500;letter-spacing:0.04em;display:flex;align-items:center;gap:8px;"><span data-avail-dot="" style="width:7px;height:7px;border-radius:50%;background:#2fd27a;box-shadow:0 0 6px 1px rgba(47,210,122,0.75);animation:wbAvail 2.2s ease-in-out infinite;"></span><span data-avail="" style="opacity:0.85;white-space:nowrap;">Awake and creative</span></div>
     <div style="justify-self:end;display:flex;align-items:center;gap:22px;">
-      <button data-wb-menu-open="" aria-label="Open menu" style="white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0;border:0;background:transparent;color:inherit;font:600 13px 'Switzer',Helvetica,sans-serif;cursor:pointer;"><span>menu</span><span style="display:flex;flex-direction:column;gap:4px;"><span style="display:block;width:18px;height:1.5px;background:currentColor;"></span><span style="display:block;width:18px;height:1.5px;background:currentColor;"></span></span></button></div>
+      <button data-wb-menu-open="" aria-label="Open menu" style="white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:9px 14px 9px 16px;border:1px solid color-mix(in srgb,currentColor 35%,transparent);border-radius:999px;background:transparent;color:inherit;font:500 13px 'Switzer',Helvetica,sans-serif;letter-spacing:0.01em;line-height:1;cursor:pointer;"><span>menu</span><span style="display:flex;flex-direction:column;gap:4px;"><span style="display:block;width:18px;height:1.5px;background:currentColor;"></span><span style="display:block;width:18px;height:1.5px;background:currentColor;"></span></span></button></div>
   </header>
 </div>
 <nav data-wb-menu="" aria-hidden="true" data-screen-label="Menu" style="visibility:hidden;clip-path:inset(0 0 100% 0);position:fixed;inset:0;z-index:150;background:#0e0e0d;color:#ece9e2;display:flex;flex-direction:column;justify-content:space-between;padding:36px 40px 32px;box-sizing:border-box;font-family:'Switzer',Helvetica,sans-serif;">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:24px;">
-      <a href="Site V24 Pages.dc.html" data-wb-swap="" data-wb-menu-fade="" style="font-weight:700;font-size:18px;letter-spacing:-0.01em;color:inherit;" style-hover="opacity:0.6;">wubble</a>
+      <a href="Project Slider V22 Modular.dc.html" data-wb-swap="" data-wb-menu-fade="" style="font-weight:700;font-size:18px;letter-spacing:-0.01em;color:inherit;" style-hover="opacity:0.6;">wubble</a>
       <button data-wb-menu-close="" aria-label="Close menu" style="display:flex;align-items:center;gap:10px;padding:0;border:0;background:transparent;color:inherit;font:600 13px 'Switzer',Helvetica,sans-serif;cursor:pointer;"><span>close</span><span style="position:relative;width:18px;height:18px;"><span style="position:absolute;left:0;top:8px;width:18px;height:1.5px;background:currentColor;transform:rotate(45deg);"></span><span style="position:absolute;left:0;top:8px;width:18px;height:1.5px;background:currentColor;transform:rotate(-45deg);"></span></span></button>
     </div>
     <div style="display:flex;flex-direction:column;">

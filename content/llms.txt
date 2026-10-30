@@ -1,0 +1,28 @@
+# Wubble
+
+> Wubble is an independent web studio and Webflow Certified Partner from the Netherlands, working worldwide. Wubble designs and builds fast, motion-rich websites with real-time 3D, and keeps them growing with monthly Webflow plans.
+
+Contact: hello@wubble.nl
+
+## Services
+
+- [Webflow Development](https://wubble.nl/services/webflow-development): Webflow sites and Webflow retainers for ongoing design and development: Care $950 (up to 8 hours), Growth $2,750 (up to 24 hours), Partner $4,950 (up to 40 hours) per month.
+- [Web & UX Design](https://wubble.nl/services/web-ux-design): web and UX design that gets built: designed in Figma, built in Webflow. Website packages: Premium Webflow Website $2,500, Premium Business Website $4,500, Full Premium Experience $7,500.
+- Shopify Development: custom Shopify themes, headless commerce, checkout and conversion tuning.
+- AI Integration & Automation: AI features inside websites, workflow automation, visibility in AI search.
+- Creative Development (WebGL & 3D): real-time 3D on the web with Three.js and GSAP.
+
+## Facts
+
+- Clients include Nertia, Orrett's, Luis Brown, Foedsie, LegalPa and Wiwi.
+- Websites start from €2,500, with a fixed quote once the goals are clear.
+- A focused website takes 6 to 10 weeks; larger brand and product work 3 to 4 months.
+- Wubble is a one-person studio: strategy, design and development stay with one designer-developer, with no outsourcing.
+
+## Pages
+
+- [Home](https://wubble.nl/)
+- [About](https://wubble.nl/about)
+- [Services](https://wubble.nl/services)
+- [Work](https://wubble.nl/work)
+- [Contact](https://wubble.nl/contact)

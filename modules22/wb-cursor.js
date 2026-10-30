@@ -8,7 +8,7 @@
   const initInk = (THREE, box) => {
     const r = new THREE.WebGLRenderer({ alpha: true, premultipliedAlpha: false });
     r.domElement.addEventListener('webglcontextlost', (e) => { e.preventDefault(); setTimeout(() => { if (!r.getContext().isContextLost()) return; try { r.domElement.remove(); } catch (er) {} initInk(THREE, box); }, 1500); }, { once: true });
-    r.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    r.setPixelRatio(1); /* perf: soft ink, 1x is enough */
     r.setClearColor(0x000000, 0);
     r.domElement.style.cssText = 'display:block;width:100%;height:100%;';
     box.appendChild(r.domElement);
@@ -79,7 +79,7 @@
       const dx = (m.x - m.px) * simU.uAspect.value, dy = m.y - m.py;
       speed += (Math.min(Math.hypot(dx, dy) * 40, 1) - speed) * 0.15;
       const size0 = 2;
-      const hov = !!window.__wbCardHover; fade += ((hov ? 0 : 1) - fade) * (hov ? 0.14 : 0.06);
+      const hov = !!(window.__wbCardHover || window.__wbCursorHide); fade += ((hov ? 0 : 1) - fade) * (hov ? 0.14 : 0.06);
       box.style.opacity = String(fade);
       rad += ((m.has && !hov ? (0.018 + speed * 0.07) * size0 : 0) - rad) * 0.2;
       simU.uA.value.set(m.has ? m.px : -9, m.has ? m.py : -9);
@@ -97,12 +97,12 @@
   };
 
   const boot = async () => {
-    const T = await import('https://esm.sh/three@0.160.0');
+    const T = await import('https://esm.sh/three@0.186.1');
     const box = document.createElement('div'); box.setAttribute('aria-hidden', 'true'); box.setAttribute('data-wb-persist', '');
     box.style.cssText = 'position:fixed;inset:0;z-index:2147483000;pointer-events:none;mix-blend-mode:difference;';
     document.body.appendChild(box); initInk(T, box);
-    /* hide the system cursor everywhere (links/buttons included) */
-    const st = document.createElement('style'); st.textContent = 'html:not([data-wb-cursor-off]), html:not([data-wb-cursor-off]) *{cursor:none!important}'; document.head.appendChild(st);
+    /* hide the system cursor everywhere, except the hand on links and buttons */
+    const st = document.createElement('style'); st.textContent = 'html:not([data-wb-cursor-off]), html:not([data-wb-cursor-off]) *{cursor:none!important} html:not([data-wb-cursor-off]) :is(a,button,[role=button],label,summary,select), html:not([data-wb-cursor-off]) :is(a,button,[role=button]) *{cursor:pointer!important}'; document.head.appendChild(st);
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();

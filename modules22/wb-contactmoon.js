@@ -28,6 +28,8 @@
         w.style.paddingTop = ((s - 1) * lh).toFixed(1) + 'px';
         w.querySelectorAll('[data-fl]').forEach((sp) => { sp.style.transformOrigin = '0% 100%'; sp.style.transform = 'scaleY(' + s.toFixed(3) + ')'; }); };
       new MutationObserver(big).observe(w, { attributes: true, attributeFilter: ['style'] }); addEventListener('resize', big); big(); setTimeout(big, 700); }
+    /* data-reveal="scroll" on [data-footer]: a normal page; the footer reveals when its in-flow [data-footer-spacer] scrolls in (like the homepage) */
+    if (ft.getAttribute('data-reveal') === 'scroll') { C.state = { page: false }; if (C.initFooter) C.initFooter(); return; } // the homepage's own reveal loop
     const dur = (parseFloat(ft.getAttribute('data-duration')) || 2.8) * 1000; let t0 = null;
     const io = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
     const tick = (now) => { if (!ft.isConnected) return; RAF(tick);

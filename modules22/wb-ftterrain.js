@@ -22,7 +22,7 @@ Object.assign(window.WBM, {
     S.r.render(S.sc, S.cam);
   },
   async bootTerrain(ft) {
-    const T = await import('https://esm.sh/three@0.160.0');
+    const T = await import('https://esm.sh/three@0.186.1');
     const host = document.createElement('div'); host.setAttribute('aria-hidden', 'true'); host.style.cssText = 'position:absolute;inset:0;z-index:2;pointer-events:none;';
     const glow = document.createElement('div'); glow.setAttribute('aria-hidden', 'true'); glow.style.cssText = 'position:absolute;left:0;right:0;bottom:0;height:70%;z-index:0;pointer-events:none;background:radial-gradient(120% 55% at 50% 72%,rgba(40,110,220,0.55) 0%,rgba(20,60,140,0.25) 35%,rgba(0,0,0,0) 70%);';
     ft.insertBefore(glow, ft.firstChild); ft.appendChild(host);
@@ -70,7 +70,7 @@ Object.assign(window.WBM, {
     const ms = { x: 0 }; addEventListener('pointermove', (ev) => { ms.x = ev.clientX / innerWidth * 2 - 1; }, { passive: true });
     // user's lunar landscape model replaces the procedural ground (mountains on the far side, crater plain in front)
     let HH = H;
-    try { const { GLTFLoader } = await import('https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js'); const lg = await new GLTFLoader().loadAsync('./models/lunar-landscape.glb');
+    try { const { GLTFLoader } = await import('https://esm.sh/three@0.186.1/examples/jsm/loaders/GLTFLoader.js'); const lg = await new GLTFLoader().loadAsync('./models/lunar-landscape.glb');
       const SC = this.props.footerTerrainScale ?? 140, land = lg.scene; land.scale.setScalar(SC); land.position.set(0, -SC * 0.035, 30 - SC * 0.4612);
       const lm = new T.MeshStandardMaterial({ color: 0x77777b, roughness: 1, metalness: 0 });
       lm.onBeforeCompile = (sh) => { sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWp;').replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.0)).xyz;');
