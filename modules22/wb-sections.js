@@ -530,7 +530,7 @@ Object.assign(window.WBM, {
     gc.width = GN * GS; gc.height = GS;
     const gx = gc.getContext('2d');
     gx.fillStyle = '#000'; gx.fillRect(0, 0, gc.width, gc.height);
-    gx.fillStyle = '#fff'; gx.font = '400 ' + Math.round(GS * 0.78) + 'px "JetBrains Mono", monospace';
+    gx.fillStyle = '#fff'; gx.font = '400 ' + Math.round(GS * 0.78) + 'px Switzer, monospace';
     gx.textAlign = 'center'; gx.textBaseline = 'middle';
     ' .\'-:;~=+*o%#&@$'.split('').slice(0, GN).forEach((ch, k) => gx.fillText(ch, k * GS + GS / 2, GS / 2 + 2));
     const gtex = new THREE.CanvasTexture(gc);
@@ -873,7 +873,7 @@ Object.assign(window.WBM, {
     const term = (this._monZoom || 0) > 0.55 && (this.rq || 0) > 0.5 && (this.r3 || 0) < 0.35 && !this.state.page;
     let T = this._term;
     if (!T) { T = this._term = document.createElement('div'); T.setAttribute('aria-hidden', 'true');
-      T.style.cssText = "position:fixed;left:50%;top:50%;z-index:62;pointer-events:none;opacity:0;transform:translate(-50%,-50%);box-sizing:border-box;overflow:hidden;font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-weight:400;line-height:1.35;letter-spacing:0;color:#f2f2f0;text-shadow:0 0 0.4em rgba(255,255,255,0.30);white-space:pre-wrap;word-break:break-word;border-radius:6% / 8%;" +
+      T.style.cssText = "position:fixed;left:50%;top:50%;z-index:62;pointer-events:none;opacity:0;transform:translate(-50%,-50%);box-sizing:border-box;overflow:hidden;font-family:Switzer,ui-monospace,Menlo,monospace;font-weight:400;line-height:1.35;letter-spacing:0;color:#f2f2f0;text-shadow:0 0 0.4em rgba(255,255,255,0.30);white-space:pre-wrap;word-break:break-word;border-radius:6% / 8%;" +
         "background:linear-gradient(162deg,rgba(255,255,255,0.22) 0%,rgba(255,255,255,0.05) 26%,rgba(255,255,255,0) 40%),repeating-linear-gradient(0deg,rgba(0,0,0,0.16) 0px,rgba(0,0,0,0.16) 1px,rgba(0,0,0,0) 1px,rgba(0,0,0,0) 3px),radial-gradient(ellipse 85% 75% at 52% 42%,#3a3b3d 0%,#1f2022 45%,#0d0e0f 80%,#030303 100%);" +
         "box-shadow:inset 0 0 6vmin rgba(0,0,0,0.75),inset 0 0 1.2vmin rgba(0,0,0,0.6);";
       T.innerHTML = '<div data-t-head style="opacity:0.55;margin-bottom:1.1em;">wubble@studio:~$ cat about.txt</div><span data-t-txt></span><span data-t-car style="display:inline-block;width:0.6em;height:1.1em;vertical-align:-0.15em;background:#ffffff;margin-left:2px;"></span>';

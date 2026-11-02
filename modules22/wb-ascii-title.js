@@ -13,12 +13,12 @@ Object.assign(window.WBM, {
     const isAbout = !!h.closest('[data-about-title]'), isFoot = h.hasAttribute('data-fl-word'), layer = h.closest('[data-about-title]') || h.parentElement;
     const ink = getComputedStyle(h).color, hz = getComputedStyle(h).zIndex;
     const pre = document.createElement('pre'); pre.setAttribute('aria-hidden', 'true');
-    pre.style.cssText = 'position:absolute;left:0;top:0;margin:0;padding:0;pointer-events:none;white-space:pre;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-weight:500;color:' + (isFoot ? 'inherit' : '#fff') + ';' + (hz !== 'auto' ? 'z-index:' + hz + ';' : '');
+    pre.style.cssText = 'position:absolute;left:0;top:0;margin:0;padding:0;pointer-events:none;white-space:pre;font-family:ui-monospace,Menlo,monospace;font-weight:500;color:' + (isFoot ? 'inherit' : '#fff') + ';' + (hz !== 'auto' ? 'z-index:' + hz + ';' : '');
     if (isAbout) layer.appendChild(pre); else h.insertAdjacentElement('afterend', pre);
     const src = document.createElement('canvas'), sg = src.getContext('2d', { willReadFrequently: true });
     let fs = 10, cw = 6, cols = 1, rows = 1, mx = 0, my = 0, tx = 0, ty = 0, last = '';
     const measure = () => { const P = this.props; fs = Math.max(6, Math.round((P.asciiCell ?? 9) * Math.min(1.3, Math.max(0.7, innerWidth / 1440))));
-      sg.font = '500 ' + fs + 'px "JetBrains Mono", ui-monospace, monospace'; cw = sg.measureText('M').width || fs * 0.6;
+      sg.font = '500 ' + fs + 'px ui-monospace, monospace'; cw = sg.measureText('M').width || fs * 0.6;
       cols = Math.ceil(innerWidth / cw); rows = Math.ceil(innerHeight / fs); src.width = cols; src.height = rows;
       pre.style.fontSize = fs + 'px'; pre.style.lineHeight = fs + 'px'; pre.style.letterSpacing = '0px'; };
     measure(); addEventListener('resize', measure);
