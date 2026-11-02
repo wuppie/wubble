@@ -4,7 +4,7 @@
    Designer for SEO, it is hidden visually). Attributes on the section:
    data-bg="0" draws only the word (transparent backdrop) · data-under="[data-wb-orbit]" inserts it just before that element, so it sits behind it.
    data-follow-opacity: the word only shows while the section is visible (its own and its parents' opacity).
-   data-c1="#879caa" data-c2="#1a2025" (gradient) data-ink="#a4b5c1" (word) data-blur="0.7" data-x="0.063" data-y="0.1" data-w="0.874" */
+   data-c1="#879caa" data-c2="#1a2025" (gradient) data-ink="#a4b5c1" (word) data-blur="0.7" data-x="0.063" data-y="0.1" data-w="0.874" data-y-mobile="0.4" (phones; default: centred) */
 (() => {
   const RAF = (f) => (window.__wbRawRAF || requestAnimationFrame)(f);
   const hex = (s) => { s = String(s).trim().replace('#', ''); return [0, 2, 4].map((i) => parseInt(s.slice(i, i + 2), 16) / 255); };
@@ -45,7 +45,8 @@ void main(){
       wc.width = Math.ceil(bw); wc.height = Math.max(2, th); wg.font = wgt + ' ' + fs + 'px ' + fam; wg.fillStyle = '#fff'; wg.textBaseline = 'alphabetic'; wg.clearRect(0, 0, wc.width, wc.height);
       wg.fillText(text, -wg.measureText(text).actualBoundingBoxLeft, wc.height - mw.actualBoundingBoxDescent * fs / 400 - fs * 0.03);
       gl.bindTexture(gl.TEXTURE_2D, tex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, wc);
-      const bwN = +at('w', 0.874), bhN = wc.height / (H * d); gl.uniform4f(U.uBox, +at('x', 0.063), 1 - +at('y', 0.1) - bhN, bwN, bhN); };
+      const bwN = +at('w', 0.874), bhN = wc.height / (H * d); const yM = at('y-mobile', null), y = W < 768 && H > W ? (yM != null ? +yM : 0.5 - bhN / 2) : +at('y', 0.1); /* phones: centred in the view unless data-y-mobile is set */
+      gl.uniform4f(U.uBox, +at('x', 0.063), 1 - y - bhN, bwN, bhN); };
     (document.fonts ? document.fonts.ready : Promise.resolve()).then(draw); draw(); addEventListener('resize', draw);
     setTimeout(draw, 600); setTimeout(draw, 1800); /* the page can re-render or swap fonts after the first draw (blank word) */
     let mx = 0.6, my = 0.65, tx = 0.6, ty = 0.65, k = 0, tk = 0; addEventListener('pointermove', (e) => { tx = e.clientX / innerWidth; ty = 1 - e.clientY / innerHeight; tk = 1; }, { passive: true });

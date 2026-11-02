@@ -68,7 +68,7 @@ Object.assign(window.WBM, {
     // rigged model has no textures: rebuild the original chrome-suit look procedurally (metal + env reflections + micro-roughness noise)
     const CHM = []; this._chm = CHM;
     const TXL = new T3.TextureLoader(), ldT = (u, srgb) => { const t = TXL.load(u); t.wrapS = t.wrapT = T3.RepeatWrapping; if (srgb) t.colorSpace = T3.SRGBColorSpace; t.anisotropy = 4; return t; };
-    const CER = ldT((window.WB_ASSETS || './') + 'models/ceramic.png', true), MTC = ldT((window.WB_ASSETS || './') + 'models/metal012_color.jpg', true), MTR = ldT((window.WB_ASSETS || './') + 'models/metal012_rough.jpg', false); this._tx = { CER, MTC, MTR };
+    const CER = ldT((window.WB_ASSETS || './') + 'models/ceramic.jpg', true), MTC = ldT((window.WB_ASSETS || './') + 'models/metal012_color.jpg', true), MTR = ldT((window.WB_ASSETS || './') + 'models/metal012_rough.jpg', false); this._tx = { CER, MTC, MTR };
     if (NATIVE) m.traverse((o) => { if (!o.isMesh) return; const P = this.props; const orig = o.material;
       // zone masks from the rig: head weight + direction/distance from the head centre (bind pose) → face vs visor vs suit
       const geo = o.geometry, sk = o.skeleton, N = geo.attributes.position.count, MK = new Float32Array(N * 4), FU = new Float32Array(N * 2);

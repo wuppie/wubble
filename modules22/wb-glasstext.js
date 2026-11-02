@@ -32,6 +32,8 @@
       // scale the word to the heading's width (the heading box is 2/3 of the canvas height)
       const viewW = 2 * Math.tan(T.MathUtils.degToRad(cam.fov) / 2) * cam.position.z * cam.aspect; mesh.scale.setScalar(viewW * 0.98 / W * (h.offsetWidth / Math.max(1, host.clientWidth))); };
     size(); new ResizeObserver(size).observe(host); new ResizeObserver(place).observe(h);
+    /* compile the glass shader now, not on the first visible frame (that froze the footer reveal on phones) */
+    try { (r.compileAsync ? r.compileAsync(sc, cam) : Promise.resolve(r.compile(sc, cam))).catch(() => {}); } catch (e) {}
     const shown = () => { const f = h.closest('[data-footer]'); return !f || getComputedStyle(f).visibility !== 'hidden'; };
     const loop = (now) => { RAF(loop); const dt = Math.min(0.05, (now - last) / 1000); last = now; if (!shown()) return; if (host.offsetTop !== Math.round(h.offsetTop - h.offsetHeight * 0.25)) place();
       if (!still) { tx += (mx - tx) * Math.min(1, dt * 3); ty += (my - ty) * Math.min(1, dt * 3); }
