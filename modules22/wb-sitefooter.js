@@ -21,6 +21,7 @@
     for (const el of document.elementsFromPoint(r.left + r.width / 2, r.top + r.height / 2)) { if (hd.contains(el)) continue;
       for (let n = el; n && L < 0; n = n.parentElement) L = lum(getComputedStyle(n).backgroundColor); if (L >= 0) break; }
     if (L < 0) L = lum(getComputedStyle(document.body).backgroundColor);
+    if (document.documentElement.classList.contains('wb-ft-on')) L = 1; /* the light footer layer ignores pointer events, so elementsFromPoint can't see it */
     const light = L > 0.5, bg = light ? '#c42074' : '#2fd27a', sh = light ? 'rgba(196,32,116,0.75)' : 'rgba(47,210,122,0.75)';
     if (dot.style.background !== bg) { dot.style.background = bg; dot.style.boxShadow = '0 0 6px 1px ' + sh; }
   }, 300);
