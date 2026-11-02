@@ -35,7 +35,7 @@ Object.assign(window.WBM, {
     manage();
     // bleed transition (reach → footer) removed on request
 
-    try { await Promise.all([document.fonts.load('700 200px Oswald'), document.fonts.load('500 64px Oswald'), document.fonts.load('400 26px "JetBrains Mono"')]); } catch (e) {}
+    try { await Promise.all([document.fonts.load('700 200px Oswald'), document.fonts.load('500 64px Oswald'), document.fonts.load('400 26px Switzer')]); } catch (e) {}
     if (this.dead) return;
     // stagger GPU start-up: let the astronaut upload + compile first, then build the slider (avoids a GPU reset on load)
     await new Promise((res) => (window.requestIdleCallback ? requestIdleCallback(res, { timeout: 900 }) : setTimeout(res, 400))); if (this.dead) return;
@@ -907,7 +907,7 @@ Object.assign(window.WBM, {
       }
       if (noTitle) return;
       ctx.fillStyle = p.ink; ctx.globalAlpha = 0.7;
-      ctx.font = '400 26px "JetBrains Mono"';
+      ctx.font = '400 26px Switzer';
       ctx.fillText(String(i + 1).padStart(2, '0') + ' — ' + p.year, 64, 76);
       ctx.textAlign = 'right'; ctx.fillText(p.type.toUpperCase(), w - 64, 76); ctx.textAlign = 'left';
       ctx.globalAlpha = 1;

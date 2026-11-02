@@ -22,7 +22,7 @@
     const tick = (now) => { RAF(tick); if (!host.isConnected) return; const dt = Math.min(0.05, (now - last) / 1000); last = now;
       mx += (tx - mx) * 0.04; my += (ty - my) * 0.04;
       g.setTransform(D, 0, 0, D, 0, 0); g.clearRect(0, 0, W, H); g.textBaseline = 'middle';
-      for (const L of LAYERS) { g.filter = L.blur ? 'blur(' + L.blur + 'px)' : 'none'; g.font = '500 ' + L.fs + 'px "JetBrains Mono", ui-monospace, monospace';
+      for (const L of LAYERS) { g.filter = L.blur ? 'blur(' + L.blur + 'px)' : 'none'; g.font = '500 ' + L.fs + 'px Switzer, ui-monospace, monospace';
         for (const it of items) { if (it.L !== L) continue;
           it.y -= dt * 6 * L.z * spd; if (it.y < -20) { it.y = H + 20; it.x = Math.random() * W; it.w = words[(Math.random() * words.length) | 0]; }
           if (it.glow <= 0 && Math.random() < 0.0004 * spd) it.glow = 1; it.glow = Math.max(0, it.glow - dt * 0.45);
