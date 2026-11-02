@@ -900,7 +900,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
               if (!(tl || br || c0)) TM.__vis = [0, 0, 1, 1];
               TM.__ar = (SR.w * (gP.glassW ?? 1)) / Math.max(0.01, SR.h * (gP.glassH ?? 1)); }
             const ac = r.autoClear; r.autoClear = false; r.setRenderTarget(null); r.render(TP.s2, cam); r.autoClear = ac; } } }
-      if (this._gClip) { const c0 = r.domElement, sn = window.__wbAstroSnap || (window.__wbAstroSnap = document.createElement('canvas')), w = Math.max(2, c0.width >> 1), h = Math.max(2, c0.height >> 1);
+      if (this._gClip && r.domElement.width && r.domElement.height) { const c0 = r.domElement, sn = window.__wbAstroSnap || (window.__wbAstroSnap = document.createElement('canvas')), w = Math.max(2, c0.width >> 1), h = Math.max(2, c0.height >> 1);
         if (sn.width !== w || sn.height !== h) { sn.width = w; sn.height = h; } const g2 = sn.getContext('2d'); g2.clearRect(0, 0, w, h); g2.drawImage(c0, 0, 0, w, h); window.__wbAstroSnapOn = 1; }
     };
     loop();

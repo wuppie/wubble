@@ -677,7 +677,7 @@ Object.assign(window.WBM, {
       const cp = this.silkCopy || (this.silkCopy = wr && wr.querySelector('[data-silk-copy]'));
       if (cp && wr) {
         const rc = wr.getBoundingClientRect(), vh = window.innerHeight;
-        if (rc.top < vh && rc.bottom > 0) {
+        if (rc.top < vh && rc.bottom > 0 && r.domElement.width && r.domElement.height) { /* a 0-size canvas throws and kills the whole tick */
           const src = r.domElement;
           if (cp.width !== src.width || cp.height !== src.height) { cp.width = src.width; cp.height = src.height; }
           const cx = this.silkCtx || (this.silkCtx = cp.getContext('2d'));
