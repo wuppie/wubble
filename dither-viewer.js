@@ -4,11 +4,11 @@
 // Set eyes to {L,R,size,meet} (normalised head space) to enable blinking; null disables it.
 // neck: crop height in normalised units (-0.5 = no crop; model is scaled to height 1, centred at 0).
 // Portrait scene v8: new textured low-poly Meshy model (GLTFLoader) + same lighting / film post.
-import * as THREE from 'https://esm.sh/three@0.184.0';
-import { GLTFLoader } from 'https://esm.sh/three@0.184.0/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'https://esm.sh/three@0.184.0/examples/jsm/libs/meshopt_decoder.module.js';
-import { KTX2Loader } from 'https://esm.sh/three@0.184.0/examples/jsm/loaders/KTX2Loader.js';
-import { RGBELoader } from 'https://esm.sh/three@0.184.0/examples/jsm/loaders/RGBELoader.js';
+import * as THREE from 'https://esm.sh/three@0.186.1';
+import { GLTFLoader } from 'https://esm.sh/three@0.186.1/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'https://esm.sh/three@0.186.1/examples/jsm/libs/meshopt_decoder.module.js';
+import { KTX2Loader } from 'https://esm.sh/three@0.186.1/examples/jsm/loaders/KTX2Loader.js';
+import { RGBELoader } from 'https://esm.sh/three@0.186.1/examples/jsm/loaders/RGBELoader.js';
 
 export const LIGHTS = {
   top:       { angle: -0.45, height: 2.6, key: 2.7, rimL: 0.45, rimR: 0.2, fill: 0.06, amb: 0.05, cone: 0.36 },
@@ -219,7 +219,7 @@ export async function createPortrait(container, { onProgress, ...overrides } = {
     uEyeSize: { value: new THREE.Vector3(...(E ? E.size : [0.001, 0.001]), E ? E.meet : 0) }, uBlink: { value: new THREE.Vector2() },
     uM: { value: new THREE.Matrix4() }, uMi: { value: new THREE.Matrix4() } };
   const texU = { value: CONFIG.textureAmount }, neckU = { value: new THREE.Vector2(CONFIG.neck, CONFIG.neckFade) };
-  const ktx2 = new KTX2Loader().setTranscoderPath('https://unpkg.com/three@0.184.0/examples/jsm/libs/basis/').detectSupport(renderer);
+  const ktx2 = new KTX2Loader().setTranscoderPath('https://unpkg.com/three@0.186.1/examples/jsm/libs/basis/').detectSupport(renderer);
   const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).setKTX2Loader(ktx2).loadAsync(CONFIG.model, (e) => onProgress?.(e.total ? e.loaded / e.total : 0));
   const model = gltf.scene;
   const mats = [];
