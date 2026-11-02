@@ -77,7 +77,17 @@
   };
   /* full-screen menu */
   let open = false, tl = null;
-  const menu = (on, instant) => { const M = q('[data-wb-menu]'); if (!M || (on === open && !instant)) return; open = on;
+  /* hover: each menu label gets a per-letter roll (the visible letters slide up, an identical copy rises from below) */
+  const roll = (M) => { const G = window.gsap; if (!G) return;
+    M.querySelectorAll('[data-wb-menu-item]').forEach((a) => { const s = a.firstElementChild; if (!s || s.__roll) return; s.__roll = 1;
+      const txt = s.textContent; a.setAttribute('aria-label', txt.trim());
+      const row = (hidden) => { const r = document.createElement('span'); r.setAttribute('aria-hidden', 'true'); r.style.display = 'block'; r.style.whiteSpace = 'nowrap';
+        if (hidden) { r.style.position = 'absolute'; r.style.left = '0'; r.style.top = '100%'; }
+        Array.from(txt).forEach((ch) => { const c = document.createElement('span'); c.style.display = 'inline-block'; c.textContent = ch === ' ' ? ' ' : ch; r.appendChild(c); }); return r; };
+      const A = row(false), B = row(true); s.textContent = ''; s.style.position = 'relative'; s.append(A, B);
+      const la = A.children, lb = B.children, go = (up) => { G.to(la, { yPercent: up ? -100 : 0, duration: 0.75, stagger: 0.018, ease: 'expo.out', overwrite: true }); G.to(lb, { yPercent: up ? -100 : 0, duration: 0.75, stagger: 0.018, ease: 'expo.out', overwrite: true }); };
+      a.addEventListener('mouseenter', () => go(true)); a.addEventListener('mouseleave', () => go(false)); a.addEventListener('focus', () => go(true)); a.addEventListener('blur', () => go(false)); }); };
+  const menu = (on, instant) => { const M = q('[data-wb-menu]'); if (!M || (on === open && !instant)) return; open = on; roll(M);
     const items = M.querySelectorAll('[data-wb-menu-item] > *'), fades = M.querySelectorAll('[data-wb-menu-fade]'), G = window.gsap;
     if (tl) tl.kill(); M.setAttribute('aria-hidden', on ? 'false' : 'true');
     M.style.pointerEvents = on ? '' : 'none'; /* a closing menu stops catching clicks at once, so a quick re-click reaches the open button under it */
@@ -86,13 +96,14 @@
     if (!G || instant) { M.style.visibility = on ? 'visible' : 'hidden'; M.style.clipPath = on ? 'inset(0 0 0 0)' : 'inset(0 0 100% 0)'; items.forEach((i) => { i.style.transform = on ? 'none' : 'translate3d(0,110%,0)'; }); fades.forEach((f) => { f.style.opacity = on ? '1' : '0'; }); return; }
     tl = G.timeline();
     if (on) { M.style.visibility = 'visible';
-      tl.fromTo(M, { clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)', duration: 0.75, ease: 'expo.inOut' })
-        .fromTo(items, { yPercent: 110, y: 0 }, { yPercent: 0, y: 0, duration: 0.9, stagger: 0.06, ease: 'expo.out' }, 0.35)
-        .fromTo(fades, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.04, ease: 'power3.out' }, 0.55);
+      /* slow, soft reveal: the panel wipes down, then each label rises out of its mask with a slight tilt that settles */
+      tl.fromTo(M, { clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)', duration: 1.0, ease: 'expo.inOut' })
+        .fromTo(items, { yPercent: 120, rotate: 5, y: 0, transformOrigin: '0% 100%' }, { yPercent: 0, rotate: 0, y: 0, duration: 1.4, stagger: 0.09, ease: 'expo.out' }, 0.45)
+        .fromTo(fades, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 1.0, stagger: 0.06, ease: 'expo.out' }, 0.8);
     } else {
       const done = () => { if (!open) { M.style.visibility = 'hidden'; M.style.clipPath = 'inset(0 0 100% 0)'; } };
-      tl.to(items, { yPercent: -110, duration: 0.4, stagger: 0.03, ease: 'power3.in' }).to(fades, { opacity: 0, duration: 0.3 }, 0)
-        .fromTo(M, { clipPath: 'inset(0% 0 0% 0)' }, { clipPath: 'inset(0% 0 100% 0)', duration: 0.65, ease: 'expo.inOut', onComplete: done }, 0.25);
+      tl.to(items, { yPercent: -120, rotate: -3, duration: 0.6, stagger: 0.04, ease: 'expo.in' }).to(fades, { opacity: 0, duration: 0.4, ease: 'power2.in' }, 0)
+        .fromTo(M, { clipPath: 'inset(0% 0 0% 0)' }, { clipPath: 'inset(0% 0 100% 0)', duration: 0.85, ease: 'expo.inOut', onComplete: done }, 0.35);
       setTimeout(done, 1300);
     } };
   window.wbMenu = menu;

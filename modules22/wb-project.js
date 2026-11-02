@@ -19,7 +19,7 @@
     const root = document.querySelector('[data-wb-project]'); if (!root) return;
     /* [data-wb-video="url"]: plays that mp4 inside the element (CMS-bound); empty value keeps the box as a placeholder */
     root.querySelectorAll('[data-wb-video]').forEach((el) => { const u = (el.getAttribute('data-wb-video') || '').trim(); if (!u || el.querySelector('video')) return;
-      const v = document.createElement('video'); v.className = 'project_image'; v.src = u; v.muted = v.loop = v.autoplay = v.playsInline = true; v.setAttribute('playsinline', ''); el.appendChild(v); v.play().catch(() => {}); });
+      const v = document.createElement('video'); v.className = 'project_image'; v.crossOrigin = 'anonymous'; v.src = u; v.muted = v.loop = v.autoplay = v.playsInline = true; v.setAttribute('playsinline', ''); el.appendChild(v); v.play().catch(() => {}); });
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!lenis && window.Lenis && !reduce) { lenis = new Lenis({ lerp: 0.075, smoothWheel: true, wheelMultiplier: 0.9 }); window.__wbLenis = lenis; }
     if (lenis) { lenis.scrollTo(0, { immediate: true }); lenis.stop(); } else scrollTo(0, 0);
