@@ -1,7 +1,7 @@
 /* Wubble chat: a gooey "Let's chat" button (bottom right) that opens a small chat box with the site assistant.
    The answers come from the chat Worker (wubble/chat-worker), which keeps the Claude API key off the page.
    Webflow: load this script with data-endpoint="https://wubble-chat.<you>.workers.dev". Without an endpoint the box still
-   opens and points visitors to hello@wubble.nl. Optional: data-label="Let's chat" · data-color="#f2f1ee" · data-ink="#0e0e0d" */
+   opens and points visitors to hello@wubble.studio. Optional: data-label="Let's chat" · data-color="#f2f1ee" · data-ink="#0e0e0d" */
 (() => {
   if (window.__wbChat) return; window.__wbChat = 1;
   const me = document.currentScript, D = (k, d) => (me && me.getAttribute('data-' + k)) || d;
@@ -64,9 +64,9 @@
     const send = async (q) => {
       q = q.trim(); if (!q || busy) return; busy = true; sug.remove(); add('u', q); history.push({ role: 'user', content: q }); input.value = '';
       const t = add('a t', '…');
-      let reply = 'The chat is not connected yet. Email me at hello@wubble.nl and I reply within one working day.';
+      let reply = 'The chat is not connected yet. Email me at hello@wubble.studio and I reply within one working day.';
       if (URL_) try { const r = await fetch(URL_, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: history }) });
-        const j = await r.json(); reply = j.reply || reply; } catch (e) { reply = 'Could not reach the assistant. Email me at hello@wubble.nl.'; }
+        const j = await r.json(); reply = j.reply || reply; } catch (e) { reply = 'Could not reach the assistant. Email me at hello@wubble.studio.'; }
       t.className = 'wbc-m a'; t.textContent = reply; history.push({ role: 'assistant', content: reply }); log.scrollTop = log.scrollHeight; busy = false;
     };
     form.addEventListener('submit', (e) => { e.preventDefault(); send(input.value); });
