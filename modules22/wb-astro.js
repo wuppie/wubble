@@ -809,7 +809,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
         const tx2 = HB.ax + Math.sin(tt * 0.45) * 5 - Math.sin(tt * 0.23) * 3, ty2 = HB.ay + Math.sin(tt * 0.6 + 1.2) * 6;
         HB.x += (tx2 - HB.x) * 0.08; HB.y += (ty2 - HB.y) * 0.08; HB.op += ((show ? 1 : 0) - HB.op) * 0.08;
         HB.el.style.opacity = HB.op.toFixed(3); HB.el.style.transform = 'translate3d(' + HB.x.toFixed(1) + 'px,' + HB.y.toFixed(1) + 'px,0) scale(' + (0.8 + 0.2 * HB.op).toFixed(3) + ')'; }
-      { const behind = rq > 0.97 && r3 < 0.6, zi = (PH.rb || 0) > 0.5 ? '2' : behind ? '2' : rq > 0.5 && r3 < 0.6 ? '61' : '1'; { const cS = this.ctaRef.current, cz = behind ? '62' : '3'; if (cS && cS.style.zIndex !== cz) cS.style.zIndex = cz; } /* above the z60 bleed layer */
+      { const behind = rq > 0.97 && r3 < 0.6, abE = this._abE || (this._abE = document.querySelector('[data-about]')), abOn = !!abE && +getComputedStyle(abE).opacity > 0.05, zi = (PH.rb || 0) > 0.5 ? '2' : behind ? '2' : rq > 0.5 && r3 < 0.6 && !abOn ? '61' : '1'; /* never in front of the About text */ { const cS = this.ctaRef.current, cz = behind ? '62' : '3'; if (cS && cS.style.zIndex !== cz) cS.style.zIndex = cz; } /* above the z60 bleed layer */
         const inT = behind && (this.ra || 0) < 0.5 && (this.props.astroInTerminal ?? true) && (this.props.aboutMonitor || 'Model') !== 'Model' && !this.state.page; this._inTerm = inT;
         const zf = inT ? '63' : ((window.__wbFootP || 0) > 0.05 || window.__wbAboutOn ? '60' : zi); if (box.style.zIndex !== zf) box.style.zIndex = zf;
         const now = performance.now();
