@@ -38,7 +38,10 @@ void main(){
   const media = (w) => w.querySelector('video, img') || null;
   const inner = (w) => media(w) || w.firstElementChild || w;
   const upload = (w) => { const m = media(w); gl.bindTexture(gl.TEXTURE_2D, tex);
-    if (m && (m.tagName === 'VIDEO' ? m.readyState >= 2 : m.complete && m.naturalWidth)) { try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, m); return m.tagName === 'VIDEO' ? [m.videoWidth, m.videoHeight] : [m.naturalWidth, m.naturalHeight]; } catch (e) { /* cross-origin without CORS: leave the DOM media untouched */ return null; } }
+    if (m && (m.tagName === 'VIDEO' ? m.readyState >= 2 : m.complete && m.naturalWidth)) { try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, m); return m.tagName === 'VIDEO' ? [m.videoWidth, m.videoHeight] : [m.naturalWidth, m.naturalHeight]; } catch (e) { /* cross-origin without CORS: use a CORS copy of the same image (Webflow CDN allows it), the DOM media stays untouched */
+        if (m.tagName === 'IMG') { const c = m.__cors || (m.__cors = Object.assign(new Image(), { crossOrigin: 'anonymous', src: m.currentSrc || m.src }));
+          if (c.complete && c.naturalWidth) { try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c); return [c.naturalWidth, c.naturalHeight]; } catch (e2) {} } }
+        return null; } }
     const el = inner(w), r = el.getBoundingClientRect(); srcCv = srcCv || document.createElement('canvas'); const s = Math.min(2, devicePixelRatio || 1); srcCv.width = Math.max(2, r.width * s | 0); srcCv.height = Math.max(2, r.height * s | 0);
     const g = srcCv.getContext('2d'), cs = getComputedStyle(el); g.fillStyle = cs.backgroundColor || '#222'; g.fillRect(0, 0, srcCv.width, srcCv.height);
     const t = el.textContent.trim(); if (t) { const tcs = getComputedStyle(el.querySelector('*') || el); g.fillStyle = tcs.color; g.globalAlpha = +tcs.opacity || 1; g.font = tcs.fontWeight + ' ' + parseFloat(tcs.fontSize) * s + 'px ' + tcs.fontFamily; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, srcCv.width / 2, srcCv.height / 2); g.globalAlpha = 1; }

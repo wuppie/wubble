@@ -496,7 +496,7 @@ class Component extends DCLogic {
     const o = T[k] || (T[k] = { v: q, t: now });
     const dt = Math.min(0.05, Math.max(0.001, (now - o.t) / 1000)); o.t = now;
     const a = 1 - Math.exp(-dt * (this.props.sceneSmooth ?? 7));
-    let d = (q - o.v) * a; const mx = dt * 1.6; d = Math.max(-mx, Math.min(mx, d));
+    let d = (q - o.v) * a; const mx = dt * (this.props.sceneMaxSpeed ?? 1.6); d = Math.max(-mx, Math.min(mx, d));
     o.v += d; if (Math.abs(q - o.v) < 0.0004) o.v = q; return o.v;
   }
   logRect(el, a, b, tot) { const r = el.getBoundingClientRect(), u = r.height / tot; return { top: r.top + a * u, bottom: r.top + b * u, height: (b - a) * u, left: r.left, width: r.width }; }
