@@ -82,10 +82,12 @@
     M.querySelectorAll('[data-wb-menu-item]').forEach((a) => { const s = a.firstElementChild; if (!s || s.__roll) return; s.__roll = 1;
       const txt = s.textContent; a.setAttribute('aria-label', txt.trim());
       const row = (hidden) => { const r = document.createElement('span'); r.setAttribute('aria-hidden', 'true'); r.style.display = 'block'; r.style.whiteSpace = 'nowrap';
-        if (hidden) { r.style.position = 'absolute'; r.style.left = '0'; r.style.top = '100%'; }
+        if (hidden) { r.style.position = 'absolute'; r.style.left = '0'; r.style.top = '0'; }
         Array.from(txt).forEach((ch) => { const c = document.createElement('span'); c.style.display = 'inline-block'; c.textContent = ch === ' ' ? ' ' : ch; r.appendChild(c); }); return r; };
       const A = row(false), B = row(true); s.textContent = ''; s.style.position = 'relative'; s.append(A, B);
-      const la = A.children, lb = B.children, go = (up) => { G.to(la, { yPercent: up ? -100 : 0, duration: 0.75, stagger: 0.018, ease: 'expo.out', overwrite: true }); G.to(lb, { yPercent: up ? -100 : 0, duration: 0.75, stagger: 0.018, ease: 'expo.out', overwrite: true }); };
+      /* the copy waits 125% below (glyphs are taller than the tight line-height, so 100% would peek out of the mask) */
+      const la = A.children, lb = B.children; G.set(lb, { yPercent: 125 });
+      const go = (up) => { G.to(la, { yPercent: up ? -125 : 0, duration: 0.75, stagger: 0.018, ease: 'expo.out', overwrite: true }); G.to(lb, { yPercent: up ? 0 : 125, duration: 0.75, stagger: 0.018, ease: 'expo.out', overwrite: true }); };
       a.addEventListener('mouseenter', () => go(true)); a.addEventListener('mouseleave', () => go(false)); a.addEventListener('focus', () => go(true)); a.addEventListener('blur', () => go(false)); }); };
   const menu = (on, instant) => { const M = q('[data-wb-menu]'); if (!M || (on === open && !instant)) return; open = on; roll(M);
     const items = M.querySelectorAll('[data-wb-menu-item] > *'), fades = M.querySelectorAll('[data-wb-menu-fade]'), G = window.gsap;
