@@ -16,7 +16,7 @@
      colour there (difference turns that back into green), plain green over dark ones */
   const lum = (c) => { const m = c.match(/[\d.]+/g); if (!m || (m[3] !== undefined && +m[3] < 0.5)) return -1; return (0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2]) / 255; };
   setInterval(() => {
-    const hd = document.querySelector('[data-wb-site-header]'), dot = hd && [...hd.querySelectorAll('span')].find((s) => s.style.borderRadius === '50%'); if (!dot) return;
+    const hd = document.querySelector('[data-wb-site-header]'), dot = hd && (hd.querySelector('[data-wb-status-dot]') || [...hd.querySelectorAll('span')].find((s) => s.style.borderRadius === '50%')); if (!dot) return;
     const r = dot.getBoundingClientRect(); let L = -1;
     for (const el of document.elementsFromPoint(r.left + r.width / 2, r.top + r.height / 2)) { if (hd.contains(el)) continue;
       for (let n = el; n && L < 0; n = n.parentElement) L = lum(getComputedStyle(n).backgroundColor); if (L >= 0) break; }

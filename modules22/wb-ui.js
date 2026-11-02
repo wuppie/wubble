@@ -157,7 +157,7 @@ Object.assign(window.WBM, {
   initUiFx() {
     const G = window.gsap;
     // click sound on every button / link / project
-    const SRC = (this.props.clickSound || '').trim() || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/sound.mp3';
+    const SRC = (this.props.clickSound || '').trim() || ((window.WB_ASSETS || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/') + 'sound.mp3');
     const pool = [0, 1, 2].map(() => { const a = new Audio(SRC); a.preload = 'auto'; a.volume = this.props.clickVolume ?? 0.5; return a; }); let pi = 0;
     this.playClick = window.__wbPlayClick = () => { const a = pool[pi++ % pool.length]; try { a.volume = this.props.clickVolume ?? 0.5; a.currentTime = 0; a.play().catch(() => {}); } catch (e) {} };
     document.addEventListener('click', (e) => { const t = e.target; if (!t.closest) return; if (t.closest('a,button,[data-w-click],[role="button"],[data-wb-row],[data-wb-work-item]')) return this.playClick(); for (let n = t; n && n !== document.body; n = n.parentElement) if (n.style && n.style.cursor === 'pointer') return this.playClick(); }, true); /* also clicks on 3D projects (canvas shows a hand cursor) */

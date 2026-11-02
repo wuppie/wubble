@@ -459,7 +459,7 @@ Object.assign(window.WBM, {
       try {
         const mod = (window.DitherViewer || await new Promise((res) => { const t = setInterval(() => { if (window.DitherViewer) { clearInterval(t); res(window.DitherViewer); } }, 50); }));
         if (this.dead) return;
-        const url = (this.props.handModel || '').trim() || window.WB_HAND_MODEL || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/shaka.glb'; const SHAKA = /shaka/i.test(url);
+        const url = (this.props.handModel || '').trim() || window.WB_HAND_MODEL || ((window.WB_ASSETS || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/') + 'shaka.glb'); const SHAKA = /shaka/i.test(url);
         this._handBase = SHAKA ? [this.props.handRotX ?? 0, this.props.handRotY ?? 0, this.props.handRotZ ?? 0] : [-1.15, 0.5, -0.55 + (this.props.handFlip ?? Math.PI)];
         const LB = !!this.props.reachBg, hc = parseInt(String(this.props.reachHand || '#202ded').replace('#', ''), 16) || 0x202ded; this._handLB = LB;
         if (!(this.props.reachSection ?? false)) return; // Reach is off: don't spend a WebGL context on the hand

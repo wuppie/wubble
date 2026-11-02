@@ -2,7 +2,7 @@
    don't load this there). Optional: data-src="…mp3" and data-volume="0.5" on this script tag. */
 (() => {
   if (window.__wbClickSound) return; window.__wbClickSound = 1;
-  const me = document.currentScript, SRC = (me && me.dataset.src) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/sound.mp3';
+  const me = document.currentScript, SRC = (me && me.dataset.src) || ((window.WB_ASSETS || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/') + 'sound.mp3');
   const VOL = +((me && me.dataset.volume) || 0.5);
   const pool = [0, 1, 2].map(() => { const a = new Audio(SRC); a.preload = 'auto'; a.volume = VOL; return a; }); let i = 0;
   window.__wbPlayClick = () => { const a = pool[i++ % pool.length]; try { a.currentTime = 0; a.play().catch(() => {}); } catch (err) {} }; // also used by wb-swap.js for page-transition links

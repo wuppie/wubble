@@ -44,7 +44,7 @@ Object.assign(window.WBM, {
     import('https://esm.sh/three@0.186.1/examples/jsm/environments/RoomEnvironment.js').then((RE) => { if (this.dead) return; const pm = new T3.PMREMGenerator(r); sc.environment = pm.fromScene(new RE.RoomEnvironment(), 0.04).texture; }).catch(() => {}); // r14.8: doesn't block the model
     const cam = new T3.PerspectiveCamera(24, 1, 0.1, 50); cam.position.set(0, 0, 4.2);
     const loader = new GL.GLTFLoader(); loader.setMeshoptDecoder(MO.MeshoptDecoder);
-    let g; const aUrl = (this.props.astroModel || '').trim() || ((this.props.astroRig ?? true) ? (this.props.astroRigUrl || (window.WB_ASSETS || './') + 'models/astronaut-rig.glb') : 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/Meshy_AI_Character_output-compressed.glb');
+    let g; const aUrl = (this.props.astroModel || '').trim() || ((this.props.astroRig ?? true) ? (this.props.astroRigUrl || (window.WB_ASSETS || './') + 'models/astronaut-rig.glb') : ((window.WB_ASSETS || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/') + 'Meshy_AI_Character_output-compressed.glb'));
     window.__wbAstroUrl = aUrl; try { g = await this.loadGLB(loader, aUrl); } catch (e) { console.warn('astronaut failed', e); window.__wbAstroReady = 1; return; }
     if (this.dead) return;
     const m = g.scene;
@@ -911,7 +911,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
       if (this.dead) return;
       const loader = new GL.GLTFLoader(); loader.setMeshoptDecoder(MO.MeshoptDecoder);
       try { const DL = await import('https://esm.sh/three@0.186.1/examples/jsm/loaders/DRACOLoader.js'); const dl = new DL.DRACOLoader(); dl.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/'); loader.setDRACOLoader(dl); } catch (e) {}
-      const url = (this.props.astroModel || '').trim() || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/Meshy_AI_Character_output-compressed.glb'; this._ldUrl = url;
+      const url = (this.props.astroModel || '').trim() || ((window.WB_ASSETS || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/') + 'Meshy_AI_Character_output-compressed.glb'); this._ldUrl = url;
       let g = await this.loadGLB(loader, url);
       if (this.dead || el.style.display === 'none') return;
       // identical pipeline to the hero astronaut: same renderer, lights, env, materials and dither post pass
