@@ -1,0 +1,43 @@
+/* Wubble buttons: one look site-wide (behaviour in wb-btn.js).
+   Webflow: give a Link / Button the attribute data-wb-btn (outline pill), data-wb-btn="solid" (filled pill)
+   or data-wb-btn="icon" (round, icon only). Solid colours: --wb-btn-solid (fill) and --wb-btn-solid-ink (text). */
+[data-wb-btn] {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+  box-sizing: border-box; min-height: 44px; padding: 0 22px;
+  border: 1px solid color-mix(in srgb, currentColor 32%, transparent); border-radius: 999px;
+  background: transparent; color: inherit; text-decoration: none; white-space: nowrap; vertical-align: middle;
+  font: 500 14px/1 'Switzer', Helvetica, Arial, sans-serif; letter-spacing: 0.005em; text-transform: none;
+  cursor: pointer; overflow: hidden; isolation: isolate; -webkit-tap-highlight-color: transparent;
+}
+[data-wb-btn="solid"] { background: var(--wb-btn-solid, #ece9e2); color: var(--wb-btn-solid-ink, #0e0e0d); border-color: transparent; }
+[data-wb-btn="icon"] { width: 52px; height: 52px; min-height: 0; padding: 0; gap: 0; }
+[data-wb-btn]:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+[data-wb-btn]:active { transform: scale(0.97); }
+.wb-btn-fill { position: absolute; left: 0; top: 0; width: 0; height: 0; border-radius: 50%; transform: translate(-50%, -50%); z-index: -1; pointer-events: none; }
+.wb-btn-l { position: relative; display: inline-block; overflow: hidden; vertical-align: top; line-height: 1.2; }
+.wb-btn-l > span { display: block; }
+.wb-btn-l > span + span { position: absolute; left: 0; top: 100%; }
+/* data-wb-specular (on the "let's talk" buttons): a light glint that runs around the rim, like React Bits <SpecularButton />.
+   It circles slowly on its own; on hover it follows the cursor. Uses the button's text colour, so it shows on light and dark buttons. */
+@property --wb-sa { syntax: '<angle>'; inherits: true; initial-value: 0deg; }
+@keyframes wbSpecSpin { to { --wb-sa: 360deg; } }
+[data-wb-specular]::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none; z-index: 2;
+  background: conic-gradient(from var(--wb-sa), transparent 0 55%, color-mix(in srgb, currentColor 85%, transparent) 72%, transparent 88%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: wbSpecSpin 4.5s linear infinite;
+}
+[data-wb-specular]::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 1; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(circle 70px at var(--wb-sx, 50%) var(--wb-sy, 0%), color-mix(in srgb, currentColor 22%, transparent), transparent 70%);
+}
+[data-wb-spec-on]::after { animation: none; }
+[data-wb-spec-on]::before { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { [data-wb-specular]::after { animation: none; --wb-sa: 300deg; } }
+
+/* FAQ accordion (behaviour in wb-about.js): answers start closed, so they never flash open before the script runs */
+[data-wb-faq-a] { height: 0; overflow: hidden; opacity: 0; }
+/* crisp plus icon: equal 1.5px strokes, centred on whole pixels (it turns into an × when open) */
+[data-wb-faq-icon] { width: 14px !important; height: 14px !important; }
+[data-wb-faq-icon] > span:first-child { top: calc(50% - 0.75px) !important; height: 1.5px !important; border-radius: 1px; }
+[data-wb-faq-icon] > span:last-child { left: calc(50% - 0.75px) !important; width: 1.5px !important; border-radius: 1px; }
