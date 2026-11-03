@@ -558,7 +558,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
     const step = () => {
       const now = performance.now(), dt = Math.min(0.05, PH.lastT ? (now - PH.lastT) / 1000 : 0.016); PH.lastT = now;
       const rp = this.rp || 0, rq = this.rq || 0, r3 = this.r3 || 0;
-      if (NATIVE) { K[1].y = 0.02 + (this.props.astroWorkY ?? 0.3); K[1].s = K1s0 * (this.props.astroWorkScale ?? 0.8); }
+      if (NATIVE) { K[1].y = 0.02 + (this.props.astroWorkY ?? 0.3); K[1].s = K1s0 * (this.props.astroWorkScale ?? 0.8) * (innerWidth < 768 ? (this.props.astroWorkScaleMobile ?? 0.78) : 1); } /* phones: a bit smaller in the work section */
       let A, B, t;
       let exitU = 0;
       if (rq > 0.0005 || r3 > 0.0005) { const LP = this.props; A = K[1]; B = { x: LP.astroLandX ?? 0.42, y: LP.astroLandY ?? -0.12, s: (LP.astroLandSize ?? 1) * 1.45, /* About size stays as before; the mobile hero size change must not shrink it */ ry: -0.2 }; /* About: same size as in the hero */ t = Math.min(1, rq / 0.95); { const ctE = this.ctaRef.current, vhE = window.__svh || innerHeight, intoE = ctE && rq > 0.999 ? -(this._ctT ?? ctE.getBoundingClientRect().top) / vhE : 0; if (rq > 0.999) PH.landInto = Math.min(PH.landInto ?? 1e9, intoE); else PH.landInto = null; const rel = rq > 0.999 ? intoE - (PH.landInto ?? intoE) : 0; const e0 = Math.max(0, Math.min(1, Math.max((this.props.robotMorph ?? false) ? (rel - (this.props.astroExitStart ?? 1.0)) / 1.3 : 0, r3 / 0.4))); exitU = (this.props.reachSection ?? false) ? e0 * e0 * (3 - 2 * e0) : 0; } } else { const HS0 = this.props.heroStart ?? 0.04; A = K[0]; B = K[1]; t = Math.min(1, Math.max(0, (rp - HS0) / ((this.props.heroSpan ?? 0.16) * (this.props.astroPathMul ?? 2.5))));  }
