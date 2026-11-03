@@ -798,7 +798,7 @@ Object.assign(window.WBM, {
       cards.forEach((c, i) => {
         let x = i * STEP - cur;
         x = ((x + LEN / 2) % LEN + LEN) % LEN - LEN / 2;
-        c.mesh.position.x = x; c.rmesh.position.x = x;
+        c.mesh.position.x = x; c.rmesh.position.x = x; if (P.ribbonCards === false) { c.mesh.visible = false; c.rmesh.visible = false; } /* data-ribbon-cards="false": keep the WORK word + astronaut, the cards come from the work helix */
         if (c.ro0 == null) c.ro0 = c.mesh.renderOrder;
         // ring: far half draws first, then the word, then the near half → cards wrap around the word
         c.mesh.renderOrder = common.uRing.value > 0.5 ? (Math.cos(x / (LEN / (2 * Math.PI))) < 0 ? 2 : 8) : c.ro0;

@@ -18,7 +18,7 @@
       i.style.cssText = 'display:block;transform:translate3d(0,108%,0);will-change:transform;'; i.textContent = l.join('').trimEnd(); o.appendChild(i); el.appendChild(o); return i; }); };
   const io = new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting) return; io.unobserve(e.target); const el = e.target, d = +(el.dataset.delay || 0);
     (el.__lines || []).forEach((i, k) => { i.style.transition = 'transform 1.25s ' + EZ + ' ' + (d + k * 85) + 'ms'; i.style.transform = 'translate3d(0,0,0)'; }); }), { rootMargin: '0px 0px -12% 0px' });
-  const initLines = () => document.querySelectorAll('[data-wb-lines]').forEach((el) => { if (el.__split) return; split(el); io.observe(el); });
+  const initLines = () => !window.WB_PIXEL_LINES && document.querySelectorAll('[data-wb-lines]').forEach((el) => { /* WB_PIXEL_LINES: wb-pixeltext reveals these instead */ if (el.__split) return; split(el); io.observe(el); });
   /* ---- hero year ---- */
   const initYear = () => document.querySelectorAll('[data-wb-year]').forEach((Y) => { if (Y.__y) return; Y.__y = 1;
     const L = Y.querySelector('[data-wb-year-l]'), R = Y.querySelector('[data-wb-year-r]'), D = +(Y.dataset.drift || 12);

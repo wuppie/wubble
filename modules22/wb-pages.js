@@ -100,7 +100,9 @@
     if (on) { M.style.visibility = 'visible';
       /* slow, soft reveal: the panel wipes down, then each label rises out of its mask with a slight tilt that settles */
       tl.fromTo(M, { clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)', duration: 1.0, ease: 'expo.inOut' })
-        .fromTo(items, { yPercent: 120, rotate: 5, y: 0, transformOrigin: '0% 100%' }, { yPercent: 0, rotate: 0, y: 0, duration: 1.4, stagger: 0.09, ease: 'expo.out' }, 0.45)
+        .add(() => { /* the site-wide pixel reveal (wb-pixeltext) when loaded; otherwise the labels rise out of their masks */
+          if (window.wbPixelPlay) { G.set(items, { yPercent: 0, rotate: 0, y: 0 }); M.querySelectorAll('[data-wb-menu-item]').forEach((a, i) => { a.setAttribute('data-pixel-trigger', 'manual'); window.wbPixelPlay(a, i * 0.09); }); }
+          else G.fromTo(items, { yPercent: 120, rotate: 5, y: 0, transformOrigin: '0% 100%' }, { yPercent: 0, rotate: 0, y: 0, duration: 1.4, stagger: 0.09, ease: 'expo.out' }); }, 0.45)
         .fromTo(fades, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 1.0, stagger: 0.06, ease: 'expo.out' }, 0.8);
     } else {
       const done = () => { if (!open) { M.style.visibility = 'hidden'; M.style.clipPath = 'inset(0 0 100% 0)'; } };
