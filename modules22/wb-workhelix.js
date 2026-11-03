@@ -47,7 +47,10 @@
   const boot = async () => {
     await wait(); try { for (let k = 0; k < 40 && !document.fonts.check('700 200px Switzer'); k++) { try { await document.fonts.load('700 200px Switzer'); } catch (e) {} if (!document.fonts.check('700 200px Switzer')) await new Promise((r) => setTimeout(r, 100)); } } catch (e) {}
     const root = document.querySelector('[data-wb-work]') || document.body, stage = document.querySelector('[data-wb-work-stage]');
-    const all = [...document.querySelectorAll('[data-wb-work-item]')].map((el) => ({ el, title: el.dataset.title || el.textContent.trim(), type: el.dataset.type || '', cat: (el.dataset.cat || '').toLowerCase(), href: el.dataset.href || el.getAttribute('href') || '', bg: el.dataset.bg, ink: el.dataset.ink, accent: el.dataset.accent || el.dataset.ink, mark: el.dataset.mark, cover: (el.querySelector('img[data-cover]') || {}).src || el.dataset.cover || '' }));
+    const itemEls = document.querySelectorAll('[data-wb-work-item]').length ? document.querySelectorAll('[data-wb-work-item]') : document.querySelectorAll('[data-wubble="project"]');
+    const all = [...itemEls].map((el) => ({ el, title: el.dataset.title || el.textContent.trim(), type: el.dataset.type || el.dataset.services || '', cat: (el.dataset.cat || '').toLowerCase(), href: el.dataset.href || el.getAttribute('href') || (el.dataset.slug ? (window.WB_PROJECT_BASE || '/work/') + el.dataset.slug : ''), bg: el.dataset.bg, ink: el.dataset.ink, accent: el.dataset.accent || el.dataset.ink, mark: el.dataset.mark, cover: (el.querySelector('img[data-cover], img[data-wubble="cover"]') || {}).src || el.dataset.cover || '' }));
+    /* data-wb-work-scrub (homepage): the page scroll through the pinned section turns the helix; no wheel/touch/key capture */
+    const SCRUB = root.hasAttribute('data-wb-work-scrub');
     if (!all.length) return console.warn('[work] no [data-wb-work-item] found');
     const [T, GL, MO] = await Promise.all([import(B), import(E + 'loaders/GLTFLoader.js'), import(E + 'libs/meshopt_decoder.module.js')]);
     const r = new T.WebGLRenderer({ antialias: true, alpha: true }); r.setPixelRatio(Math.min(1.5, devicePixelRatio || 1)); r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 1.05 * (window.WB_ASTRO_BRIGHT || 2.2);
@@ -82,7 +85,7 @@
         ' p.y += sin(uT * 0.5 + r * 3.0) * 0.05; vec4 mv = modelViewMatrix * vec4(p, 1.0); gl_Position = projectionMatrix * mv;' +
         ' float w = min(1.0, abs(uV) * 0.35); vS = w; gl_PointSize = sz * uPx * (34.0 / -mv.z) * (1.0 + w * 0.6); vT = tone; vA = (0.6 + 0.4 * sin(uT * 1.3 + sz * 23.0)) * smoothstep(8.0, 2.0, abs(p.y)) * smoothstep(0.35, 0.8, r); }',
       fragmentShader: 'varying float vA; varying float vT; varying float vS; void main(){ vec2 d = gl_PointCoord - 0.5; d.x *= 1.0 + vS * 1.5; float f = smoothstep(0.5, 0.0, length(d)); f *= f; gl_FragColor = vec4(vec3(vT) * f * vA, f * vA); }' }));
-    gal.frustumCulled = false; sc.add(gal);
+    gal.frustumCulled = false; sc.add(gal); if (root.getAttribute('data-galaxy') === '0') gal.visible = false; /* the homepage has its own galaxy */
     { const n = document.createElement('canvas'); n.width = n.height = 512; const x = n.getContext('2d'), blob = (px, py, rr, col) => { const gr = x.createRadialGradient(px, py, 0, px, py, rr); gr.addColorStop(0, col); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, 512, 512); };
       blob(150, 200, 260, 'rgba(60,60,64,0.35)'); blob(380, 330, 230, 'rgba(38,38,42,0.4)'); blob(300, 120, 160, 'rgba(90,90,96,0.16)'); blob(90, 420, 180, 'rgba(30,30,34,0.35)');
       const nt = new T.CanvasTexture(n); nt.colorSpace = T.SRGBColorSpace; /* without this the grey blobs are decoded as linear and come out ~2x brighter */ const _nt = nt, neb = new T.Mesh(new T.PlaneGeometry(34, 34), new T.MeshBasicMaterial({ map: nt, transparent: true, depthWrite: false, opacity: 0.9, toneMapped: false })); neb.position.z = -9; neb.renderOrder = -10; sc.add(neb); GU.neb = neb; if (window.__wbAbyss) neb.visible = false; /* the site-wide teal abyss replaces the grey nebula */ }
@@ -107,11 +110,11 @@
     let vel = 0, ov = 0, off = 0, tgt = 0, idleT = 0, assigned = -1, hovered = null;
     const SC = window.WB_WORK_SCROLL || +(root.getAttribute('data-wb-work-speed') || 1);
     const nudge = (d) => { tgt += d * SC; idleT = performance.now(); };
-    root.addEventListener('wheel', (e) => { e.preventDefault(); nudge(Math.max(-1, Math.min(1, (e.deltaY + e.deltaX) * (e.deltaMode === 1 ? 0.09 : 0.0032)))); }, { passive: false });
-    let ty = null; root.addEventListener('touchstart', (e) => { ty = e.touches[0].clientY; }, { passive: true });
-    root.addEventListener('touchmove', (e) => { if (ty == null) return; const y = e.touches[0].clientY; nudge((ty - y) * 0.013); ty = y; e.preventDefault(); }, { passive: false });
+    if (!SCRUB) root.addEventListener('wheel', (e) => { e.preventDefault(); nudge(Math.max(-1, Math.min(1, (e.deltaY + e.deltaX) * (e.deltaMode === 1 ? 0.09 : 0.0032)))); }, { passive: false });
+    let ty = null; if (!SCRUB) root.addEventListener('touchstart', (e) => { ty = e.touches[0].clientY; }, { passive: true });
+    if (!SCRUB) root.addEventListener('touchmove', (e) => { if (ty == null) return; const y = e.touches[0].clientY; nudge((ty - y) * 0.013); ty = y; e.preventDefault(); }, { passive: false });
     root.addEventListener('touchend', () => { ty = null; });
-    addEventListener('keydown', (e) => { if (e.target && e.target.matches && e.target.matches('input,textarea')) return; if (/ArrowDown|ArrowRight|PageDown/.test(e.key)) { tgt = Math.round(tgt) + 1; } if (/ArrowUp|ArrowLeft|PageUp/.test(e.key)) { tgt = Math.round(tgt) - 1; } });
+    if (!SCRUB) addEventListener('keydown', (e) => { if (e.target && e.target.matches && e.target.matches('input,textarea')) return; if (/ArrowDown|ArrowRight|PageDown/.test(e.key)) { tgt = Math.round(tgt) + 1; } if (/ArrowUp|ArrowLeft|PageUp/.test(e.key)) { tgt = Math.round(tgt) - 1; } });
     const pv = document.querySelector('[data-wb-work-prev]'), nx = document.querySelector('[data-wb-work-next]'), cur = document.querySelector('[data-wb-work-current]');
     pv && pv.addEventListener('click', (e) => { e.preventDefault(); tgt = Math.round(tgt) - 1; }); nx && nx.addEventListener('click', (e) => { e.preventDefault(); tgt = Math.round(tgt) + 1; });
     const ray = new T.Raycaster(), nd = new T.Vector2();
@@ -126,9 +129,13 @@
     let last = performance.now(), lastCur = '';
     const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - last) / 1000); last = now; if (window.__wbWorkPaused || !root.isConnected || root.offsetParent === null && getComputedStyle(root).position !== 'fixed') return; if (root.style.display === 'none' || root.closest('[data-wb-hidden]')) return;
       /* data-auto="0.08" (cards per second): after 2.5 s without input the helix drifts on by itself, easing in; hover pauses it, any input takes over */
-      const AUTO = +(root.getAttribute('data-auto') || 0), idl = now - idleT, ramp = Math.max(0, Math.min(1, (idl - 2500) / 2000));
+      if (SCRUB) { const sec = root.closest('section') || root, rr = sec.getBoundingClientRect(), span = Math.max(1, rr.height - innerHeight), p = Math.max(0, Math.min(1, -rr.top / span));
+        const pn = root.closest('[data-panel]'), po = pn ? +getComputedStyle(pn).opacity : 1, on = rr.top < innerHeight && rr.bottom > 0 && po > 0.02;
+        window.__wbHelixOn = on && po > 0.5; /* one astronaut at a time: wb-astro hides the homepage one while the helix (with its own glass astronaut) is up */
+        if (!on) return; tgt = p * Math.max(0, all.length - 1); }
+      else { const AUTO = +(root.getAttribute('data-auto') || 0), idl = now - idleT, ramp = Math.max(0, Math.min(1, (idl - 2500) / 2000));
       if (AUTO && !hovered && ramp > 0) tgt += AUTO * dt * ramp * ramp * (3 - 2 * ramp);
-      else if (idl > 280) tgt += (Math.round(tgt) - tgt) * (1 - Math.exp(-dt * 3)); /* settle on a card */
+      else if (idl > 280) tgt += (Math.round(tgt) - tgt) * (1 - Math.exp(-dt * 3)); /* settle on a card */ }
       if (pmE) { doHover(pmE); pmE = null; }
       const pOff = off; { const k = 70, dmp = 2 * Math.sqrt(k); ov += ((tgt - off) * k - ov * dmp) * dt; off += ov * dt; } vel += (Math.max(-6, Math.min(6, (off - pOff) / Math.max(dt, 1e-3) * 1.6)) - vel) * (1 - Math.exp(-dt * 6));
       const N = list.length, base = Math.floor(off);

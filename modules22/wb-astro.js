@@ -830,7 +830,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
         else { if (box.style.clipPath) box.style.clipPath = ''; const g = this._glR && document.querySelector('[data-about-glass]'); if (g && g.style.transform) g.style.transform = ''; }
       } if (box.style.filter && !this._inTerm) box.style.filter = '';
       // leaving Work: no fade — he flies up and out the top; only hidden once fully past
-      const keepR = !(this.props.reachSection ?? false), fade = ((PH.exitU || 0) < 0.999 || (PH.rb || 0) > 0.5) && (keepR || r3 < 0.6) ? 1 : 0, vis = (!this.state.page || this.closing) && (this.props.astroGlobal ?? true) && fade > 0.001 && (keepR || r3 < 0.6); /* Reach off: he stays with you down to the moon */
+      const keepR = !(this.props.reachSection ?? false), fade = ((PH.exitU || 0) < 0.999 || (PH.rb || 0) > 0.5) && (keepR || r3 < 0.6) ? 1 : 0, vis = (!this.state.page || this.closing) && (this.props.astroGlobal ?? true) && fade > 0.001 && (keepR || r3 < 0.6) && !window.__wbHelixOn; /* Reach off: he stays with you down to the moon */
       if (this._scrRect && this._robot && this._robot.visible && this._scrPx && this._scrPx.z > 0.001) {
         const SR = this._scrRect, kz = Math.min(1, this._scrPx.z * 1.6); piv.updateMatrixWorld(true);
         const gw = piv.localToWorld(new T3.Vector3(SR.cx, SR.cy, 0)), nd = gw.clone().project(cam), dist = Math.abs(cam.position.z - gw.z), hh = Math.tan(cam.fov * Math.PI / 360) * dist;
