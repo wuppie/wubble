@@ -3,7 +3,7 @@
   const VS = 'varying vec2 vUv; varying float vD; void main(){ vUv = uv; vec4 mv = modelViewMatrix * vec4(position,1.0); vD = -mv.z; gl_Position = projectionMatrix * mv; }';
   const FS = `uniform sampler2D map; uniform vec3 fogColor; uniform float fogNear, fogFar, uSplit, uFront, uOp; varying vec2 vUv; varying float vD;
     void main(){ float depth = gl_FragCoord.z / gl_FragCoord.w; float fogFactor = smoothstep(fogNear, fogFar, depth);
-      vec4 c = texture2D(map, vUv); c.w *= exp(-20.0 / max(vD, 0.5)); /* = pow(depth,20) of the pen, but precise on mobile GPUs */ c = mix(c, vec4(fogColor, c.w), fogFactor);
+      vec4 c = texture2D(map, vUv); c.w *= exp(-20.0 / max(vD, 0.5)); /* = pow(depth,20) of the pen, but precise on mobile GPUs */ c = mix(c, vec4(fogColor, c.w), fogFactor); c.w *= 1.0 - smoothstep(fogFar * 0.3, fogFar * 0.85, depth); /* far clouds thin out: no hard horizon line when the camera rises out of the clouds (hero → work) */
       float near = 1.0 - smoothstep(uSplit * 0.85, uSplit * 1.15, vD); c.w *= uOp * mix(1.0 - near, near, uFront);
       if (c.w < 0.002) discard; gl_FragColor = c; }`;
   window.__wbCloudsGL = async (back, front) => {
