@@ -1227,6 +1227,7 @@ void main(){
       const r = sec.getBoundingClientRect(); let vis = Math.max(0, Math.min(1, r.bottom / (innerHeight * 0.6)));
       /* data-follow-opacity: show only while the section itself is shown (e.g. the homepage About panel that fades in and out) */
       if (sec.hasAttribute('data-follow-opacity')) { let o = 1; for (let n = sec; n && n !== document.body; n = n.parentElement) { const cs = getComputedStyle(n); o *= +cs.opacity; if (cs.visibility === 'hidden' || cs.display === 'none') { o = 0; break; } } if (typeof window.__wbAboutOp === 'number' && sec.hasAttribute('data-about')) o *= window.__wbAboutOp; /* homepage: only while the About panel is the one on screen */ vis = Math.min(vis, o); }
+      { const fv = sec.getAttribute('data-follow-var'); if (fv) vis = Math.min(vis, Math.max(0, Math.min(1, +window[fv] || 0))); } /* data-follow-var="__wbWorkIn": show with another effect (Home WORK word with the work helix) */
       cv.style.opacity = String(vis); if (vis <= 0) return;
       const e = 1 - Math.exp(-dt * 4.5); mx += (tx - mx) * e; my += (ty - my) * e; k += (tk - k) * (1 - Math.exp(-dt * 2));
       gl.uniform2f(U.uM, mx, my); gl.uniform1f(U.uK, 0.4 + k * 0.6); gl.uniform1f(U.uT, (now - t0) / 1000); gl.drawArrays(gl.TRIANGLES, 0, 3); };
