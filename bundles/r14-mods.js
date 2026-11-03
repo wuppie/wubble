@@ -1544,7 +1544,7 @@ Object.assign(window.WBM, {
       const pgOpen = !!this.state.page && !this.closing;
       if (pgOpen) { this._wordWasHidden = true; LET.forEach((L) => { L.m.visible = false; }); return; }
       if (this._wordWasHidden) { this._wordWasHidden = false; wordKey = ''; LET.forEach((L) => { L.sq.v = 0; L.tx.needsUpdate = true; }); }
-      if (!on) { LET.forEach((L) => { L.m.visible = false; }); return; }
+      if (!on || this.props.ribbonWord === false) { LET.forEach((L) => { L.m.visible = false; }); return; } /* data-ribbon-word="false": the page shows its own title (Home: ASCII WORK like About) */
       const rr = split ? 0 : common.uRingR.value;
       WV.set(0, 0, -rr).applyMatrix4(common.uRibbon.value);
       const dist = camera.position.distanceTo(WV), vH = 2 * dist * Math.tan((FOV / 2) * Math.PI / 180), vW = vH * camera.aspect;

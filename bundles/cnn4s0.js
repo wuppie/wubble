@@ -2194,9 +2194,9 @@ const Grainient = ({
       const N = list.length, base = Math.floor(off);
       slots.forEach((s, i) => { const k0 = base - NS / 2, k = k0 + ((((i - k0) % NS) + NS) % NS); const sv = k - off; s.s = sv; const idx = ((k % N) + N) % N, it = list[idx];
         if (s.it !== it) { s.it = it; s.m.uniforms.uTex.value = null; s.m.uniforms.uOp.value = 0; getTex(it).then((t) => { if (s.it === it) s.m.uniforms.uTex.value = t; }); }
-        const a = sv * dA, y = -sv * PITCH, front = 1 - ss(Math.abs(sv) / 1.2), fade = 1 - ss((Math.abs(sv) - 3.2) / 1.4), U = s.m.uniforms;
-        const RX = R * (1 + EX * 1.6); s.grp.position.set(Math.sin(a) * RX, y * (1 + EX * 0.8), Math.cos(a) * RX); s.grp.rotation.set(0, a, 0);
-        const hv = hovered === s ? 1 : 0; U.uHover.value += (hv - U.uHover.value) * (1 - Math.exp(-dt * 8)); U.uTime.value = now / 1000; U.uVel.value = vel + EX * 5;
+        const a = sv * dA + EX * EX * 2.4 /* exit spin */, y = -sv * PITCH, front = 1 - ss(Math.abs(sv) / 1.2), fade = 1 - ss((Math.abs(sv) - 3.2) / 1.4), U = s.m.uniforms;
+        const ex2 = EX * EX, RX = R * (1 + EX * 0.35); s.grp.position.set(Math.sin(a) * RX, y * (1 + ex2 * 2.6) + (sv * 0.9) * ex2, Math.cos(a) * RX); /* exit: the ring stretches into a tall spiral */ s.grp.rotation.set(0, a, 0);
+        const hv = hovered === s ? 1 : 0; U.uHover.value += (hv - U.uHover.value) * (1 - Math.exp(-dt * 8)); U.uTime.value = now / 1000; U.uVel.value = vel + EX * 7;
         s.grp.scale.setScalar(0.86 + 0.14 * front);
         const op = U.uTex.value ? fade : 0; U.uOp.value += (op - U.uOp.value) * (1 - Math.exp(-dt * 8)); U.uDim.value = ss((Math.abs(sv) - 0.6) / 3.2) * 0.85; s.grp.visible = U.uOp.value > 0.01; s.mesh.renderOrder = Math.round(10 - Math.abs(sv)); });
       const fi = list[((Math.round(off) % N) + N) % N]; if (cur && fi && fi.title !== lastCur) { lastCur = fi.title; cur.textContent = (((Math.round(off) % N) + N) % N + 1) + '. ' + fi.title; }
@@ -2205,7 +2205,7 @@ const Grainient = ({
       gal.rotation.y = MS.x * 0.12; gal.rotation.x = MS.y * 0.06; gal.position.x = MS.x * 0.25; gal.position.y = -MS.y * 0.18; GU.neb.position.x += -MS.x * 0.5;
       pivot.rotation.y = -off * dA + MS.x * 0.28; pivot.rotation.x = MS.y * 0.1; pivot.position.x = MS.x * 0.12; pivot.position.y = Math.sin(now / 2200) * 0.05 - MS.y * 0.08 + +(root.getAttribute('data-astro-y') || 0); /* data-astro-y: move him up (+) or down (-) */ pivot.position.z = -0.4; if (mixer) mixer.update(dt);
       
-      cam.position.set(0, 0.35, R + 7.6 - EX * (R + 5)); cam.lookAt(0, 0, 0);
+      cam.position.set(0, 0.35 + EX * 1.2, R + 7.6 + EX * EX * 9); /* pull back, never into a single card */ cam.lookAt(0, 0, 0);
       if (!r.domElement.isConnected) { const s2 = document.querySelector('[data-wb-work-stage]'); if (s2) s2.appendChild(r.domElement); } /* the page re-rendered its stage (DC/Webflow re-mount): re-attach the canvas */
       if (!(window.__wbInkBusy && window.__wbInkCov > 0.45 && !window.__wbWorkWarm)) { r.render(sc, cam); window.__wbWorkFrames = (window.__wbWorkFrames || 0) + 1; } };
     applyFilter(); requestAnimationFrame(tick); window.__wbWorkReady = 1;
