@@ -79,7 +79,7 @@ Object.assign(window.WBM, {
           host.style.display = 'none'; return; }
         if (this._ftPh) this._ftPh.style.display = 'none';
       }
-      if (!S) { if (!booting && (sp.getBoundingClientRect().top < innerHeight * 14 || (document.readyState === 'complete' && performance.now() > (this._ftPre || (this._ftPre = performance.now() + 600))))) boot().catch((e) => { console.warn('footer moon failed', e); }); return; }
+      if (!S) { if (!booting && (sp.getBoundingClientRect().top < innerHeight * 2.5 /* load the moon + astronaut (~3.9 MB) only when the footer is near */)) boot().catch((e) => { console.warn('footer moon failed', e); }); return; }
       if (!S.warm) { S.warm = 1; try { S.r.compile(S.sc, S.cam); S.r.render(S.sc, S.cam); S.r.clear(); } catch (e) {} }
       const now = performance.now(), dt = Math.min(0.05, (now - S.last) / 1000); S.last = now;
       if (p <= 0.001) { if (!S.idle) { S.r.clear(); S.idle = 1; } return; } S.idle = 0;
