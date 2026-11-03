@@ -8,7 +8,7 @@ Object.assign(window.WBM, {
     const host = document.createElement('div'); host.setAttribute('aria-hidden', 'true'); host.setAttribute('data-ft-moon', ''); host.style.cssText = 'position:absolute;inset:0;z-index:2;pointer-events:none;'; ft.appendChild(host);
     { const fi = ft.querySelector('[data-footer-inner]'); if (fi) { const cs = fi.style; if (!cs.zIndex || +cs.zIndex < 3) {} } const fb = ft.querySelector('[data-ft-bottom]'); if (fb && fb.closest('[data-footer-inner]')) { const inner = fb.closest('[data-footer-inner]'); inner.style.zIndex = 'auto'; inner.style.isolation = 'auto'; [...inner.children].forEach((ch) => { if (ch !== fb && !ch.style.zIndex) { ch.style.position = ch.style.position || 'relative'; ch.style.zIndex = '1'; } }); fb.style.zIndex = '30'; } } // bottom row (email / ©) sits in front of the moon; the WUBBLE word stays behind it
     const sm = (a, b, x) => { const k = Math.max(0, Math.min(1, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
-    const prog = () => { const t = sp.getBoundingClientRect().top; return Math.max(0, Math.min(1, 1 - t / innerHeight)); };
+    const prog = () => { const t = sp.getBoundingClientRect().top; return Math.max(0, Math.min(1, 1 - t / (window.__wbFtVH || innerHeight))); }; /* stable height on phones (set by wb-ui) */
     let S = null, booting = false;
     const boot = async () => {
       booting = true;
