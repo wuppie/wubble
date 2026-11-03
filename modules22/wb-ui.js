@@ -30,10 +30,10 @@ Object.assign(window.WBM, {
     const play = (t, on, dir) => {
       t.on = on; if (t.tw) t.tw.kill();
       const up = dir < 0;
-      if (on && t.lastOut != null) G.set(t.words, { yPercent: t.lastOut > 0 ? 120 : -120, rotation: t.lastOut > 0 ? 7 : -7, skewY: t.lastOut > 0 ? 4 : -4 });
+      if (on && t.lastOut != null) G.set(t.words, { yPercent: t.lastOut > 0 ? 120 : -120, rotation: (t.lastOut > 0 ? 7 : -7) * (this.props.titleSkew ?? 1), skewY: (t.lastOut > 0 ? 4 : -4) * (this.props.titleSkew ?? 1) });
       t.lastOut = on ? null : (up ? -1 : 1);
       t.tw = on ? G.to(t.words, { yPercent: 0, rotation: 0, skewY: 0, duration: 1.7, ease: 'expo.out', stagger: 0.07, overwrite: true, force3D: true })
-        : G.to(up ? t.words : t.words.slice().reverse(), { yPercent: up ? -120 : 120, rotation: up ? -5 : 5, skewY: up ? -3 : 3, duration: 1.0, ease: 'power3.inOut', stagger: 0.04, overwrite: true, force3D: true });
+        : G.to(up ? t.words : t.words.slice().reverse(), { yPercent: up ? -120 : 120, rotation: (up ? -5 : 5) * (this.props.titleSkew ?? 1), skewY: (up ? -3 : 3) * (this.props.titleSkew ?? 1), duration: 1.0, ease: 'power3.inOut', stagger: 0.04, overwrite: true, force3D: true });
     };
     // top title: a random letter squeezes on its own every 4s (same motion as the WORK hover)
     document.querySelectorAll('[data-sqh]').forEach((el) => {
@@ -133,7 +133,8 @@ Object.assign(window.WBM, {
         const n = t.chars.length, st = Math.min(0.09, 0.55 / Math.max(1, n)), span = 1 - st * (n - 1);
         t.chars.forEach((c, i) => {
           const li = cl((t.ki - i * st) / span), lo = cl((t.ko - i * st) / span), ea = 1 - Math.pow(1 - li, 3), eb = lo * lo * (3 - 2 * lo);
-          const y = (window.__wbAscend ? -1 : 1) * ((1 - ea) * 115 - eb * 115), rot = (1 - ea) * 10 - eb * 6, sk = (1 - ea) * 7 - eb * 4;
+          const TK = this.props.titleSkew ?? 1; /* data-title-skew on the root: 0 = letters rise/leave straight, no rotate/skew */
+          const y = (window.__wbAscend ? -1 : 1) * ((1 - ea) * 115 - eb * 115), rot = ((1 - ea) * 10 - eb * 6) * TK, sk = ((1 - ea) * 7 - eb * 4) * TK;
           c.style.transform = 'translate3d(0,' + y.toFixed(2) + '%,0) rotate(' + rot.toFixed(2) + 'deg) skewY(' + sk.toFixed(2) + 'deg)';
         });
       });
@@ -755,7 +756,10 @@ Object.assign(window.WBM, {
       ft.style.background = 'transparent'; ft.style.zIndex = '61'; }
     const tick = () => {
       if (this.dead) return; this.ftRaf = requestAnimationFrame(tick);
-      const vh = innerHeight, H = ft.offsetHeight; if (H && H !== lastH) { lastH = H; sp.style.height = H + 'px'; }
+      /* phones: the address bar changes innerHeight while scrolling; use the tallest height seen at this width so the reveal doesn't jump */
+      if (innerWidth !== this._ftW) { this._ftW = innerWidth; this._ftVH = innerHeight; } else if (innerHeight > this._ftVH) this._ftVH = innerHeight;
+      if (this._ftCoarse == null) this._ftCoarse = matchMedia('(pointer: coarse)').matches;
+      const vh = this._ftCoarse ? (window.__wbFtVH = this._ftVH) : innerHeight, H = ft.offsetHeight; if (H && H !== lastH) { lastH = H; sp.style.height = H + 'px'; }
       const r = sp.getBoundingClientRect();
       if (r.top >= vh || this.state.page) { if (ft.style.visibility !== 'hidden') ft.style.visibility = 'hidden'; back.style.visibility = 'hidden'; return; }
       ft.style.visibility = 'visible'; back.style.visibility = 'visible';
