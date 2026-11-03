@@ -127,13 +127,14 @@
       if (s.it.href) { if (window.wbSwapGo) wbSwapGo(s.it.href, e.clientX, e.clientY); else if (window.wbInkGo) wbInkGo(s.it.href, e.clientX, e.clientY); else location.href = s.it.href; } });
     const size = () => { const w = stage.clientWidth || innerWidth, h = stage.clientHeight || innerHeight; r.setSize(w, h, false); cam.aspect = w / h; cam.fov = w / h < 0.8 ? 46 : 32; cam.updateProjectionMatrix(); };
     size(); new ResizeObserver(size).observe(stage);
-    let last = performance.now(), lastCur = '';
+    let last = performance.now(), lastCur = '', EX = 0; /* EX: homepage exit into About (0 → 1) */
     const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - last) / 1000); last = now; if (window.__wbWorkPaused || !root.isConnected || root.offsetParent === null && getComputedStyle(root).position !== 'fixed') return; if (root.style.display === 'none' || root.closest('[data-wb-hidden]')) return;
       /* data-auto="0.08" (cards per second): after 2.5 s without input the helix drifts on by itself, easing in; hover pauses it, any input takes over */
       if (SCRUB) { const sec = root.closest('section') || root, rr = sec.getBoundingClientRect(), span = Math.max(1, rr.height - innerHeight), p = Math.max(0, Math.min(1, -rr.top / span));
         /* homepage: fade in with the hero→work handover, on the same curve the ribbon cards used (rp 0.8 → 1), so the helix never peeks out under the leaving hero */
-        const rpv = window.__wbRP, g0 = rpv == null ? 1 : Math.max(0, Math.min(1, (rpv - 0.8) / 0.2)), gIn = g0 * g0 * (3 - 2 * g0), gs = gIn.toFixed(3); if (stage.__op !== gs) { stage.__op = gs; stage.style.opacity = gIn >= 0.999 ? '' : gs; }
-        const pn = root.closest('[data-panel]'), po = pn ? +getComputedStyle(pn).opacity : 1, on = rr.top < innerHeight && rr.bottom > 0 && po > 0.02 && gIn > 0.001;
+        const rpv = window.__wbRP, g0 = rpv == null ? 1 : Math.max(0, Math.min(1, (rpv - 0.8) / 0.2)), gIn = g0 * g0 * (3 - 2 * g0), q0 = Math.max(0, Math.min(1, (window.__wbRQ || 0) / 0.5)); EX = q0 * q0 * (3 - 2 * q0); /* work → About: the ring flies apart past the camera, gone before the About text */
+        const gOut = 1 - Math.max(0, Math.min(1, (EX - 0.35) / 0.6)), gs = (gIn * gOut).toFixed(3); if (stage.__op !== gs) { stage.__op = gs; stage.style.opacity = gIn * gOut >= 0.999 ? '' : gs; }
+        const pn = root.closest('[data-panel]'), po = pn ? +getComputedStyle(pn).opacity : 1, on = rr.top < innerHeight && rr.bottom > 0 && po > 0.02 && gIn * gOut > 0.001;
         window.__wbHelixOn = OWN_ASTRO && on && po > 0.5; /* one astronaut at a time: wb-astro hides the homepage one while the helix (with its own glass astronaut) is up */
         if (!on) return; tgt = p * Math.max(0, all.length - 1); }
       else { const AUTO = +(root.getAttribute('data-auto') || 0), idl = now - idleT, ramp = Math.max(0, Math.min(1, (idl - 2500) / 2000));
@@ -145,8 +146,8 @@
       slots.forEach((s, i) => { const k0 = base - NS / 2, k = k0 + ((((i - k0) % NS) + NS) % NS); const sv = k - off; s.s = sv; const idx = ((k % N) + N) % N, it = list[idx];
         if (s.it !== it) { s.it = it; s.m.uniforms.uTex.value = null; s.m.uniforms.uOp.value = 0; getTex(it).then((t) => { if (s.it === it) s.m.uniforms.uTex.value = t; }); }
         const a = sv * dA, y = -sv * PITCH, front = 1 - ss(Math.abs(sv) / 1.2), fade = 1 - ss((Math.abs(sv) - 3.2) / 1.4), U = s.m.uniforms;
-        s.grp.position.set(Math.sin(a) * R, y, Math.cos(a) * R); s.grp.rotation.set(0, a, 0);
-        const hv = hovered === s ? 1 : 0; U.uHover.value += (hv - U.uHover.value) * (1 - Math.exp(-dt * 8)); U.uTime.value = now / 1000; U.uVel.value = vel;
+        const RX = R * (1 + EX * 1.6); s.grp.position.set(Math.sin(a) * RX, y * (1 + EX * 0.8), Math.cos(a) * RX); s.grp.rotation.set(0, a, 0);
+        const hv = hovered === s ? 1 : 0; U.uHover.value += (hv - U.uHover.value) * (1 - Math.exp(-dt * 8)); U.uTime.value = now / 1000; U.uVel.value = vel + EX * 5;
         s.grp.scale.setScalar(0.86 + 0.14 * front);
         const op = U.uTex.value ? fade : 0; U.uOp.value += (op - U.uOp.value) * (1 - Math.exp(-dt * 8)); U.uDim.value = ss((Math.abs(sv) - 0.6) / 3.2) * 0.85; s.grp.visible = U.uOp.value > 0.01; s.mesh.renderOrder = Math.round(10 - Math.abs(sv)); });
       const fi = list[((Math.round(off) % N) + N) % N]; if (cur && fi && fi.title !== lastCur) { lastCur = fi.title; cur.textContent = (((Math.round(off) % N) + N) % N + 1) + '. ' + fi.title; }
@@ -155,7 +156,7 @@
       gal.rotation.y = MS.x * 0.12; gal.rotation.x = MS.y * 0.06; gal.position.x = MS.x * 0.25; gal.position.y = -MS.y * 0.18; GU.neb.position.x += -MS.x * 0.5;
       pivot.rotation.y = -off * dA + MS.x * 0.28; pivot.rotation.x = MS.y * 0.1; pivot.position.x = MS.x * 0.12; pivot.position.y = Math.sin(now / 2200) * 0.05 - MS.y * 0.08 + +(root.getAttribute('data-astro-y') || 0); /* data-astro-y: move him up (+) or down (-) */ pivot.position.z = -0.4; if (mixer) mixer.update(dt);
       
-      cam.position.set(0, 0.35, R + 7.6); cam.lookAt(0, 0, 0);
+      cam.position.set(0, 0.35, R + 7.6 - EX * (R + 5)); cam.lookAt(0, 0, 0);
       if (!r.domElement.isConnected) { const s2 = document.querySelector('[data-wb-work-stage]'); if (s2) s2.appendChild(r.domElement); } /* the page re-rendered its stage (DC/Webflow re-mount): re-attach the canvas */
       if (!(window.__wbInkBusy && window.__wbInkCov > 0.45 && !window.__wbWorkWarm)) { r.render(sc, cam); window.__wbWorkFrames = (window.__wbWorkFrames || 0) + 1; } };
     applyFilter(); requestAnimationFrame(tick); window.__wbWorkReady = 1;
