@@ -2580,7 +2580,8 @@ Object.assign(window.WBM, {
       if (window.__wbAstroReady) this._ldAstroOK = true;
       // real progress: model download 0→80%, textures + first frame 80→99%, 100 only once the astronaut is on screen
       const gp = (window.__glbProg && window.__wbAstroUrl && window.__glbProg[window.__wbAstroUrl]) || 0, creep = Math.min(0.08, el2 / 12000);
-      const target = (this._ldAstroOK && this._fontsOK && el2 > MIN) || (window.WB_LOADER_FAST && this._fontsOK && (this._ldAstroOK || el2 > 2500)) || el2 > MAX ? 1 : /* WB_LOADER_FAST: a page that opens under the ink (About) skips the loader */ Math.min(this._ldAstroOK ? 0.99 : 0.97, Math.max(creep, gp * 0.8 + (gp >= 1 ? 0.12 : 0) + (this._ldAstroOK ? 0.07 : 0)));
+      const warm = this._ldAstroOK && this._fontsOK && (window.__wbWorkReady || !document.querySelector('[data-wb-work-scrub]') || el2 > 9000); if (warm && !this._ldWarmT) this._ldWarmT = now; /* wait for the work helix too, then let the GPU settle 0.6 s: the reveal starts on a quiet main thread instead of mid shader-compile */
+      const target = (warm && now - this._ldWarmT > 600 && el2 > MIN) || (window.WB_LOADER_FAST && this._fontsOK && (this._ldAstroOK || el2 > 2500)) || el2 > MAX ? 1 : /* WB_LOADER_FAST: a page that opens under the ink (About) skips the loader */ Math.min(this._ldAstroOK ? 0.99 : 0.97, Math.max(creep, gp * 0.8 + (gp >= 1 ? 0.12 : 0) + (this._ldAstroOK ? 0.07 : 0)));
       shown += (target - shown) * (target >= 1 ? 0.12 : 0.06); if (target >= 1 && shown > 0.995) shown = 1; if (target < 1) shown = Math.min(shown, 0.99);
       cnt.textContent = String(Math.round(shown * 100)).padStart(3, '0');
       bar.style.transform = 'scaleX(' + shown.toFixed(4) + ')';
@@ -2657,7 +2658,16 @@ Object.assign(window.WBM, {
       /* phones: the address bar changes innerHeight while scrolling; use the tallest height seen at this width so the reveal doesn't jump */
       if (innerWidth !== this._ftW) { this._ftW = innerWidth; this._ftVH = innerHeight; } else if (innerHeight > this._ftVH) this._ftVH = innerHeight;
       if (this._ftCoarse == null) this._ftCoarse = matchMedia('(pointer: coarse)').matches;
-      const vh = this._ftCoarse ? (window.__wbFtVH = this._ftVH) : innerHeight, H = ft.offsetHeight; if (H && H !== lastH) { lastH = H; sp.style.height = H + 'px'; }
+      const vh = this._ftCoarse ? (window.__wbFtVH = this._ftVH) : innerHeight, H = ft.offsetHeight;
+      /* phones: the fixed + clipped reveal is redrawn every frame and lags the native scroll (bumpy). There the footer is simply part of the page,
+         with its background layer as a normal block behind it (the astronaut still walks between them): it scrolls natively, nothing to sync. */
+      if (this._ftCoarse) {
+        if (!this._ftFlow) { this._ftFlow = 1; sp.style.height = '0px'; Object.assign(ft.style, { position: 'relative', transform: '', clipPath: '', visibility: 'visible', top: 'auto', bottom: 'auto' });
+          Object.assign(back.style, { position: 'absolute', bottom: 'auto', transform: '', clipPath: '', visibility: 'visible' }); }
+        const bt = ft.offsetTop + 'px'; if (back.style.top !== bt) back.style.top = bt; if (back.style.height !== H + 'px') back.style.height = H + 'px';
+        if (dim) dim.style.opacity = '0'; if (inner && inner.style.transform) inner.style.transform = '';
+        const p = Math.max(0, Math.min(1, (vh - ft.getBoundingClientRect().top) / Math.max(1, Math.min(H, vh)))); this._ftLetters(p); return; }
+      if (H && H !== lastH) { lastH = H; sp.style.height = H + 'px'; }
       const r = sp.getBoundingClientRect();
       if (r.top >= vh || this.state.page) { if (ft.style.visibility !== 'hidden') ft.style.visibility = 'hidden'; back.style.visibility = 'hidden'; return; }
       ft.style.visibility = 'visible'; back.style.visibility = 'visible';
@@ -2675,11 +2685,12 @@ Object.assign(window.WBM, {
           pts.push((x * 100).toFixed(2) + '% ' + Math.max(0, ct + cv * (1 - d + wob)).toFixed(1) + 'px'); }
         ft.style.clipPath = 'polygon(0% 100%,' + pts.join(',') + ',100% 100%)'; }
       else if (!window.__wbAscend) ft.style.clipPath = 'inset(' + ct.toFixed(1) + 'px 0 0 0)';
-      const FL = this._flEls; if (FL) { const n = FL.length; for (let i = 0; i < n; i++) { const a = Math.max(0, Math.min(1, (p - 0.35 - i * 0.045) / 0.4)), q = 1 - Math.pow(1 - a, 3), st = FL[i].style, tf = q > 0.999 ? '' : 'translate3d(0,' + ((1 - q) * 115).toFixed(2) + '%,0) rotate(' + ((1 - q) * 10).toFixed(2) + 'deg) skewY(' + ((1 - q) * 7).toFixed(2) + 'deg)'; if (st.transform !== tf) st.transform = tf; st.opacity = q > 0.999 ? '' : q.toFixed(3); } }
+      this._ftLetters(p);
       if (dim) dim.style.opacity = '0';
       if (back.style.transform !== ft.style.transform) back.style.transform = ft.style.transform; if (back.style.clipPath !== ft.style.clipPath) back.style.clipPath = ft.style.clipPath; if (back.style.height !== H + 'px') back.style.height = H + 'px';
       if (inner && inner.style.transform) inner.style.transform = '';
     };
+    this._ftLetters = (p) => { const FL = this._flEls; if (FL) { const n = FL.length; for (let i = 0; i < n; i++) { const a = Math.max(0, Math.min(1, (p - 0.35 - i * 0.045) / 0.4)), q = 1 - Math.pow(1 - a, 3), st = FL[i].style, tf = q > 0.999 ? '' : 'translate3d(0,' + ((1 - q) * 115).toFixed(2) + '%,0) rotate(' + ((1 - q) * 10).toFixed(2) + 'deg) skewY(' + ((1 - q) * 7).toFixed(2) + 'deg)'; if (st.transform !== tf) st.transform = tf; st.opacity = q > 0.999 ? '' : q.toFixed(3); } } };
     tick();
   },
   initSound() {
