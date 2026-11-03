@@ -91,7 +91,8 @@
       const nt = new T.CanvasTexture(n); nt.colorSpace = T.SRGBColorSpace; /* without this the grey blobs are decoded as linear and come out ~2x brighter */ const _nt = nt, neb = new T.Mesh(new T.PlaneGeometry(34, 34), new T.MeshBasicMaterial({ map: nt, transparent: true, depthWrite: false, opacity: 0.9, toneMapped: false })); neb.position.z = -9; neb.renderOrder = -10; sc.add(neb); GU.neb = neb; if (window.__wbAbyss) neb.visible = false; /* the site-wide teal abyss replaces the grey nebula */ }
     /* astronaut at the centre */
     const pivot = new T.Group(); pivot.position.z = -0.4; sc.add(pivot); let mixer = null;
-    { const ld = new GL.GLTFLoader(); ld.setMeshoptDecoder(MO.MeshoptDecoder); const url = (window.WB_ASSETS || './') + 'models/astronaut-rig.glb';
+    const OWN_ASTRO = root.getAttribute('data-astro') !== '0'; /* data-astro="0": cards only (the homepage keeps its own astronaut) */
+    if (OWN_ASTRO) { const ld = new GL.GLTFLoader(); ld.setMeshoptDecoder(MO.MeshoptDecoder); const url = (window.WB_ASSETS || './') + 'models/astronaut-rig.glb';
       ld.load(url, (g) => { const m = g.scene; pivot.add(m);
         { const clip0 = g.animations.find((x) => /float/i.test(x.name)) || g.animations[0]; if (clip0) { const mx0 = new T.AnimationMixer(m); mx0.clipAction(clip0).play(); mx0.update(0); } }
         m.updateMatrixWorld(true); const bx = new T.Box3().setFromObject(m, true) /* skinned: real posed size */, sz = bx.getSize(new T.Vector3()), cn = bx.getCenter(new T.Vector3()), s = (window.WB_WORK_ASTRO_H || +(root.getAttribute('data-astro-h') || 5.4)) / Math.max(1e-6, sz.y); /* data-astro-h: his height in scene units */
@@ -131,7 +132,7 @@
       /* data-auto="0.08" (cards per second): after 2.5 s without input the helix drifts on by itself, easing in; hover pauses it, any input takes over */
       if (SCRUB) { const sec = root.closest('section') || root, rr = sec.getBoundingClientRect(), span = Math.max(1, rr.height - innerHeight), p = Math.max(0, Math.min(1, -rr.top / span));
         const pn = root.closest('[data-panel]'), po = pn ? +getComputedStyle(pn).opacity : 1, on = rr.top < innerHeight && rr.bottom > 0 && po > 0.02;
-        window.__wbHelixOn = on && po > 0.5; /* one astronaut at a time: wb-astro hides the homepage one while the helix (with its own glass astronaut) is up */
+        window.__wbHelixOn = OWN_ASTRO && on && po > 0.5; /* one astronaut at a time: wb-astro hides the homepage one while the helix (with its own glass astronaut) is up */
         if (!on) return; tgt = p * Math.max(0, all.length - 1); }
       else { const AUTO = +(root.getAttribute('data-auto') || 0), idl = now - idleT, ramp = Math.max(0, Math.min(1, (idl - 2500) / 2000));
       if (AUTO && !hovered && ramp > 0) tgt += AUTO * dt * ramp * ramp * (3 - 2 * ramp);

@@ -852,7 +852,7 @@ Object.assign(window.WBM, {
     set(rin, 0, r3 > 0.0004);
   },
   scrubAbout() {
-    const p = this._abP || (this._abP = document.querySelector('[data-scrub-text]')); if (!p) return;
+    const p = this._abP || (this._abP = document.querySelector('[data-scrub-text]')); if (!p) return; if (p.hasAttribute('data-wb-pixel')) { const ct0 = this.ctaRef.current; if (!ct0) return; const vh0 = window.__svh || innerHeight, into0 = -(this._ctT ?? ct0.getBoundingClientRect().top) / vh0; window.__wbAboutProg = Math.max(0, Math.min(1, (into0 - (this.props.scrubStart ?? 0.1)) / 2.0)); return; } /* wb-pixeltext (trigger pin) draws the reveal from this progress */
     if (!p.__split) { p.__split = true;
       p.querySelectorAll('[data-gw]').forEach((w) => { w.removeAttribute('data-gw'); w.style.transform = 'none'; w.style.opacity = '1'; });
       const tw = document.createTreeWalker(p, NodeFilter.SHOW_TEXT), nodes = []; let n; while ((n = tw.nextNode())) nodes.push(n);
