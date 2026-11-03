@@ -4437,7 +4437,7 @@ Object.assign(window.WBM, {
     this.prepEntrance();
     const el = this.loaderRef.current; if (!el) return;
     const cnt = el.querySelector('[data-ld-count]'), bar = el.querySelector('[data-ld-bar]'), word = el.querySelector('[data-ld-word]');
-    let seen = false; try { seen = sessionStorage.getItem('wbLoaded') === '1'; sessionStorage.setItem('wbLoaded', '1'); } catch (e) {}
+    const seen = false; /* the full preloader on every normal visit: it hides the heavy 3D start-up (skipping it on repeat visits showed a glitchy flash, then a laggy page) */
     /* the full preloader only on the first visit of the session; afterwards the page boots straight in (hidden under the ink when arriving from another page) */
     if (seen || window.__wbInkArrive) { window.WB_LOADER_FAST = 1; el.style.opacity = '0'; el.style.pointerEvents = 'none'; }
     const t0 = performance.now(), MIN = (seen || window.__wbInkArrive) ? 0 : 2600, MAX = 30000; /* arriving under the ink: no need to show off the loader */
