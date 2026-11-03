@@ -39,14 +39,18 @@ export default {
       .map((m) => ({ role: m.role, content: m.content.slice(0, MAX_CHARS) }));
     if (!clean.length || clean.at(-1).role !== 'user') return json({ error: 'no question' }, 400, h);
 
+    // spam guard: a few messages per minute per visitor (Cloudflare rate-limit binding, see wrangler.toml)
+    if (env.PER_VISITOR) {
+      const { success } = await env.PER_VISITOR.limit({ key: req.headers.get('CF-Connecting-IP') || 'anon' });
+      if (!success) return json({ error: 'slow down', reply: 'That was a lot of messages at once. Give it a minute, or email me at hello@wubble.studio.' }, 429, h);
+    }
+
     const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
     try {
-      const res = await client.beta.messages.create({
-        model: 'claude-opus-5-5',
-        max_tokens: 16000,
+      const res = await client.messages.create({
+        model: 'claude-haiku-5-5', // cheapest current model, plenty for short site answers
+        max_tokens: 2000, // cost cap per answer on a public endpoint
         output_config: { effort: 'low' }, // short site answers; raise if replies feel thin
-        betas: ['server-side-fallback-2026-07-01'],
-        fallbacks: 'default', // if a safety check declines, the API retries on its recommended model
         system: SYSTEM,
         messages: clean,
       });
@@ -54,6 +58,7 @@ export default {
       const reply = res.content.filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
       return json({ reply: reply || 'Sorry, something went wrong. Email me at hello@wubble.studio.' }, 200, h);
     } catch (e) {
+      console.error('claude error', e.status, e.message); // visible with `npx wrangler tail`
       const status = e instanceof Anthropic.RateLimitError ? 429 : 502;
       return json({ error: 'busy', reply: 'The assistant is busy right now. Email me at hello@wubble.studio.' }, status, h);
     }

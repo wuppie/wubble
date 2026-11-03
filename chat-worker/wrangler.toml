@@ -7,3 +7,13 @@ compatibility_flags = ["nodejs_compat"]
 # sites allowed to call the chat (comma list)
 ALLOWED_ORIGINS = "https://wubble.studio,https://www.wubble.studio,https://wubble-2-0.webflow.io,http://localhost:8321"
 # the API key is a secret, never put it here: run `npx wrangler secret put ANTHROPIC_API_KEY`
+
+# spam guard per visitor (IP): 6 messages per minute. Free on every Cloudflare plan.
+[[ratelimits]]
+name = "PER_VISITOR"
+namespace_id = "1001"
+simple = { limit = 6, period = 60 }
+
+# run next to the Claude API (US): visitors near unsupported regions (e.g. Hong Kong edge) would be refused otherwise
+[placement]
+region = "aws:us-east-1"
