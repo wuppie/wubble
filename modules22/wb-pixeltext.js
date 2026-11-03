@@ -12,12 +12,14 @@
      data-pixel-delay="0"          seconds
      data-pixel-size="24"          largest block in px
      data-pixel-loco               also glide in from below / out above with the scroll, smoothed (locomotive-style)
-   window.WB_PIXEL_LINES = true    also treat every [data-wb-lines] element as data-wb-pixel (site-wide consistency) */
+   window.WB_PIXEL_LINES = true    also treat every [data-wb-lines] element as data-wb-pixel (site-wide consistency)
+   window.WB_PIXEL_ROWS = true     service list titles [data-wb-row-title] get the reveal + loco glide (no glide inside pinned [data-panel]) */
 (() => {
   if (window.__wbPixel) return; window.__wbPixel = 1;
   const items = new Map(); /* el -> state */
   const DPR = Math.min(2, devicePixelRatio || 1);
   const hash = (x, y) => { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); };
+  const effOp = (e, stop) => { let o = 1; for (; e && e !== stop; e = e.parentElement) { o *= +getComputedStyle(e).opacity; if (o < 0.01) return 0; } return o; }; /* opacity incl. parents (fades, row hover dim) */
   const ss = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
   /* rasterise the element's own words (positions from the live layout) into a canvas the size of its box */
@@ -27,7 +29,7 @@
     const g = cv.getContext('2d'); g.scale(DPR, DPR); g.textBaseline = 'alphabetic';
     const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); let n;
     while ((n = tw.nextNode())) {
-      const host = n.parentElement; if (!host) continue; const cs = getComputedStyle(host); if (cs.visibility === 'hidden' || cs.display === 'none') continue;
+      const host = n.parentElement; if (!host) continue; const cs = getComputedStyle(host); if (cs.visibility === 'hidden' || cs.display === 'none' || effOp(host, el) < 0.05) continue; /* hidden hover copies */
       g.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily; g.fillStyle = cs.webkitTextFillColor && cs.webkitTextFillColor !== cs.color && !/0\)$/.test(cs.webkitTextFillColor) ? cs.webkitTextFillColor : cs.color;
       if ('letterSpacing' in g) g.letterSpacing = cs.letterSpacing === 'normal' ? '0px' : cs.letterSpacing;
       const m = g.measureText('Hg'), asc = m.fontBoundingBoxAscent || parseFloat(cs.fontSize) * 0.8, dsc = m.fontBoundingBoxDescent || parseFloat(cs.fontSize) * 0.2;
@@ -57,7 +59,7 @@
     if (t >= 0.999) { hide(S, false); drop(S); S.done = true; return; }
     if (t <= 0.001) { hide(S, true); if (S.c) S.g.clearRect(0, 0, S.c.width, S.c.height); return; }
     if (!S.c && !build(S)) return; hide(S, true); S.done = false;
-    const b = S.el.getBoundingClientRect(); S.c.style.transform = 'translate3d(' + b.left.toFixed(1) + 'px,' + b.top.toFixed(1) + 'px,0)';
+    const b = S.el.getBoundingClientRect(); S.c.style.transform = 'translate3d(' + b.left.toFixed(1) + 'px,' + b.top.toFixed(1) + 'px,0)'; S.c.style.opacity = effOp(S.el, null).toFixed(3);
     const g = S.g, R = S.R, cs = S.cell * DPR, nx = Math.ceil(R.W / cs), ny = Math.ceil(R.H / cs), SP = 0.55; g.clearRect(0, 0, R.W, R.H);
     for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
       const front = (i / Math.max(1, nx - 1)) * 0.7 + (j / Math.max(1, ny - 1)) * 0.3, nz = hash(i + S.seed, j);
@@ -69,7 +71,8 @@
   const add = (el) => { if (items.has(el)) return; const trig = el.getAttribute('data-pixel-trigger') || (el.hasAttribute('data-wb-lines') ? 'inview' : 'inview');
     const S = { el, trig, t: 0, v: 0, play: null, done: false, seen: false, seed: Math.random() * 100, once: el.getAttribute('data-pixel-once') !== 'false', loco: el.hasAttribute('data-pixel-loco'), ly: 0, lo: 0 };
     items.set(el, S); if (trig !== 'manual') hide(S, true); };
-  const scan = () => { document.querySelectorAll('[data-wb-pixel]' + (window.WB_PIXEL_LINES ? ',[data-wb-lines]' : '')).forEach(add); };
+  const scan = () => { if (window.WB_PIXEL_ROWS) document.querySelectorAll('[data-wb-row-title]:not([data-wb-pixel])').forEach((t) => { t.setAttribute('data-wb-pixel', ''); if (!t.closest('[data-panel]')) t.setAttribute('data-pixel-loco', ''); }); /* service lists: pixel + glide (not inside the Home pinned panels) */
+    document.querySelectorAll('[data-wb-pixel]' + (window.WB_PIXEL_LINES ? ',[data-wb-lines]' : '')).forEach(add); };
   window.wbPixelPlay = (el, delay) => { add(el); const S = items.get(el); S.play = { t0: performance.now() + (delay || 0) * 1000, dur: +(el.getAttribute('data-pixel-duration') || 1.2) * 1000 }; S.t = 0; hide(S, true); };
   window.wbPixelHide = (el) => { const S = items.get(el); if (!S) return; S.play = null; S.t = 0; drop(S); hide(S, true); };
 
@@ -86,7 +89,7 @@
       if (S.play) { const k = (now - S.play.t0) / S.play.dur; target = Math.max(0, Math.min(1, k)); if (k >= 1) S.play = null; S.t = target; }
       else if (S.trig === 'scrub') target = ss(0.95, 0.45, (r.top + r.height * 0.5) / vh);
       else if (S.trig === 'pin') target = Math.max(0, Math.min(1, window.__wbAboutProg || 0));
-      else if (S.trig === 'inview') { if (vis && r.top < vh * 0.88 && !S.seen) { S.seen = true; window.wbPixelPlay(el, +(el.getAttribute('data-pixel-delay') || 0)); return; }
+      else if (S.trig === 'inview') { if (vis && r.top < vh * 0.88 && !S.seen && effOp(el, null) > 0.3) { S.seen = true; window.wbPixelPlay(el, +(el.getAttribute('data-pixel-delay') || 0)); return; }
         if (!S.once && S.seen && (r.top > vh || r.bottom < 0)) { S.seen = false; S.t = 0; drop(S); hide(S, true); } }
       if (S.trig === 'scrub' || S.trig === 'pin') { S.v += (target - S.v) * (1 - Math.exp(-dt * 8)); if (Math.abs(target - S.v) < 0.001) S.v = target; target = S.v; }
       if (!vis && S.trig !== 'manual') { if (S.c) { drop(S); } return; }
