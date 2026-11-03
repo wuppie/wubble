@@ -67,8 +67,8 @@
   let last = performance.now();
   const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - last) / 1000); last = now; if (!S || !S.root.isConnected) return;
     if (innerWidth < 768) { if (S.on) { S.on = false; reset(); } return; } if (!S.on) { S.on = true; measure(); }
-    const r = S.root.getBoundingClientRect(), span = Math.max(1, r.height - innerHeight);
-    const p = Math.max(0, Math.min(1, (-r.top + innerHeight * 0.15) / (span * 0.75))); /* spread finishes before the pin releases */
+    const r = S.root.getBoundingClientRect(), row = S.cards[0].parentElement, st = parseFloat(getComputedStyle(row).top) || 0, oy = row.offsetParent === S.root.offsetParent ? row.offsetTop - S.root.offsetTop : row.offsetTop, travel = Math.max(1, r.height - oy - row.offsetHeight);
+    const p = Math.max(0, Math.min(1, (st - oy - r.top + innerHeight * 0.1) / (travel * 0.9))); /* spread runs while the row is pinned and finishes just before the pin releases */
     T.v += (p - T.v) * (1 - Math.exp(-dt * 7)); if (Math.abs(p - T.v) < 0.0005) T.v = p;
     const e = T.v < 0.5 ? 4 * T.v * T.v * T.v : 1 - Math.pow(-2 * T.v + 2, 3) / 2, k = 1 - e, n = S.cards.length, c0 = (n - 1) / 2;
     S.cards.forEach((c, i) => { const o = i - c0, d = Math.abs(o);

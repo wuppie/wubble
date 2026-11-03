@@ -805,7 +805,7 @@ Object.assign(window.WBM, {
         const iu = (c.p.cover || P['image' + (i + 1)] || '').trim();
         const vu = (c.p.videoUrl != null ? c.p.videoUrl : (P['video' + (i + 1)] ?? (i === 1 ? 'https://threejs.org/examples/textures/sintel.mp4' : ''))).trim();
         const key = iu + '|' + vu;
-        if (key !== c.url) loadMedia(c, key, iu, vu);
+        if (key !== c.url && P.ribbonCards !== false) loadMedia(c, key, iu, vu); /* hidden cards (helix shows them): don't download their covers/videos */
         if (onScreen && c.video && c.video.readyState >= 2 && Math.abs(x) < 9) {
           this.drawCover(c.ctx, cw, ch, c.p, c.i, c.video, true); c.tex.needsUpdate = true;
         }
