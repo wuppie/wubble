@@ -995,7 +995,7 @@ window.WBGlass = (T, sc, r, at) => {
     let WB_H = 5.4; const pivot = new T.Group(); pivot.position.z = -0.4; sc.add(pivot); let mixer = null;
     const ld = new GL.GLTFLoader(); ld.setMeshoptDecoder(MO.MeshoptDecoder);
     const MURL = at('model', ''), CUSTOM = !!MURL; /* custom model (e.g. shaka hand) replaces the astronaut, sized like his head */
-    const g = await ld.loadAsync(CUSTOM ? (/^https?:/.test(MURL) ? MURL : A() + MURL) : A() + 'models/astronaut-rig.glb'), m = g.scene; pivot.add(m);
+    const g = await ld.loadAsync(CUSTOM ? (/^https?:/.test(MURL) ? MURL : A() + MURL) : A() + 'models/astronaut-rig-v2.glb'), m = g.scene; pivot.add(m);
     if (CUSTOM) { const rr = at('model-rot', '0,0,0').split(',').map(Number); m.rotation.set(rr[0] || 0, rr[1] || 0, rr[2] || 0); m.traverse((o) => { if (o.isMesh && o.geometry) { const g0 = o.geometry; if (!g0.attributes.normal || at('model-normals', '') === 'recompute') g0.computeVertexNormals(); } }); }
     { const clip0 = g.animations.find((x) => /float/i.test(x.name)) || g.animations[0]; if (clip0) { const mx0 = new T.AnimationMixer(m); mx0.clipAction(clip0).play(); mx0.update(0); } }
     m.updateMatrixWorld(true); const bx = new T.Box3().setFromObject(m, true), sz = bx.getSize(new T.Vector3()), cn = bx.getCenter(new T.Vector3()), s = (CUSTOM ? WB_H * 0.2 : WB_H) / Math.max(1e-6, sz.y);
@@ -1018,11 +1018,12 @@ window.WBGlass = (T, sc, r, at) => {
     /* homepage-hero look: the baked black-metal suit textures (same files + UV transfer as wb-astro.js) */
     if (at('look', 'chrome') === 'textured') { r.toneMappingExposure = 1.05 * +at('bright', 0.9); try {
         const coarse = matchMedia('(pointer: coarse)').matches || innerWidth < 820, sfx = coarse ? '-1k' : '-2k';
-        const [uvb, ...tx] = await Promise.all([fetch(A() + 'models/astro-rig-uv.bin').then((x) => x.arrayBuffer()), ...['color', 'mr', 'normal'].map((n) => new T.TextureLoader().loadAsync(A() + 'models/astro-tex-' + n + sfx + '.webp'))]);
-        tx[0].colorSpace = T.SRGBColorSpace; tx.forEach((t) => { t.anisotropy = 4; }); const uv = new Uint16Array(uvb);
+        let needUV = false; m.traverse((o) => { if (o.isSkinnedMesh && !o.geometry.attributes.uv) needUV = true; }); /* v2 model has built-in UVs */
+        const [uvb, ...tx] = await Promise.all([needUV ? fetch(A() + 'models/astro-rig-uv.bin').then((x) => x.arrayBuffer()) : null, ...['color', 'mr', 'normal'].map((n) => new T.TextureLoader().loadAsync(A() + 'models/astro-tex-' + n + sfx + '.webp'))]);
+        tx[0].colorSpace = T.SRGBColorSpace; tx.forEach((t) => { t.anisotropy = 4; }); const uv = uvb ? new Uint16Array(uvb) : null;
         /* all black metal, face included: keep only the normal map (suit detail), drop the colour + metal/rough maps */
         const texM = new T.MeshPhysicalMaterial({ color: new T.Color(at('metal-color', '#141416')), normalMap: tx[2], metalness: 1, roughness: +at('roughness', 0.22), clearcoat: 1, clearcoatRoughness: 0.12, envMapIntensity: +at('env', 1.6) });
-        m.traverse((o) => { if (!o.isSkinnedMesh) return; const g0 = o.geometry, g2 = g0.index ? g0.toNonIndexed() : g0; if (g2.attributes.position.count * 2 !== uv.length) return; g2.setAttribute('uv', new T.BufferAttribute(uv, 2, true)); o.geometry = g2; o.material = texM; });
+        m.traverse((o) => { if (!o.isSkinnedMesh) return; if (!o.geometry.attributes.uv) { const g0 = o.geometry, g2 = g0.index ? g0.toNonIndexed() : g0; if (!uv || g2.attributes.position.count * 2 !== uv.length) return; g2.setAttribute('uv', new T.BufferAttribute(uv, 2, true)); o.geometry = g2; } o.material = texM; });
       } catch (e) { console.warn('[about astro] textures', e); } }
     /* 'glass' look: shared see-through glass (wb-glass.js, options as data attributes there) */
     let GLASS = null; // the hover logos reuse it
@@ -4645,7 +4646,7 @@ Object.assign(window.WBM, {
       // low raking sun: long crater shadows, bright limb, near-black night side (real moon photo look)
       const sun = new T.DirectionalLight(0xfff3e2, 6); sc.add(sun); sc.add(sun.target);
       const LD = new GL.GLTFLoader(); try { const MO = await import('https://esm.sh/three@0.186.1/examples/jsm/libs/meshopt_decoder.module.js'); LD.setMeshoptDecoder(MO.MeshoptDecoder); } catch (e) {}
-      const [mg, ag] = await Promise.all([LD.loadAsync((window.WB_ASSETS || './') + 'models/moon-2k.glb'), LD.loadAsync((window.WB_ASSETS || './') + 'models/astronaut-rig.glb')]);
+      const [mg, ag] = await Promise.all([LD.loadAsync((window.WB_ASSETS || './') + 'models/moon-2k.glb'), LD.loadAsync((window.WB_ASSETS || './') + 'models/astronaut-rig-v2.glb')]);
       // moon: the file uses the old spec-gloss material, so rebuild it from its own texture
       let mtx = null; try { mtx = await mg.parser.getDependency('texture', 0); mtx.colorSpace = T.SRGBColorSpace; mtx.anisotropy = 8; } catch (e) {}
       const moonM = new T.MeshStandardMaterial({ map: mtx, bumpMap: mtx, bumpScale: 2.5, color: 0xe6e6e6, roughness: 0.95, metalness: 0, envMapIntensity: 0.03 });

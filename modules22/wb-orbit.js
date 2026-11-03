@@ -37,7 +37,7 @@
     /* astronaut (same chrome as About/Work) */
     let mixer = null, astro = null;
     if (at('astro', '1') !== '0') { const ld = new GL.GLTFLoader(); ld.setMeshoptDecoder(MO.MeshoptDecoder);
-      ld.loadAsync(A() + 'models/astronaut-rig.glb').then((g) => { const m = g.scene; astro = new T.Group(); astro.add(m); sc.add(astro);
+      ld.loadAsync(A() + 'models/astronaut-rig-v2.glb').then((g) => { const m = g.scene; astro = new T.Group(); astro.add(m); sc.add(astro);
         const fl = g.animations.find((x) => /float/i.test(x.name)) || g.animations[0]; mixer = new T.AnimationMixer(m); if (fl) mixer.clipAction(fl).play(); mixer.update(0);
         m.updateMatrixWorld(true); const bx = new T.Box3().setFromObject(m, true), sz = bx.getSize(new T.Vector3()), cn = bx.getCenter(new T.Vector3()), s = 7.2 * +at('astro-size', 1.7) / sz.y;
         m.scale.setScalar(s); m.position.set(-cn.x * s, -cn.y * s, -cn.z * s);

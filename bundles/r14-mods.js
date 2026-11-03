@@ -17,21 +17,22 @@ Object.assign(window.WBM, {
   // baked texture set (transferred from the textured Meshy mesh onto the rig's triangles: models/astro-rig-uv.bin)
   astroTexMat(T3) {
     if (!window.__wbAstroTex) window.__wbAstroTex = (async () => {
-      const [uv, ...img] = await Promise.all([fetch((window.WB_ASSETS || './') + 'models/astro-rig-uv.bin').then((r) => r.arrayBuffer()), ...['color', 'mr', 'normal'].map((n) => new T3.TextureLoader().loadAsync((window.WB_ASSETS || './') + 'models/astro-tex-' + n + ((matchMedia('(pointer: coarse)').matches || innerWidth < 820 || (navigator.deviceMemory || 8) <= 4) ? '-1k' : '-2k') + '.webp'))]);
+      let uvP = null; const getUV = () => (uvP = uvP || fetch((window.WB_ASSETS || './') + 'models/astro-rig-uv.bin').then((r) => r.arrayBuffer()).then((b) => new Uint16Array(b))); /* only for a model without built-in UVs */
+      const img = await Promise.all([...['color', 'mr', 'normal'].map((n) => new T3.TextureLoader().loadAsync((window.WB_ASSETS || './') + 'models/astro-tex-' + n + ((matchMedia('(pointer: coarse)').matches || innerWidth < 820 || (navigator.deviceMemory || 8) <= 4) ? '-1k' : '-2k') + '.webp'))]);
       img[0].colorSpace = T3.SRGBColorSpace; img.forEach((t) => { t.anisotropy = 4; });
-      return { uv: new Uint16Array(uv), map: img[0], mr: img[1], nm: img[2] };
+      return { getUV, map: img[0], mr: img[1], nm: img[2] };
     })();
     return window.__wbAstroTex;
   },
   async applyAstroTex(T3, mesh, opts) {
     const X = await this.astroTexMat(T3); const geo = mesh.geometry;
-    if (!geo.userData.texUV) { const g2 = geo.index ? geo.toNonIndexed() : geo; if (g2.attributes.position.count * 2 !== X.uv.length) { console.warn('astro tex: vertex count mismatch'); return null; } g2.setAttribute('uv', new T3.BufferAttribute(X.uv, 2, true)); g2.userData.texUV = 1; mesh.geometry = g2; }
+    if (!geo.userData.texUV && !geo.attributes.uv) { const U = await X.getUV(), g2 = geo.index ? geo.toNonIndexed() : geo; if (g2.attributes.position.count * 2 !== U.length) { console.warn('astro tex: vertex count mismatch'); return null; } g2.setAttribute('uv', new T3.BufferAttribute(U, 2, true)); g2.userData.texUV = 1; mesh.geometry = g2; }
     return new T3.MeshStandardMaterial(Object.assign({ map: X.map, metalnessMap: X.mr, roughnessMap: X.mr, normalMap: X.nm, metalness: 1, roughness: 1, envMapIntensity: 1 }, opts || {}));
   },
   async initAstroGlobal() {
     const box = this.astroGRef.current; if (!box) return;
     let T3, GL, MO;
-    { const u0 = (this.props.astroModel || '').trim() || (this.props.astroRigUrl || (window.WB_ASSETS || './') + 'models/astronaut-rig.glb'); this.loadGLB({ parse: () => {} }, u0).catch(() => {}); window.__wbAstroUrl = u0; } // r14.8: model download starts with the three.js imports
+    { const u0 = (this.props.astroModel || '').trim() || (this.props.astroRigUrl || (window.WB_ASSETS || './') + 'models/astronaut-rig-v2.glb'); this.loadGLB({ parse: () => {} }, u0).catch(() => {}); window.__wbAstroUrl = u0; } // r14.8: model download starts with the three.js imports
     try { [T3, GL, MO] = await Promise.all([import('https://esm.sh/three@0.186.1'), import('https://esm.sh/three@0.186.1/examples/jsm/loaders/GLTFLoader.js'), import('https://esm.sh/three@0.186.1/examples/jsm/libs/meshopt_decoder.module.js')]); } catch (e) { return; }
     if (this.dead) return;
     if ((this.props.astroLook || 'Textured') === 'Textured') this.astroTexMat(T3).catch(() => {}); // start textures in parallel with the model, not after it
@@ -57,7 +58,7 @@ Object.assign(window.WBM, {
     import('https://esm.sh/three@0.186.1/examples/jsm/environments/RoomEnvironment.js').then((RE) => { if (this.dead) return; const pm = new T3.PMREMGenerator(r); sc.environment = pm.fromScene(new RE.RoomEnvironment(), 0.04).texture; }).catch(() => {}); // r14.8: doesn't block the model
     const cam = new T3.PerspectiveCamera(24, 1, 0.1, 50); cam.position.set(0, 0, 4.2);
     const loader = new GL.GLTFLoader(); loader.setMeshoptDecoder(MO.MeshoptDecoder);
-    let g; const aUrl = (this.props.astroModel || '').trim() || ((this.props.astroRig ?? true) ? (this.props.astroRigUrl || (window.WB_ASSETS || './') + 'models/astronaut-rig.glb') : ((window.WB_ASSETS || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/') + 'Meshy_AI_Character_output-compressed.glb'));
+    let g; const aUrl = (this.props.astroModel || '').trim() || ((this.props.astroRig ?? true) ? (this.props.astroRigUrl || (window.WB_ASSETS || './') + 'models/astronaut-rig-v2.glb') : ((window.WB_ASSETS || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/') + 'Meshy_AI_Character_output-compressed.glb'));
     window.__wbAstroUrl = aUrl; try { g = await this.loadGLB(loader, aUrl); } catch (e) { console.warn('astronaut failed', e); window.__wbAstroReady = 1; return; }
     if (this.dead) return;
     const m = g.scene;
@@ -4287,7 +4288,7 @@ Object.assign(window.WBM, {
       // low raking sun: long crater shadows, bright limb, near-black night side (real moon photo look)
       const sun = new T.DirectionalLight(0xfff3e2, 6); sc.add(sun); sc.add(sun.target);
       const LD = new GL.GLTFLoader(); try { const MO = await import('https://esm.sh/three@0.186.1/examples/jsm/libs/meshopt_decoder.module.js'); LD.setMeshoptDecoder(MO.MeshoptDecoder); } catch (e) {}
-      const [mg, ag] = await Promise.all([LD.loadAsync((window.WB_ASSETS || './') + 'models/moon-2k.glb'), LD.loadAsync((window.WB_ASSETS || './') + 'models/astronaut-rig.glb')]);
+      const [mg, ag] = await Promise.all([LD.loadAsync((window.WB_ASSETS || './') + 'models/moon-2k.glb'), LD.loadAsync((window.WB_ASSETS || './') + 'models/astronaut-rig-v2.glb')]);
       // moon: the file uses the old spec-gloss material, so rebuild it from its own texture
       let mtx = null; try { mtx = await mg.parser.getDependency('texture', 0); mtx.colorSpace = T.SRGBColorSpace; mtx.anisotropy = 8; } catch (e) {}
       const moonM = new T.MeshStandardMaterial({ map: mtx, bumpMap: mtx, bumpScale: 2.5, color: 0xe6e6e6, roughness: 0.95, metalness: 0, envMapIntensity: 0.03 });

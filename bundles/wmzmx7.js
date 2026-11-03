@@ -1151,7 +1151,7 @@ window.WBGlass = (T, sc, r, at) => {
     /* astronaut at the centre */
     const pivot = new T.Group(); pivot.position.z = -0.4; sc.add(pivot); let mixer = null;
     const OWN_ASTRO = root.getAttribute('data-astro') !== '0'; /* data-astro="0": cards only (the homepage keeps its own astronaut) */
-    if (OWN_ASTRO) { const ld = new GL.GLTFLoader(); ld.setMeshoptDecoder(MO.MeshoptDecoder); const url = (window.WB_ASSETS || './') + 'models/astronaut-rig.glb';
+    if (OWN_ASTRO) { const ld = new GL.GLTFLoader(); ld.setMeshoptDecoder(MO.MeshoptDecoder); const url = (window.WB_ASSETS || './') + 'models/astronaut-rig-v2.glb';
       ld.load(url, (g) => { const m = g.scene; pivot.add(m);
         { const clip0 = g.animations.find((x) => /float/i.test(x.name)) || g.animations[0]; if (clip0) { const mx0 = new T.AnimationMixer(m); mx0.clipAction(clip0).play(); mx0.update(0); } }
         m.updateMatrixWorld(true); const bx = new T.Box3().setFromObject(m, true) /* skinned: real posed size */, sz = bx.getSize(new T.Vector3()), cn = bx.getCenter(new T.Vector3()), s = (window.WB_WORK_ASTRO_H || +(root.getAttribute('data-astro-h') || 5.4)) / Math.max(1e-6, sz.y); /* data-astro-h: his height in scene units */
