@@ -1,0 +1,289 @@
+[
+[
+"glass",
+{
+"src": "wubble-v22-r14.js",
+"base": true
+},
+"btn",
+"chat",
+{
+"src": "consent",
+"attrs": {
+"data-policy": "/privacy"
+}
+},
+"logohover",
+"rowhover",
+"ink",
+"swap",
+"pages",
+"grainient",
+"aurora",
+"siderays",
+"workhelix",
+"blurword",
+"glasstext",
+"waves"
+],
+[
+"glass",
+{
+"src": "wubble-v22-r14.js",
+"base": true
+},
+"btn",
+"chat",
+{
+"src": "consent",
+"attrs": {
+"data-policy": "/privacy"
+}
+},
+"logohover",
+"rowhover",
+"ink",
+"swap",
+"pages",
+"grainient",
+"workhelix",
+"blurword",
+"glasstext",
+"waves"
+],
+[
+"https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js",
+"https://unpkg.com/lenis@1.1.13/dist/lenis.min.js",
+"btn",
+"chat",
+{
+"src": "consent",
+"attrs": {
+"data-policy": "/privacy"
+}
+},
+"logohover",
+"sound",
+"cursor",
+"blurtitle",
+"ink",
+"swap",
+"distort",
+"project",
+"abyss",
+"unicorn",
+"blurword",
+"glass",
+"workhelix",
+"pages"
+],
+[
+"https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js",
+"https://unpkg.com/lenis@1.1.13/dist/lenis.min.js",
+"btn",
+"chat",
+{
+"src": "consent",
+"attrs": {
+"data-policy": "/privacy"
+}
+},
+"logohover",
+"sound",
+"distort",
+"project",
+"unicorn",
+"blurword",
+"cursor",
+"blurtitle",
+"ink",
+"swap",
+"pages",
+"abyss",
+"glass",
+"glasstext",
+"waves",
+"ui",
+"ftmoon",
+"ascii-title",
+"sitefooter",
+"contactmoon"
+],
+[
+"https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js",
+"https://unpkg.com/lenis@1.1.13/dist/lenis.min.js",
+"btn",
+"chat",
+{
+"src": "consent",
+"attrs": {
+"data-policy": "/privacy"
+}
+},
+"logohover",
+"sound",
+"cursor",
+"blurtitle",
+"ink",
+"swap",
+"pages",
+"project",
+"glass",
+"about-astro",
+"blurword",
+"about",
+"float",
+"rowhover",
+"grainient",
+"siderays",
+"aurora",
+"waves",
+"glasstext",
+"ui",
+"ftmoon",
+"ascii-title",
+"sitefooter",
+"contactmoon"
+],
+[
+"https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js",
+"https://unpkg.com/lenis@1.1.13/dist/lenis.min.js",
+"btn",
+"chat",
+{
+"src": "consent",
+"attrs": {
+"data-policy": "/privacy"
+}
+},
+"logohover",
+"sound",
+"cursor",
+"blurtitle",
+"ink",
+"swap",
+"pages",
+"project",
+"grain",
+"glass",
+"blurword",
+"orbit",
+"rowhover",
+"glasstext",
+"waves",
+"ui",
+"ftmoon",
+"ascii-title",
+"sitefooter",
+"contactmoon"
+],
+[
+"https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js",
+"https://unpkg.com/lenis@1.1.13/dist/lenis.min.js",
+"btn",
+"chat",
+{
+"src": "consent",
+"attrs": {
+"data-policy": "/privacy"
+}
+},
+"logohover",
+"sound",
+"cursor",
+"blurtitle",
+"ink",
+"swap",
+"pages",
+"project",
+"grain",
+"glass",
+"glasslogo",
+"curveloop",
+"reflect",
+"titlein",
+"blurword",
+"about",
+"float",
+"siderays",
+"waves",
+"glasstext",
+"ui",
+"ftmoon",
+"ascii-title",
+"sitefooter",
+"contactmoon"
+],
+[
+"https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js",
+"https://unpkg.com/lenis@1.1.13/dist/lenis.min.js",
+"btn",
+"chat",
+{
+"src": "consent",
+"attrs": {
+"data-policy": "/privacy"
+}
+},
+"logohover",
+"sound",
+"cursor",
+"blurtitle",
+"ink",
+"swap",
+"pages",
+"project",
+"grain",
+"glass",
+"glasslogo",
+"curveloop",
+"bouncecards",
+"reflect",
+"titlein",
+"blurword",
+"about",
+"float",
+"siderays",
+"waves",
+"glasstext",
+"ui",
+"ftmoon",
+"ascii-title",
+"sitefooter",
+"contactmoon"
+],
+[
+"https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js",
+"https://unpkg.com/lenis@1.1.13/dist/lenis.min.js",
+"btn",
+"chat",
+{
+"src": "consent",
+"attrs": {
+"data-policy": "/privacy"
+}
+},
+"logohover",
+"sound",
+"cursor",
+"blurtitle",
+"ink",
+"swap",
+"pages",
+"project",
+"glass",
+"glasslogo",
+"blurword",
+"about",
+"grainient",
+"siderays",
+"aurora",
+"waves",
+"glasstext",
+"ui",
+"ftmoon",
+"ascii-title",
+"sitefooter",
+"contactmoon"
+]
+]
