@@ -54,7 +54,7 @@
     if (!all.length) return console.warn('[work] no [data-wb-work-item] found');
     const [T, GL, MO] = await Promise.all([import(B), import(E + 'loaders/GLTFLoader.js'), import(E + 'libs/meshopt_decoder.module.js')]);
     const r = new T.WebGLRenderer({ antialias: true, alpha: true }); r.setPixelRatio(Math.min(1.5, devicePixelRatio || 1)); r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 1.05 * (window.WB_ASTRO_BRIGHT || 2.2);
-    r.domElement.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;'; stage.appendChild(r.domElement);
+    r.domElement.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:' + (SCRUB ? 'pan-y' : 'none') + ';'; /* homepage (scroll-driven): a finger on the helix must still scroll the page */ stage.appendChild(r.domElement);
     r.domElement.addEventListener('webglcontextlost', (e) => e.preventDefault()); r.setClearColor(0x0e0e0d, 0);
     const sc = new T.Scene(), cam = new T.PerspectiveCamera(32, 1, 0.1, 100);
     { const key = new T.DirectionalLight(0xfff6ee, 2.2); key.position.set(2.8, 1.3, 0.9); const rim = new T.DirectionalLight(0xdfe8ff, 2.4); rim.position.set(-2.6, 1.8, -2.0);
