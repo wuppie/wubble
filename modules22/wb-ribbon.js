@@ -58,7 +58,7 @@ Object.assign(window.WBM, {
     { const sizeWork = () => { const el = this.workRef.current; if (!el) return; const vh = window.__svh || innerHeight, hold = this.props.workHold ?? 0.8;
         const nx = this.ctaRef && this.ctaRef.current, ov = nx ? Math.max(0, -parseFloat(getComputedStyle(nx).marginTop) || 0) : 0; // next section overlaps Work's bottom and starts the exit early
         /* home: Work pins and is never released; the ribbon is driven by wheel/touch from then on (wb-pages.js), so only the pin entry needs scroll room */
-        el.style.height = (window.__wbPage === 'home' ? Math.round(Math.max(vh * 2.8 + ov, vh * (2.4 + Math.max(0, this.props.astroFlight ?? 120) / 100) + vh * 0.25 - (el.getBoundingClientRect().top + scrollY) + vh)) : Math.round(vh * (0.5 + 0.55 * Math.max(1, N - 1) + hold) + vh + ov)) + 'px'; };
+        el.style.height = (window.__wbPage === 'home' ? Math.round(Math.max(vh * 2.8 + ov, vh * (2.4 + Math.max(0, this.props.astroFlight ?? 120) / 100) + vh * 0.25 - (el.getBoundingClientRect().top + scrollY) + vh) + (el.querySelector('[data-wb-work-scrub]') ? vh * (window.WB_WORK_PER_PROJECT ?? 0.7) * Math.max(1, document.querySelectorAll('[data-wubble="project"]').length) : 0)) /* helix: scroll room per project while Work is pinned */ : Math.round(vh * (0.5 + 0.55 * Math.max(1, N - 1) + hold) + vh + ov)) + 'px'; };
       sizeWork(); setTimeout(sizeWork, 600); setTimeout(sizeWork, 2000); addEventListener('resize', sizeWork); this._sizeWork = sizeWork; }
     const common = { uWeaveY: { value: 0.55 }, uWeave: { value: 0 }, uWeaveP: { value: new THREE.Vector3(-4, 2.6, 0.9) }, uRing: { value: 0 }, uRingR: { value: 1 }, uRingT: { value: new THREE.Vector2(0.38, 0.26) }, uCurve: { value: 0.11 }, uVel: { value: 0 }, uRadius: { value: 0.14 }, uTime: { value: 0 }, uHoverAmt: { value: 1 }, uRibbon: { value: new THREE.Matrix4() }, uTwist: { value: 0 }, uIntro: { value: 0 }, uCover: { value: new THREE.Vector2(1, 1) } };
     const ribbonEuler = new THREE.Euler();
@@ -529,7 +529,7 @@ Object.assign(window.WBM, {
         const ch = this.zH, ce = io(ch) * Z;
         const rot = (P.sectionRotate ?? true);
         const FX = Math.max(0, P.astroFlight ?? 120) / 100; if (this.workRef.current && this._fx !== FX) { this._fx = FX; this.workRef.current.style.marginTop = 'calc(' + (-100 + FX * 100) + 'vh)'; }
-        const rp0 = Math.max(0, Math.min(1, sY / (vh * (2.4 + FX))));
+        const rp0 = Math.max(0, Math.min(1, sY / (vh * (2.4 + FX)))); window.__wbRPEnd = vh * (2.4 + FX); /* scroll where hero → work is done (the work helix starts counting projects there) */
         this.rp = this.sceneTween('rp', rp0); window.__wbRP = this.rp; window.__wbRQ = this.rq || 0; window.__wbR3 = this.r3 || 0;
         
         const e = this.rp < 0.5 ? 4 * this.rp * this.rp * this.rp : 1 - Math.pow(-2 * this.rp + 2, 3) / 2;
