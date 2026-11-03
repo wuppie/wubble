@@ -2243,7 +2243,7 @@ void main(){
   gl_FragColor = vec4(mix(bg, uInk, w0), 1.0); }`;
   const init = (sec) => {
     if (sec.__bw) return; sec.__bw = 1; const at = (k, d) => sec.getAttribute('data-' + k) ?? d;
-    const src = sec.querySelector('[data-wb-blurword-text]'); const text = (src ? src.textContent : 'wubble').trim();
+    const src = sec.querySelector('[data-wb-blurword-text]'); const text = (src ? src.textContent : 'wubble').trim().toLowerCase(); /* the grey blur titles are always lowercase site-wide (about, work, …) */
     const cv = document.createElement('canvas'); cv.setAttribute('aria-hidden', 'true'); cv.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;display:block;';
     const first = document.querySelector(at('under', '') || '[data-wb-about-astro-canvas]'); first ? first.parentNode.insertBefore(cv, first) : document.body.appendChild(cv);
     const clear = at('bg', '1') === '0'; // data-bg="0": word only, transparent backdrop (another background shows through)
