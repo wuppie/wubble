@@ -4626,19 +4626,11 @@ Object.assign(window.WBM, {
     + [1, 2, 3, 4, 5].map((n) => ` html.wb-ft-on [data-ft-bottom] > :nth-child(${n}) { transition-delay:${(0.12 + n * 0.06).toFixed(2)}s; }`).join('');
   document.head.append(st);
   (function t() { requestAnimationFrame(t); document.documentElement.classList.toggle('wb-ft-on', (window.__wbFootP || 0) > 0.5); })();
-  /* the header blends with "difference", so its green status dot turns pink over light backgrounds: give it the inverse
-     colour there (difference turns that back into green), plain green over dark ones */
-  const lum = (c) => { const m = c.match(/[\d.]+/g); if (!m || (m[3] !== undefined && +m[3] < 0.5)) return -1; return (0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2]) / 255; };
-  setInterval(() => {
-    const hd = document.querySelector('[data-wb-site-header]'), dot = hd && (hd.querySelector('[data-wb-status-dot]') || [...hd.querySelectorAll('span')].find((s) => s.style.borderRadius === '50%')); if (!dot) return;
-    const r = dot.getBoundingClientRect(); let L = -1;
-    for (const el of document.elementsFromPoint(r.left + r.width / 2, r.top + r.height / 2)) { if (hd.contains(el)) continue;
-      for (let n = el; n && L < 0; n = n.parentElement) L = lum(getComputedStyle(n).backgroundColor); if (L >= 0) break; }
-    if (L < 0) L = lum(getComputedStyle(document.body).backgroundColor);
-    if (document.documentElement.classList.contains('wb-ft-on')) L = 1; /* the light footer layer ignores pointer events, so elementsFromPoint can't see it */
-    const light = L > 0.5, bg = light ? '#c42074' : '#2fd27a', sh = light ? 'rgba(196,32,116,0.75)' : 'rgba(47,210,122,0.75)';
-    if (dot.style.background !== bg) { dot.style.background = bg; dot.style.boxShadow = '0 0 6px 1px ' + sh; }
-  }, 300);
+  /* the header no longer blends, so the dot is plain: green while awake (09:00-18:00 Lombok time, same rule as the homepage), grey otherwise */
+  const upd = () => { const hd = document.querySelector('[data-wb-site-header]'), dot = hd && (hd.querySelector('[data-wb-status-dot]') || [...hd.querySelectorAll('span')].find((s) => s.style.borderRadius === '50%')); if (!dot) return;
+    const h = +new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Makassar', hour: '2-digit', hourCycle: 'h23' }).format(new Date()), on = h >= 9 && h < 18;
+    const bg = on ? '#2fd27a' : '#7a7a80', sh = on ? '0 0 6px 1px rgba(47,210,122,0.75)' : 'none'; if (dot.style.background !== bg) { dot.style.background = bg; dot.style.boxShadow = sh; } };
+  upd(); setInterval(upd, 30000);
 })();
 
 ;
