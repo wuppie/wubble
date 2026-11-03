@@ -3396,7 +3396,7 @@ Object.assign(window.WBM, {
       // low raking sun: long crater shadows, bright limb, near-black night side (real moon photo look)
       const sun = new T.DirectionalLight(0xfff3e2, 6); sc.add(sun); sc.add(sun.target);
       const LD = new GL.GLTFLoader(); try { const MO = await import('https://esm.sh/three@0.186.1/examples/jsm/libs/meshopt_decoder.module.js'); LD.setMeshoptDecoder(MO.MeshoptDecoder); } catch (e) {}
-      const [mg, ag] = await Promise.all([LD.loadAsync((window.WB_ASSETS || './') + 'models/moon-2k.glb'), LD.loadAsync((window.WB_ASSETS || './') + 'models/astronaut-rig.glb')]);
+      const [mg, ag] = await Promise.all([LD.loadAsync((window.WB_ASSETS || './') + 'models/moon-2k.glb'), LD.loadAsync((window.WB_ASSETS || './') + 'models/astronaut-rig-v2.glb')]);
       // moon: the file uses the old spec-gloss material, so rebuild it from its own texture
       let mtx = null; try { mtx = await mg.parser.getDependency('texture', 0); mtx.colorSpace = T.SRGBColorSpace; mtx.anisotropy = 8; } catch (e) {}
       const moonM = new T.MeshStandardMaterial({ map: mtx, bumpMap: mtx, bumpScale: 2.5, color: 0xe6e6e6, roughness: 0.95, metalness: 0, envMapIntensity: 0.03 });

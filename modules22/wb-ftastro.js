@@ -11,7 +11,7 @@ Object.assign(window.WBM, {
         try {
           const [T, GL, RE] = await Promise.all([import('https://esm.sh/three@0.186.1'), import('https://esm.sh/three@0.186.1/examples/jsm/loaders/GLTFLoader.js'), import('https://esm.sh/three@0.186.1/examples/jsm/environments/RoomEnvironment.js')]);
           if (this.dead) return;
-          const g = await new GL.GLTFLoader().loadAsync((this.props.footerAstroModel || '').trim() || './models/astronaut-rig.glb');
+          const g = await new GL.GLTFLoader().loadAsync((this.props.footerAstroModel || '').trim() || './models/astronaut-rig-v2.glb');
           let r = null; const sc = new T.Scene();
           const mkR = () => { r = new T.WebGLRenderer({ antialias: true, alpha: true }); r.setPixelRatio(Math.min(2, devicePixelRatio || 1)); r.setClearColor(0, 0);
             r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 1.1;
