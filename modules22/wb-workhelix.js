@@ -131,7 +131,9 @@
     const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - last) / 1000); last = now; if (window.__wbWorkPaused || !root.isConnected || root.offsetParent === null && getComputedStyle(root).position !== 'fixed') return; if (root.style.display === 'none' || root.closest('[data-wb-hidden]')) return;
       /* data-auto="0.08" (cards per second): after 2.5 s without input the helix drifts on by itself, easing in; hover pauses it, any input takes over */
       if (SCRUB) { const sec = root.closest('section') || root, rr = sec.getBoundingClientRect(), span = Math.max(1, rr.height - innerHeight), p = Math.max(0, Math.min(1, -rr.top / span));
-        const pn = root.closest('[data-panel]'), po = pn ? +getComputedStyle(pn).opacity : 1, on = rr.top < innerHeight && rr.bottom > 0 && po > 0.02;
+        /* homepage: fade in with the hero→work handover, on the same curve the ribbon cards used (rp 0.8 → 1), so the helix never peeks out under the leaving hero */
+        const rpv = window.__wbRP, g0 = rpv == null ? 1 : Math.max(0, Math.min(1, (rpv - 0.8) / 0.2)), gIn = g0 * g0 * (3 - 2 * g0), gs = gIn.toFixed(3); if (stage.__op !== gs) { stage.__op = gs; stage.style.opacity = gIn >= 0.999 ? '' : gs; }
+        const pn = root.closest('[data-panel]'), po = pn ? +getComputedStyle(pn).opacity : 1, on = rr.top < innerHeight && rr.bottom > 0 && po > 0.02 && gIn > 0.001;
         window.__wbHelixOn = OWN_ASTRO && on && po > 0.5; /* one astronaut at a time: wb-astro hides the homepage one while the helix (with its own glass astronaut) is up */
         if (!on) return; tgt = p * Math.max(0, all.length - 1); }
       else { const AUTO = +(root.getAttribute('data-auto') || 0), idl = now - idleT, ramp = Math.max(0, Math.min(1, (idl - 2500) / 2000));
