@@ -51,7 +51,7 @@
   const build = (S) => { const was = S.el.hasAttribute('data-wb-pixel-on'); S.el.removeAttribute('data-wb-pixel-on'); const R = raster(S.el); if (was) S.el.setAttribute('data-wb-pixel-on', ''); if (!R) return false; /* read the real colours, not the hidden state */ const big = +(S.el.getAttribute('data-pixel-size') || 24);
     S.R = R; S.L = [coarse(R, big), coarse(R, big / 2), coarse(R, Math.max(2, big / 5))];
     const c = document.createElement('canvas'); c.width = R.W; c.height = R.H; c.setAttribute('aria-hidden', 'true'); c.setAttribute('data-wb-pixel-canvas', '');
-    c.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;z-index:2147483000;width:' + R.w + 'px;height:' + R.h + 'px;'; document.body.appendChild(c); S.c = c; S.g = c.getContext('2d'); S.cell = big; return true; };
+    c.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;z-index:' + (S.el.closest('[data-wb-menu]') ? 160 : 90) + ';width:' + R.w + 'px;height:' + R.h + 'px;'; document.body.appendChild(c); S.c = c; S.g = c.getContext('2d'); S.cell = big; return true; };
   const drop = (S) => { if (S.c) { S.c.remove(); S.c = null; } S.R = null; S.L = null; };
 
   /* draw progress t (0 = nothing, 1 = clean): a diagonal flow front with noise; behind it each cell steps coarse → fine → clean */
@@ -89,7 +89,7 @@
       if (S.play) { const k = (now - S.play.t0) / S.play.dur; target = Math.max(0, Math.min(1, k)); if (k >= 1) S.play = null; S.t = target; }
       else if (S.trig === 'scrub') target = ss(0.95, 0.45, (r.top + r.height * 0.5) / vh);
       else if (S.trig === 'pin') target = Math.max(0, Math.min(1, window.__wbAboutProg || 0));
-      else if (S.trig === 'inview') { if (vis && r.top < vh * 0.88 && !S.seen && effOp(el, null) > 0.3) { S.seen = true; window.wbPixelPlay(el, +(el.getAttribute('data-pixel-delay') || 0)); return; }
+      else if (S.trig === 'inview') { if (vis && r.top < vh * 0.88 && !S.seen && !window.__wbInkBusy && effOp(el, null) > 0.3) { S.seen = true; window.wbPixelPlay(el, +(el.getAttribute('data-pixel-delay') || 0)); return; }
         if (!S.once && S.seen && (r.top > vh || r.bottom < 0)) { S.seen = false; S.t = 0; drop(S); hide(S, true); } }
       if (S.trig === 'scrub' || S.trig === 'pin') { S.v += (target - S.v) * (1 - Math.exp(-dt * 8)); if (Math.abs(target - S.v) < 0.001) S.v = target; target = S.v; }
       if (!vis && S.trig !== 'manual') { if (S.c) { drop(S); } return; }
