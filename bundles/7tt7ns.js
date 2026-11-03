@@ -21,7 +21,9 @@ window.WBGlass = (T, sc, r, at) => {
   // opaque on purpose: the transmission pass only draws opaque objects; the card is the glass's backdrop
   const wm = new T.MeshBasicMaterial({ map: wt, toneMapped: false, depthTest: false }), wq = new T.Mesh(new T.PlaneGeometry(1, 1), wm);
   let wAsp = 0; const dir = new T.Vector3(), DEPTH = +at('glass-word-depth', 2.5);
-  const paint = (asp) => { wAsp = asp; wc.width = 2048; wc.height = Math.round(2048 / asp);
+  /* glass-live="<canvas selector>": that canvas (e.g. the homepage work helix) is drawn over the backdrop each frame, faded by window[glass-live-var], so the glass refracts it */
+  const LIVE = at('glass-live', ''), LVAR = at('glass-live-var', ''); let base = null, liveOn = false;
+  const paint = (asp) => { wAsp = asp; const CW = LIVE ? 1024 : 2048; wc.width = CW; wc.height = Math.round(CW / asp);
     const bgs = at('glass-word-bg', '#060607').split(','), W = wc.width, H = wc.height;
     if (bgs.length > 1) { const a = T.MathUtils.degToRad(+at('glass-word-angle', 55)), dx = Math.sin(a), dy = -Math.cos(a), half = (Math.abs(dx) * W + Math.abs(dy) * H) / 2;
       const gr = wx.createLinearGradient(W / 2 - dx * half, H / 2 - dy * half, W / 2 + dx * half, H / 2 + dy * half); bgs.forEach((c, i) => gr.addColorStop(i / (bgs.length - 1), c.trim())); wx.fillStyle = gr; }
@@ -29,12 +31,16 @@ window.WBGlass = (T, sc, r, at) => {
     wx.fillRect(0, 0, W, H);
     wx.font = '800 100px Switzer, Helvetica, sans-serif'; const fs = 100 * W * 0.87 / Math.max(1, wx.measureText(WORD).width);
     wx.font = `800 ${fs}px Switzer, Helvetica, sans-serif`; wx.fillStyle = at('glass-word-color', '#e9eef2'); wx.textAlign = 'center'; wx.textBaseline = 'middle';
-    wx.fillText(WORD, W / 2, H * +at('glass-word-y', 0.22)); wt.needsUpdate = true; };
+    wx.fillText(WORD, W / 2, H * +at('glass-word-y', 0.22)); wt.needsUpdate = true;
+    if (LIVE) { base = base || document.createElement('canvas'); base.width = W; base.height = H; base.getContext('2d').drawImage(wc, 0, 0); liveOn = false; } };
   wq.frustumCulled = false; wq.renderOrder = -1; sc.add(wq);
   // exact check: draw the card only into the buffer this glass samples (three's transmission buffer), never into any other pass
   let GU = null; const pc = gm.onBeforeCompile; gm.onBeforeCompile = (s, r2) => { GU = s.uniforms; if (pc) pc(s, r2); };
   wq.onBeforeRender = (rr, s0, cam) => { const rt = rr.getRenderTarget(), ts = GU && GU.transmissionSamplerMap, inT = !!rt && !!ts && rt.texture === ts.value; wm.colorWrite = inT; wm.depthWrite = inT;
     if (Math.abs(cam.aspect - wAsp) > 0.02) paint(cam.aspect);
+    if (LIVE && inT && base) { const src = document.querySelector(LIVE), k = LVAR ? Math.max(0, Math.min(1, +window[LVAR] || 0)) : 1;
+      if (src && k > 0.01) { wx.globalAlpha = 1; wx.drawImage(base, 0, 0); wx.globalAlpha = k; wx.drawImage(src, 0, 0, wc.width, wc.height); wx.globalAlpha = 1; wt.needsUpdate = true; liveOn = true; }
+      else if (liveOn) { wx.drawImage(base, 0, 0); wt.needsUpdate = true; liveOn = false; } }
     const d = cam.position.length() + DEPTH, h = 2 * Math.tan(T.MathUtils.degToRad(cam.fov) / 2) * d; cam.getWorldDirection(dir);
     wq.position.copy(cam.position).addScaledVector(dir, d); wq.quaternion.copy(cam.quaternion); wq.scale.set(h * cam.aspect, h, 1); wq.updateMatrixWorld(); };
   document.fonts?.ready.then(() => { wAsp = 0; }); // repaint once Switzer has loaded
@@ -3131,7 +3137,7 @@ const SideRays = ({
     const SCRUB = root.hasAttribute('data-wb-work-scrub');
     if (!all.length) return console.warn('[work] no [data-wb-work-item] found');
     const [T, GL, MO] = await Promise.all([import(B), import(E + 'loaders/GLTFLoader.js'), import(E + 'libs/meshopt_decoder.module.js')]);
-    const r = new T.WebGLRenderer({ antialias: true, alpha: true }); r.setPixelRatio(Math.min(1.5, devicePixelRatio || 1)); r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 1.05 * (window.WB_ASTRO_BRIGHT || 2.2);
+    const r = new T.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: SCRUB /* homepage: the astronaut's glass copies this frame */ }); r.setPixelRatio(Math.min(1.5, devicePixelRatio || 1)); r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 1.05 * (window.WB_ASTRO_BRIGHT || 2.2);
     r.domElement.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:' + (SCRUB ? 'pan-y' : 'none') + ';'; /* homepage (scroll-driven): a finger on the helix must still scroll the page */ stage.appendChild(r.domElement);
     r.domElement.addEventListener('webglcontextlost', (e) => e.preventDefault()); r.setClearColor(0x0e0e0d, 0);
     const sc = new T.Scene(), cam = new T.PerspectiveCamera(32, 1, 0.1, 100);
