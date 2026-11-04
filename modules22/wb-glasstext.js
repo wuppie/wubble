@@ -40,7 +40,7 @@
       mesh.rotation.set(ty * 0.18 * MOUSE, tx * 0.22 * MOUSE, 0); r.render(sc, cam); };
     RAF(loop);
   };
-  const scan = () => document.querySelectorAll('[data-wb-glasstext]').forEach((h) => init(h).catch((e) => console.warn('[glasstext]', e)));
+  const scan = () => document.querySelectorAll('[data-wb-glasstext]').forEach((h) => { const go = () => init(h).catch((e) => console.warn('[glasstext]', e)); window.WB_NEAR ? window.WB_NEAR(h, go) : go(); });
   const start = () => { scan(); new MutationObserver(() => { clearTimeout(start.t); start.t = setTimeout(scan, 200); }).observe(document.body, { childList: true, subtree: true }); };
   if (document.readyState === 'loading') addEventListener('DOMContentLoaded', start, { once: true }); else start();
 })();

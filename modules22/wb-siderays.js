@@ -470,6 +470,6 @@ const SideRays = ({
     queue = [el, canvas];
     SideRays(props);
   };
-  const scan = () => document.querySelectorAll('[data-wb-siderays]').forEach(mount);
+  const scan = () => document.querySelectorAll('[data-wb-siderays]').forEach((el) => (window.WB_NEAR ? window.WB_NEAR(el, () => mount(el)) : mount(el))); /* starts once near the screen (site head) */
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan); else scan();
 })();

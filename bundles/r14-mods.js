@@ -18,8 +18,13 @@ Object.assign(window.WBM, {
   astroTexMat(T3) {
     if (!window.__wbAstroTex) window.__wbAstroTex = (async () => {
       let uvP = null; const getUV = () => (uvP = uvP || fetch((window.WB_ASSETS || './') + 'models/astro-rig-uv.bin').then((r) => r.arrayBuffer()).then((b) => new Uint16Array(b))); /* only for a model without built-in UVs */
-      const img = await Promise.all([...['color', 'mr', 'normal'].map((n) => new T3.TextureLoader().loadAsync((window.WB_ASSETS || './') + 'models/astro-tex-' + n + ((matchMedia('(pointer: coarse)').matches || innerWidth < 820 || (navigator.deviceMemory || 8) <= 4) ? '-1k' : '-2k') + '.webp'))]);
+      /* 1K textures first (fast first frame); big screens swap in the 2K set once the page has loaded and gone quiet */
+      const M = (window.WB_ASSETS || './') + 'models/astro-tex-', N = ['color', 'mr', 'normal'], hi = !(matchMedia('(pointer: coarse)').matches || innerWidth < 820 || (navigator.deviceMemory || 8) <= 4);
+      const img = await Promise.all(N.map((n) => new T3.TextureLoader().loadAsync(M + n + '-1k.webp')));
       img[0].colorSpace = T3.SRGBColorSpace; img.forEach((t) => { t.anisotropy = 4; });
+      if (hi) { const up = () => N.forEach((n, i) => new T3.ImageLoader().setCrossOrigin('anonymous').load(M + n + '-2k.webp', (im) => { img[i].source = new T3.Source(im); img[i].needsUpdate = true; }));
+        const later = () => setTimeout(() => (window.requestIdleCallback || setTimeout)(up, { timeout: 4000 }), 1500);
+        document.readyState === 'complete' ? later() : addEventListener('load', later, { once: true }); }
       return { getUV, map: img[0], mr: img[1], nm: img[2] };
     })();
     return window.__wbAstroTex;

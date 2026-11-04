@@ -62,7 +62,7 @@ void main(){
       gl.uniform2f(U.uM, mx, my); gl.uniform1f(U.uK, 0.4 + k * 0.6); gl.uniform1f(U.uT, (now - t0) / 1000); gl.drawArrays(gl.TRIANGLES, 0, 3); };
     RAF(tick);
   };
-  let n = 0; const poll = () => { document.querySelectorAll('[data-wb-blurword]').forEach(init); if (++n < 40 && !document.querySelector('[data-wb-blurword]')) setTimeout(poll, 120); };
+  let n = 0; const poll = () => { document.querySelectorAll('[data-wb-blurword]').forEach((el) => (window.WB_NEAR ? window.WB_NEAR(el, () => init(el)) : init(el))); if (++n < 40 && !document.querySelector('[data-wb-blurword]')) setTimeout(poll, 120); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', poll); else poll();
   document.addEventListener('wb:swap', () => { n = 0; poll(); });
 })();
