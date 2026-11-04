@@ -878,6 +878,9 @@ void main(){ vec2 uv = gl_FragCoord.xy / uRes; uv.y = 1.0 - uv.y; vec2 pos = uv 
     /* [data-wb-video="url"]: plays that mp4 inside the element (CMS-bound); empty value keeps the box as a placeholder */
     root.querySelectorAll('[data-wb-video]').forEach((el) => { const u = (el.getAttribute('data-wb-video') || '').trim(); if (!u || el.querySelector('video')) return;
       const v = document.createElement('video'); v.className = 'project_image'; v.crossOrigin = 'anonymous'; v.src = u; v.muted = v.loop = v.autoplay = v.playsInline = true; v.setAttribute('playsinline', ''); el.appendChild(v); v.play().catch(() => {}); });
+    /* media panels without a video or an image (empty CMS field) are hidden instead of showing an empty grey panel */
+    root.querySelectorAll('.project_media').forEach((m) => { const i = m.querySelector('img'); if (!m.querySelector('video') && !(i && (i.getAttribute('src') || '').trim())) m.style.display = 'none'; });
+    root.querySelectorAll('.project_gallery').forEach((g) => { if (![...g.children].some((c) => c.style.display !== 'none')) g.style.display = 'none'; });
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!lenis && window.Lenis && !reduce) { lenis = new Lenis({ lerp: 0.075, smoothWheel: true, wheelMultiplier: 0.9 }); window.__wbLenis = lenis; }
     if (lenis) { lenis.scrollTo(0, { immediate: true }); lenis.stop(); } else scrollTo(0, 0);
