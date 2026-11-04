@@ -131,6 +131,8 @@
        Capture phase, so page transitions on the same link never fire; without this script the link's own href still works. */
     document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-wb-chat-ask]'); if (!a) return;
       e.preventDefault(); e.stopPropagation(); toggle(true); setTimeout(() => send(a.getAttribute('data-wb-chat-ask')), 350); }, true);
+    /* a click made while the page was still loading was parked by the page's head snippet: answer it now */
+    window.__wbChatReady = 1; if (window.__wbChatAsk) { const q = window.__wbChatAsk; window.__wbChatAsk = null; toggle(true); setTimeout(() => send(q), 350); }
     sug.addEventListener('click', (e) => { if (e.target.tagName === 'BUTTON') send(e.target.textContent); });
   };
   if (document.readyState === 'loading') addEventListener('DOMContentLoaded', build, { once: true }); else build();
