@@ -970,8 +970,8 @@ window.WBGlass = (T, sc, r, at) => {
   const wm = new T.MeshBasicMaterial({ map: wt, toneMapped: false, depthTest: false }), wq = new T.Mesh(new T.PlaneGeometry(1, 1), wm);
   let wAsp = 0; const dir = new T.Vector3(), DEPTH = +at('glass-word-depth', 2.5);
   /* glass-live="<canvas selector>": that canvas (e.g. the homepage work helix) is drawn over the backdrop each frame, faded by window[glass-live-var], so the glass refracts it */
-  const LIVE = at('glass-live', ''), LVAR = at('glass-live-var', ''); let base = null, liveOn = false;
-  const paint = (asp) => { wAsp = asp; const CW = LIVE ? 1024 : 2048; wc.width = CW; wc.height = Math.round(CW / asp);
+  const LIVE = matchMedia('(pointer: coarse)').matches ? '' : at('glass-live', '') /* phones: no live copy of another canvas (GPU memory) */, LVAR = at('glass-live-var', ''); let base = null, liveOn = false;
+  const paint = (asp) => { wAsp = asp; const CW = LIVE || matchMedia('(pointer: coarse)').matches ? 1024 : 2048; wc.width = CW; wc.height = Math.round(CW / asp);
     const bgs = at('glass-word-bg', '#060607').split(','), W = wc.width, H = wc.height;
     if (bgs.length > 1) { const a = T.MathUtils.degToRad(+at('glass-word-angle', 55)), dx = Math.sin(a), dy = -Math.cos(a), half = (Math.abs(dx) * W + Math.abs(dy) * H) / 2;
       const gr = wx.createLinearGradient(W / 2 - dx * half, H / 2 - dy * half, W / 2 + dx * half, H / 2 + dy * half); bgs.forEach((c, i) => gr.addColorStop(i / (bgs.length - 1), c.trim())); wx.fillStyle = gr; }
@@ -2274,7 +2274,7 @@ function GradientWaves({
 
     const fit = () => {
       const s = settingsRef.current;
-      const ratio = Math.min(window.devicePixelRatio || 1, s.dpr);
+      const ratio = Math.min(window.devicePixelRatio || 1, s.dpr, matchMedia('(pointer: coarse)').matches ? 1 : 9); /* phones: 1x is plenty for soft waves (GPU memory) */
       const width = Math.max(1, Math.round(state.cssWidth * ratio));
       const height = Math.max(1, Math.round(state.cssHeight * ratio));
       if (width === state.width && height === state.height) return;
@@ -2521,7 +2521,7 @@ function GradientWaves({
     h.after(host); h.style.webkitTextFillColor = 'transparent';
     const place = () => { const st = host.style, ht = h.offsetHeight; const pad = h.offsetWidth * 0.08; st.left = (h.offsetLeft - pad) + 'px'; st.top = (h.offsetTop - ht * 0.25) + 'px'; st.width = (h.offsetWidth + pad * 2) + 'px'; st.height = ht * 1.5 + 'px'; };
     place();
-    const r = new T.WebGLRenderer({ antialias: true, alpha: true }); r.setPixelRatio(Math.min(1.75, devicePixelRatio || 1)); r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.setClearColor(0, 0);
+    const r = new T.WebGLRenderer({ antialias: true, alpha: true }); r.setPixelRatio(Math.min(matchMedia('(pointer: coarse)').matches ? 1.25 : 1.75, devicePixelRatio || 1)); r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.setClearColor(0, 0);
     r.domElement.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;'; host.append(r.domElement);
     const sc = new T.Scene(), cam = new T.PerspectiveCamera(20, 1, 0.1, 400); cam.position.set(0, 0, 60);
     { const pm = new T.PMREMGenerator(r); sc.environment = pm.fromScene(new RE.RoomEnvironment(), 0.04).texture; pm.dispose(); }

@@ -428,7 +428,7 @@ function GradientWaves({
 
     const fit = () => {
       const s = settingsRef.current;
-      const ratio = Math.min(window.devicePixelRatio || 1, s.dpr);
+      const ratio = Math.min(window.devicePixelRatio || 1, s.dpr, matchMedia('(pointer: coarse)').matches ? 1 : 9); /* phones: 1x is plenty for soft waves (GPU memory) */
       const width = Math.max(1, Math.round(state.cssWidth * ratio));
       const height = Math.max(1, Math.round(state.cssHeight * ratio));
       if (width === state.width && height === state.height) return;

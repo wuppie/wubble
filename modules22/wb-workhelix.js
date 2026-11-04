@@ -53,7 +53,7 @@
     const SCRUB = root.hasAttribute('data-wb-work-scrub');
     if (!all.length) return console.warn('[work] no [data-wb-work-item] found');
     const [T, GL, MO] = await Promise.all([import(B), import(E + 'loaders/GLTFLoader.js'), import(E + 'libs/meshopt_decoder.module.js')]);
-    const r = new T.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: SCRUB /* homepage: the astronaut's glass copies this frame */ }); r.setPixelRatio(Math.min(1.5, devicePixelRatio || 1)); r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 1.05 * (window.WB_ASTRO_BRIGHT || 2.2);
+    const r = new T.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: SCRUB && !matchMedia('(pointer: coarse)').matches /* homepage: the astronaut's glass copies this frame */ }); r.setPixelRatio(Math.min(matchMedia('(pointer: coarse)').matches ? 1 : 1.5, devicePixelRatio || 1)); r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 1.05 * (window.WB_ASTRO_BRIGHT || 2.2);
     r.domElement.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:' + (SCRUB ? 'pan-y' : 'none') + ';'; /* homepage (scroll-driven): a finger on the helix must still scroll the page */ stage.appendChild(r.domElement);
     r.domElement.addEventListener('webglcontextlost', (e) => e.preventDefault()); r.setClearColor(0x0e0e0d, 0);
     const sc = new T.Scene(), cam = new T.PerspectiveCamera(32, 1, 0.1, 100);

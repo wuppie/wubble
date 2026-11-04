@@ -18,7 +18,7 @@
     h.after(host); h.style.webkitTextFillColor = 'transparent';
     const place = () => { const st = host.style, ht = h.offsetHeight; const pad = h.offsetWidth * 0.08; st.left = (h.offsetLeft - pad) + 'px'; st.top = (h.offsetTop - ht * 0.25) + 'px'; st.width = (h.offsetWidth + pad * 2) + 'px'; st.height = ht * 1.5 + 'px'; };
     place();
-    const r = new T.WebGLRenderer({ antialias: true, alpha: true }); r.setPixelRatio(Math.min(1.75, devicePixelRatio || 1)); r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.setClearColor(0, 0);
+    const r = new T.WebGLRenderer({ antialias: true, alpha: true }); r.setPixelRatio(Math.min(matchMedia('(pointer: coarse)').matches ? 1.25 : 1.75, devicePixelRatio || 1)); r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.setClearColor(0, 0);
     r.domElement.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;'; host.append(r.domElement);
     const sc = new T.Scene(), cam = new T.PerspectiveCamera(20, 1, 0.1, 400); cam.position.set(0, 0, 60);
     { const pm = new T.PMREMGenerator(r); sc.environment = pm.fromScene(new RE.RoomEnvironment(), 0.04).texture; pm.dispose(); }
