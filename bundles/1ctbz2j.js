@@ -835,6 +835,25 @@ void main(){ vec2 uv = gl_FragCoord.xy / uRes; uv.y = 1.0 - uv.y; vec2 pos = uv 
   if (!MO) boot();
 })();
 
+/* Smooth scroll (Lenis) on every page with a mouse. The homepage (r14 base, [data-w="root"]) and project pages (wb-project)
+   start their own Lenis; every other page loaded the library but never started it, so it scrolled natively.
+   Touch devices keep native scrolling (it already feels right there). */
+(() => {
+  if (window.__wbPageLenisBoot) return; window.__wbPageLenisBoot = 1;
+  let tries = 0;
+  const go = () => {
+    if (matchMedia('(pointer: coarse)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (document.querySelector('[data-w="root"], [data-wb-project]') || window.__sliderLenis || window.__wbLenis) return;
+    if (!window.Lenis) { if (++tries < 40) setTimeout(go, 150); return; }
+    const L = new window.Lenis({ lerp: 0.085, smoothWheel: true, wheelMultiplier: 0.8 });
+    window.__wbPageLenis = L;
+    const st = document.createElement('style'); st.textContent = 'html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!important}.lenis.lenis-stopped{overflow:hidden}';
+    document.head.appendChild(st);
+    const raf = (t) => { L.raf(t); (window.__wbRawRAF || requestAnimationFrame)(raf); }; (window.__wbRawRAF || requestAnimationFrame)(raf);
+  };
+  document.readyState === 'loading' ? addEventListener('DOMContentLoaded', go) : go();
+})();
+
 ;
 /* modules22/wb-project.js */
 /* Wubble single project page (Webflow CMS template). Behaviour only, via attributes:
@@ -1145,7 +1164,14 @@ window.WBGlass = (T, sc, r, at) => {
     const BIG = +at('scale', 1.35), halfH = () => Math.tan(cam.fov * Math.PI / 360) * (R + 7.6 + 0.4);
     const MS = { x: 0, y: 0, tx: 0, ty: 0 }; addEventListener('pointermove', (e) => { MS.tx = e.clientX / innerWidth * 2 - 1; MS.ty = e.clientY / innerHeight * 2 - 1; }, { passive: true });
     let last = performance.now(), vis = true;
-    const tick = (now) => { RAF(tick); if (!host.isConnected) { r.domElement.remove(); return; } const dt = Math.min(0.05, (now - last) / 1000); last = now; const off = now / 1000 * 0.05, t = now / 1000;
+    const ftSp = document.querySelector('[data-footer-spacer]');
+    const tick = (now) => { RAF(tick); if (!host.isConnected) { r.domElement.remove(); return; }
+      /* the footer brings its own astronaut (wb-ftmoon): this full-screen layer fades out as the footer slides in and stops drawing,
+         so two 3D layers never fight over the footer (that read as flicker) */
+      { const fp = ftSp ? Math.max(0, Math.min(1, 1 - ftSp.getBoundingClientRect().top / innerHeight)) : 0, fo = Math.max(0, 1 - fp / 0.25);
+        if (r.domElement.__fo !== fo) { r.domElement.__fo = fo; r.domElement.style.opacity = fo.toFixed(3); r.domElement.style.visibility = fo > 0 ? '' : 'hidden'; }
+        if (fo <= 0) { last = now; return; } }
+      const dt = Math.min(0.05, (now - last) / 1000); last = now; const off = now / 1000 * 0.05, t = now / 1000;
       GU.uT.value = now / 1000; GU.uRot.value = -off * 0.25;
       { const k = 1 - Math.exp(-dt * 2.2); MS.x += (MS.tx - MS.x) * k; MS.y += (MS.ty - MS.y) * k; }
       gal.rotation.y = MS.x * 0.12; gal.rotation.x = MS.y * 0.06; gal.position.x = MS.x * 0.25; gal.position.y = -MS.y * 0.18;
