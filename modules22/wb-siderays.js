@@ -295,6 +295,7 @@ const SideRays = ({
       const cssHeight = Math.max(1, rect.height);
       const ratio = Math.min(
         window.devicePixelRatio || 1,
+        matchMedia('(pointer: coarse)').matches ? 0.75 : 9, /* phones: soft light rays need no sharp buffer (canvas memory) */
         s.maxRatio,
         Math.sqrt(PIXEL_BUDGET / (cssWidth * cssHeight))
       );

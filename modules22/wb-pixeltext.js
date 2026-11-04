@@ -60,7 +60,9 @@
   const canInside = (el) => { const cs = getComputedStyle(el); if (cs.display.startsWith('inline') || cs.display === 'contents') return false;
     if ([...el.querySelectorAll('*')].some((d) => getComputedStyle(d).position === 'absolute')) return false;
     if (cs.position === 'static') el.style.position = 'relative'; return true; };
-  const drop = (S) => { if (S.c) { S.c.remove(); S.c = null; } S.R = null; S.L = null; };
+  /* free the bitmaps right away (Safari counts canvas memory until garbage collection, and kills the page past its limit) */
+  const zap = (cv) => { if (cv) cv.width = cv.height = 0; };
+  const drop = (S) => { if (S.c) { S.c.remove(); zap(S.c); S.c = null; } if (S.R) zap(S.R.cv); if (S.L) S.L.forEach(zap); S.R = null; S.L = null; };
 
   /* draw progress t (0 = nothing, 1 = clean): a diagonal flow front with noise; behind it each cell steps coarse → fine → clean */
   const draw = (S, t, b) => {

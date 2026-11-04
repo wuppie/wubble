@@ -971,7 +971,7 @@ window.WBGlass = (T, sc, r, at) => {
   let wAsp = 0; const dir = new T.Vector3(), DEPTH = +at('glass-word-depth', 2.5);
   /* glass-live="<canvas selector>": that canvas (e.g. the homepage work helix) is drawn over the backdrop each frame, faded by window[glass-live-var], so the glass refracts it */
   const LIVE = matchMedia('(pointer: coarse)').matches ? '' : at('glass-live', '') /* phones: no live copy of another canvas (GPU memory) */, LVAR = at('glass-live-var', ''); let base = null, liveOn = false;
-  const paint = (asp) => { wAsp = asp; const CW = LIVE || matchMedia('(pointer: coarse)').matches ? 1024 : 2048; wc.width = CW; wc.height = Math.round(CW / asp);
+  const paint = (asp) => { wAsp = asp; const CW = matchMedia('(pointer: coarse)').matches ? 512 : LIVE ? 1024 : 2048; /* phones: the blurred backdrop needs no big texture */ wc.width = CW; wc.height = Math.round(CW / asp);
     const bgs = at('glass-word-bg', '#060607').split(','), W = wc.width, H = wc.height;
     if (bgs.length > 1) { const a = T.MathUtils.degToRad(+at('glass-word-angle', 55)), dx = Math.sin(a), dy = -Math.cos(a), half = (Math.abs(dx) * W + Math.abs(dy) * H) / 2;
       const gr = wx.createLinearGradient(W / 2 - dx * half, H / 2 - dy * half, W / 2 + dx * half, H / 2 + dy * half); bgs.forEach((c, i) => gr.addColorStop(i / (bgs.length - 1), c.trim())); wx.fillStyle = gr; }
@@ -1009,7 +1009,7 @@ window.WBGlass = (T, sc, r, at) => {
     if (host.__wbgl) return; host.__wbgl = 1;
     const at = (k, d) => host.getAttribute('data-' + k) ?? d;
     const [T, GL, RE, MO, DR] = await Promise.all([import(B), import(E + 'loaders/GLTFLoader.js'), import(E + 'environments/RoomEnvironment.js'), import(E + 'libs/meshopt_decoder.module.js'), import(E + 'loaders/DRACOLoader.js')]);
-    const r = new T.WebGLRenderer({ antialias: true, alpha: true }); r.setPixelRatio(Math.min(1.75, devicePixelRatio || 1)); r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.setClearColor(0, 0);
+    const r = new T.WebGLRenderer({ antialias: true, alpha: true }); r.setPixelRatio(Math.min(matchMedia('(pointer: coarse)').matches ? 1.25 : 1.75, devicePixelRatio || 1)); r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.setClearColor(0, 0);
     r.domElement.addEventListener('webglcontextlost', (e) => e.preventDefault()); r.domElement.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;'; host.appendChild(r.domElement);
     const sc = new T.Scene(), cam = new T.PerspectiveCamera(30, 1, 0.1, 200); cam.position.set(0, 0, 22);
     { const pm = new T.PMREMGenerator(r); sc.environment = pm.fromScene(new RE.RoomEnvironment(), 0.04).texture; pm.dispose(); }
@@ -1237,7 +1237,7 @@ void main(){
     const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex); [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T].forEach((w) => gl.texParameteri(gl.TEXTURE_2D, w, gl.CLAMP_TO_EDGE));
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.uniform1i(U.uW, 0);
     const wc = document.createElement('canvas'), wg = wc.getContext('2d');
-    const draw = () => { const W = innerWidth, H = innerHeight, d = Math.min(1.5, devicePixelRatio || 1); cv.width = W * d | 0; cv.height = H * d | 0; gl.viewport(0, 0, cv.width, cv.height); gl.uniform2f(U.uRes, cv.width, cv.height);
+    const draw = () => { const W = innerWidth, H = innerHeight, d = Math.min(matchMedia('(pointer: coarse)').matches ? 1 : 1.5, devicePixelRatio || 1); cv.width = W * d | 0; cv.height = H * d | 0; gl.viewport(0, 0, cv.width, cv.height); gl.uniform2f(U.uRes, cv.width, cv.height);
       const s2 = sec.querySelector('[data-wb-blurword-text]') || src, fam = s2 ? getComputedStyle(s2).fontFamily || 'Switzer, sans-serif' : 'Switzer, sans-serif', wgt = s2 ? getComputedStyle(s2).fontWeight || '700' : '700', bw = W * +at('w', 0.874) * d;
       wg.font = wgt + ' 400px ' + fam; const mw = wg.measureText(text), ink = mw.actualBoundingBoxAscent + mw.actualBoundingBoxDescent, fs = 400 * bw / Math.max(1, mw.width), th = Math.ceil(ink * fs / 400 + fs * 0.06);
       wc.width = Math.ceil(bw); wc.height = Math.max(2, th); wg.font = wgt + ' ' + fs + 'px ' + fam; wg.fillStyle = '#fff'; wg.textBaseline = 'alphabetic'; wg.clearRect(0, 0, wc.width, wc.height);
@@ -1664,6 +1664,7 @@ const SideRays = ({
       const cssHeight = Math.max(1, rect.height);
       const ratio = Math.min(
         window.devicePixelRatio || 1,
+        matchMedia('(pointer: coarse)').matches ? 0.75 : 9, /* phones: soft light rays need no sharp buffer (canvas memory) */
         s.maxRatio,
         Math.sqrt(PIXEL_BUDGET / (cssWidth * cssHeight))
       );
