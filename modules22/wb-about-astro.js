@@ -170,7 +170,14 @@
     const BIG = +at('scale', 1.35), halfH = () => Math.tan(cam.fov * Math.PI / 360) * (R + 7.6 + 0.4);
     const MS = { x: 0, y: 0, tx: 0, ty: 0 }; addEventListener('pointermove', (e) => { MS.tx = e.clientX / innerWidth * 2 - 1; MS.ty = e.clientY / innerHeight * 2 - 1; }, { passive: true });
     let last = performance.now(), vis = true;
-    const tick = (now) => { RAF(tick); if (!host.isConnected) { r.domElement.remove(); return; } const dt = Math.min(0.05, (now - last) / 1000); last = now; const off = now / 1000 * 0.05, t = now / 1000;
+    const ftSp = document.querySelector('[data-footer-spacer]');
+    const tick = (now) => { RAF(tick); if (!host.isConnected) { r.domElement.remove(); return; }
+      /* the footer brings its own astronaut (wb-ftmoon): this full-screen layer fades out as the footer slides in and stops drawing,
+         so two 3D layers never fight over the footer (that read as flicker) */
+      { const fp = ftSp ? Math.max(0, Math.min(1, 1 - ftSp.getBoundingClientRect().top / innerHeight)) : 0, fo = Math.max(0, 1 - fp / 0.25);
+        if (r.domElement.__fo !== fo) { r.domElement.__fo = fo; r.domElement.style.opacity = fo.toFixed(3); r.domElement.style.visibility = fo > 0 ? '' : 'hidden'; }
+        if (fo <= 0) { last = now; return; } }
+      const dt = Math.min(0.05, (now - last) / 1000); last = now; const off = now / 1000 * 0.05, t = now / 1000;
       GU.uT.value = now / 1000; GU.uRot.value = -off * 0.25;
       { const k = 1 - Math.exp(-dt * 2.2); MS.x += (MS.tx - MS.x) * k; MS.y += (MS.ty - MS.y) * k; }
       gal.rotation.y = MS.x * 0.12; gal.rotation.x = MS.y * 0.06; gal.position.x = MS.x * 0.25; gal.position.y = -MS.y * 0.18;

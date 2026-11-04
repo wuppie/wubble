@@ -835,6 +835,25 @@ void main(){ vec2 uv = gl_FragCoord.xy / uRes; uv.y = 1.0 - uv.y; vec2 pos = uv 
   if (!MO) boot();
 })();
 
+/* Smooth scroll (Lenis) on every page with a mouse. The homepage (r14 base, [data-w="root"]) and project pages (wb-project)
+   start their own Lenis; every other page loaded the library but never started it, so it scrolled natively.
+   Touch devices keep native scrolling (it already feels right there). */
+(() => {
+  if (window.__wbPageLenisBoot) return; window.__wbPageLenisBoot = 1;
+  let tries = 0;
+  const go = () => {
+    if (matchMedia('(pointer: coarse)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (document.querySelector('[data-w="root"], [data-wb-project]') || window.__sliderLenis || window.__wbLenis) return;
+    if (!window.Lenis) { if (++tries < 40) setTimeout(go, 150); return; }
+    const L = new window.Lenis({ lerp: 0.085, smoothWheel: true, wheelMultiplier: 0.8 });
+    window.__wbPageLenis = L;
+    const st = document.createElement('style'); st.textContent = 'html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!important}.lenis.lenis-stopped{overflow:hidden}';
+    document.head.appendChild(st);
+    const raf = (t) => { L.raf(t); (window.__wbRawRAF || requestAnimationFrame)(raf); }; (window.__wbRawRAF || requestAnimationFrame)(raf);
+  };
+  document.readyState === 'loading' ? addEventListener('DOMContentLoaded', go) : go();
+})();
+
 ;
 /* modules22/wb-project.js */
 /* Wubble single project page (Webflow CMS template). Behaviour only, via attributes:
