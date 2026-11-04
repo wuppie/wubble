@@ -1062,13 +1062,14 @@ void main(){
     if (host.__orb) return; host.__orb = 1;
     const at = (k, d) => host.getAttribute('data-' + k) ?? d;
     const [T, GL, RE, MO, SV] = await Promise.all([import(B), import(E + 'loaders/GLTFLoader.js'), import(E + 'environments/RoomEnvironment.js'), import(E + 'libs/meshopt_decoder.module.js'), import(E + 'loaders/SVGLoader.js')]);
-    const r = new T.WebGLRenderer({ antialias: true, alpha: true }); r.setPixelRatio(Math.min(1.75, devicePixelRatio || 1)); r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 1.1; r.setClearColor(0, 0);
+    const COARSE = matchMedia('(pointer: coarse)').matches; /* phones: lighter render (pixel ratio, shadow map), steady size while the address bar moves */
+    const r = new T.WebGLRenderer({ antialias: true, alpha: true }); r.setPixelRatio(Math.min(COARSE ? 1.5 : 1.75, devicePixelRatio || 1)); r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 1.1; r.setClearColor(0, 0);
     r.domElement.addEventListener('webglcontextlost', (e) => e.preventDefault()); r.domElement.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;'; host.appendChild(r.domElement);
     const sc = new T.Scene(), cam = new T.PerspectiveCamera(30, 1, 0.1, 200); cam.position.set(0, 0, 22);
     { const pm = new T.PMREMGenerator(r); sc.environment = pm.fromScene(new RE.RoomEnvironment(), 0.04).texture; pm.dispose(); }
     const ACC = new T.Color(at('accent', '#ffffff')); /* neutral by default (was orange) */
     r.shadowMap.enabled = true; r.shadowMap.type = T.PCFSoftShadowMap;
-    const key = new T.DirectionalLight(0xffffff, 1.8); key.position.set(-6, 9, 14); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.radius = 8; key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
+    const key = new T.DirectionalLight(0xffffff, 1.8); key.position.set(-6, 9, 14); key.castShadow = true; key.shadow.mapSize.setScalar(COARSE ? 1024 : 2048); key.shadow.radius = 8; key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
     Object.assign(key.shadow.camera, { left: -22, right: 22, top: 14, bottom: -14, near: 1, far: 60 }); key.shadow.camera.updateProjectionMatrix();
     const warm = new T.PointLight(ACC, 30, 30, 2); warm.position.set(6, -2, 4); const rim = new T.DirectionalLight(0xffffff, 1.4); rim.position.set(5, 3, -6);
     /* shadow catcher: a wall behind everything that only shows the shadows (page stays white) */
@@ -1105,7 +1106,12 @@ void main(){
         const mesh = new T.Mesh(geo, [body, edge]); mesh.castShadow = true; const grp = new T.Group(); grp.add(mesh); world.add(grp);
         logos.push({ grp, mesh, a: i / slugs.length * Math.PI * 2 + 0.4, ring: i % 3, spin: new T.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).multiplyScalar(0.5), bob: Math.random() * 6 });
       } catch (e) { console.warn('[orbit] logo', slug, e); } }));
-    const size = () => { const w = host.clientWidth || 1, h = host.clientHeight || 1; r.setSize(w, h, false); cam.aspect = w / h; cam.position.z = 22 * Math.max(1, 1.55 / cam.aspect); cam.updateProjectionMatrix(); };
+    /* on phones the fixed host grows and shrinks with the address bar while scrolling: keep the tallest height for the same width
+       (canvas pinned to the top, the extra part sits below the screen) so the scene never rescales mid-scroll */
+    let lw = 0, lh = 0;
+    const size = () => { const w = host.clientWidth || 1; let h = host.clientHeight || 1;
+      if (COARSE) { if (w === lw) { if (h <= lh) return; } lw = w; lh = h; r.domElement.style.height = h + 'px'; }
+      r.setSize(w, h, false); cam.aspect = w / h; cam.position.z = 22 * Math.max(1, 1.55 / cam.aspect); cam.updateProjectionMatrix(); };
     size(); new ResizeObserver(size).observe(host);
     const M = { x: 0, y: 0, tx: 0, ty: 0 }, MI = +at('mouse', 1), SPD = +at('speed', 1);
     addEventListener('pointermove', (e) => { M.tx = e.clientX / innerWidth * 2 - 1; M.ty = e.clientY / innerHeight * 2 - 1; }, { passive: true });
@@ -1114,7 +1120,7 @@ void main(){
     const heroEl = host.closest('section') || host.parentElement, STAY = at('logos-scroll', 'hero'); const wv = new T.Vector3();
     const tick = (now) => { RAF(tick); if (!host.isConnected || !vis) return; const dt = Math.min(0.05, (now - last) / 1000); last = now, t = now / 1000;
       /* logos belong to the hero: they scroll up and out with it (world-space offset = hero scroll distance); the astronaut stays */
-      if (STAY === 'hero') { const hr = heroEl.getBoundingClientRect(), HH = Math.tan(cam.fov * Math.PI / 360) * cam.position.z; world.position.y = -hr.top / innerHeight * 2 * HH; world.visible = hr.bottom > -innerHeight * 0.5; }
+      if (STAY === 'hero') { const hr = heroEl.getBoundingClientRect(), HH = Math.tan(cam.fov * Math.PI / 360) * cam.position.z; world.position.y = -hr.top / (COARSE ? lh : innerHeight) * 2 * HH; /* canvas height, not the address-bar-dependent viewport */ world.visible = hr.bottom > -innerHeight * 0.5; }
       const k = 1 - Math.exp(-dt * 2.4); M.x += (M.tx - M.x) * k; M.y += (M.ty - M.y) * k;
       world.rotation.x = 0.32 + M.y * 0.18 * MI; world.rotation.z = -M.x * 0.08 * MI; world.rotation.y = M.x * 0.25 * MI;
       for (const L of logos) { L.a += dt * 0.12 * SPD; const kk = [1, 0.94, 1.06][L.ring], y = [0, 0.35, -0.3][L.ring];

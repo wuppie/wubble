@@ -17,7 +17,7 @@
 (() => {
   if (window.__wbPixel) return; window.__wbPixel = 1;
   const items = new Map(); /* el -> state */
-  const DPR = Math.min(2, devicePixelRatio || 1);
+  const DPR = Math.min(matchMedia('(pointer: coarse)').matches ? 1.5 : 2, devicePixelRatio || 1); /* phones: lighter canvases, the clean DOM text takes over at the end anyway */
   const hash = (x, y) => { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); };
   const effOp = (e, stop) => { let o = 1; for (; e && e !== stop; e = e.parentElement) { o *= +getComputedStyle(e).opacity; if (o < 0.01) return 0; } return o; }; /* opacity incl. parents (fades, row hover dim) */
   const ss = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
@@ -51,15 +51,23 @@
   const build = (S) => { const was = S.el.hasAttribute('data-wb-pixel-on'); S.el.removeAttribute('data-wb-pixel-on'); const R = raster(S.el); if (was) S.el.setAttribute('data-wb-pixel-on', ''); if (!R) return false; /* read the real colours, not the hidden state */ const big = +(S.el.getAttribute('data-pixel-size') || 24);
     S.R = R; S.L = [coarse(R, big), coarse(R, big / 2), coarse(R, Math.max(2, big / 5))];
     const c = document.createElement('canvas'); c.width = R.W; c.height = R.H; c.setAttribute('aria-hidden', 'true'); c.setAttribute('data-wb-pixel-canvas', '');
-    c.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;z-index:' + (S.el.closest('[data-wb-menu]') ? 160 : 90) + ';width:' + R.w + 'px;height:' + R.h + 'px;'; document.body.appendChild(c); S.c = c; S.g = c.getContext('2d'); S.cell = big; return true; };
+    if (S.inside) { /* lives inside the element: scrolls, glides and fades with it natively (no per-frame chasing of the scroll) */
+      c.style.cssText = 'position:absolute;left:' + -S.el.clientLeft + 'px;top:' + -S.el.clientTop + 'px;pointer-events:none;width:' + R.w + 'px;height:' + R.h + 'px;'; S.el.appendChild(c); }
+    else { c.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;z-index:' + (S.el.closest('[data-wb-menu]') ? 160 : 90) + ';width:' + R.w + 'px;height:' + R.h + 'px;'; document.body.appendChild(c); }
+    S.c = c; S.g = c.getContext('2d'); S.cell = big; return true; };
+  /* the canvas can sit inside the element when that does not change its layout: a block box whose descendants are not absolutely
+     positioned (menu roll copies are, and are measured against an outer box) */
+  const canInside = (el) => { const cs = getComputedStyle(el); if (cs.display.startsWith('inline') || cs.display === 'contents') return false;
+    if ([...el.querySelectorAll('*')].some((d) => getComputedStyle(d).position === 'absolute')) return false;
+    if (cs.position === 'static') el.style.position = 'relative'; return true; };
   const drop = (S) => { if (S.c) { S.c.remove(); S.c = null; } S.R = null; S.L = null; };
 
   /* draw progress t (0 = nothing, 1 = clean): a diagonal flow front with noise; behind it each cell steps coarse → fine → clean */
-  const draw = (S, t) => {
+  const draw = (S, t, b) => {
     if (t >= 0.999) { hide(S, false); drop(S); S.done = true; return; }
     if (t <= 0.001) { hide(S, true); if (S.c) S.g.clearRect(0, 0, S.c.width, S.c.height); return; }
     if (!S.c && !build(S)) return; hide(S, true); S.done = false;
-    const b = S.el.getBoundingClientRect(); S.c.style.transform = 'translate3d(' + b.left.toFixed(1) + 'px,' + b.top.toFixed(1) + 'px,0)'; S.c.style.opacity = effOp(S.el, null).toFixed(3);
+    if (!S.inside) { S.c.style.transform = 'translate3d(' + b.left.toFixed(1) + 'px,' + b.top.toFixed(1) + 'px,0)'; S.c.style.opacity = effOp(S.el, null).toFixed(3); }
     const g = S.g, R = S.R, cs = S.cell * DPR, nx = Math.ceil(R.W / cs), ny = Math.ceil(R.H / cs), SP = 0.55; g.clearRect(0, 0, R.W, R.H);
     for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
       const front = (i / Math.max(1, nx - 1)) * 0.7 + (j / Math.max(1, ny - 1)) * 0.3, nz = hash(i + S.seed, j);
@@ -70,16 +78,21 @@
 
   const add = (el) => { if (items.has(el)) return; const trig = el.getAttribute('data-pixel-trigger') || (el.hasAttribute('data-wb-lines') ? 'inview' : 'inview');
     const S = { el, trig, t: 0, v: 0, play: null, done: false, seen: false, seed: Math.random() * 100, once: el.getAttribute('data-pixel-once') !== 'false', loco: el.hasAttribute('data-pixel-loco'), ly: 0, lo: 0 };
-    items.set(el, S); if (trig !== 'manual') hide(S, true); };
+    S.inside = canInside(el); items.set(el, S); if (trig !== 'manual') hide(S, true); };
   const scan = () => { if (window.WB_PIXEL_ROWS) document.querySelectorAll('[data-wb-row-title]:not([data-wb-pixel])').forEach((t) => { t.setAttribute('data-wb-pixel', ''); if (!t.closest('[data-panel]')) t.setAttribute('data-pixel-loco', ''); }); /* service lists: pixel + glide (not inside the Home pinned panels) */
     document.querySelectorAll('[data-wb-pixel]' + (window.WB_PIXEL_LINES ? ',[data-wb-lines]' : '')).forEach(add); };
   window.wbPixelPlay = (el, delay) => { add(el); const S = items.get(el); S.play = { t0: performance.now() + (delay || 0) * 1000, dur: +(el.getAttribute('data-pixel-duration') || 1.2) * 1000 }; S.t = 0; hide(S, true); };
   window.wbPixelHide = (el) => { const S = items.get(el); if (!S) return; S.play = null; S.t = 0; drop(S); hide(S, true); };
 
   let last = performance.now();
+  const idle = window.requestIdleCallback || ((f) => setTimeout(f, 1));
   const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - last) / 1000); last = now; const vh = innerHeight;
+    /* all layout reads first, then the writes: interleaving them forces a full layout per element on every frame */
+    const rects = new Map(); items.forEach((S, el) => { if (el.isConnected) rects.set(el, el.getBoundingClientRect()); });
     items.forEach((S, el) => { if (!el.isConnected) { drop(S); items.delete(el); return; }
-      const r = el.getBoundingClientRect(), vis = r.bottom > -40 && r.top < vh + 40;
+      const r = rects.get(el), vis = r.bottom > -40 && r.top < vh + 40;
+      /* build the canvases in idle time just before an inview reveal, so its first frame is not a heavy one mid-scroll */
+      if (S.trig === 'inview' && !S.seen && !S.c && !S.queued && r.top < vh * 1.3 && r.bottom > -40) { S.queued = 1; idle(() => { S.queued = 0; if (!S.c && !S.seen && el.isConnected) build(S); }, { timeout: 300 }); }
       /* locomotive in/out: glide up into place on the way in, keep gliding up and fade on the way out */
       if (S.loco) { const c = (r.top + r.height / 2) / vh, inK = ss(1.05, 0.7, c), outK = ss(0.22, -0.1, c), ty = (1 - inK) * 60 - outK * 60, op = Math.min(inK, 1 - outK);
         S.ly += (ty - S.ly) * (1 - Math.exp(-dt * 6)); S.lo += (op - S.lo) * (1 - Math.exp(-dt * 6));
@@ -92,14 +105,15 @@
       else if (S.trig === 'inview') { if (vis && r.top < vh * 0.88 && !S.seen && !window.__wbInkBusy && effOp(el, null) > 0.3) { S.seen = true; window.wbPixelPlay(el, +(el.getAttribute('data-pixel-delay') || 0)); return; }
         if (!S.once && S.seen && (r.top > vh || r.bottom < 0)) { S.seen = false; S.t = 0; drop(S); hide(S, true); } }
       if (S.trig === 'scrub' || S.trig === 'pin') { S.v += (target - S.v) * (1 - Math.exp(-dt * 8)); if (Math.abs(target - S.v) < 0.001) S.v = target; target = S.v; }
-      if (!vis && S.trig !== 'manual') { if (S.c) { drop(S); } return; }
+      if (!vis && S.trig !== 'manual') { if (S.c && (r.top > vh * 1.5 || r.bottom < -vh * 0.5)) drop(S); return; } /* keep a canvas that is about to be used */
       if (S.done && target >= 0.999) return; if (S.trig === 'manual' && !S.play && target <= 0.001 && !S.hid) return;
-      draw(S, target); });
+      draw(S, target, r); });
   };
   const css = document.createElement('style'); css.textContent = '[data-wb-pixel-on]{color:transparent!important;-webkit-text-fill-color:transparent!important}[data-wb-pixel-on] *{color:transparent!important;-webkit-text-fill-color:transparent!important}';
   document.head.appendChild(css);
   const start = () => { scan(); requestAnimationFrame(tick); };
   (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => (document.readyState === 'loading' ? addEventListener('DOMContentLoaded', start) : start()));
   document.addEventListener('wb:swap', () => setTimeout(scan, 60));
-  addEventListener('resize', () => items.forEach((S) => { drop(S); }));
+  /* only a width change re-lays the text out; phones fire resize for the address bar sliding in and out while scrolling */
+  let lastW = innerWidth; addEventListener('resize', () => { if (innerWidth === lastW) return; lastW = innerWidth; items.forEach((S) => { drop(S); }); });
 })();
