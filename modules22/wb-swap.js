@@ -36,6 +36,10 @@
   const loadScript = (s) => new Promise((res) => { const n = document.createElement('script'); [...s.attributes].forEach((a) => n.setAttribute(a.name, a.value)); n.async = false; n.onload = n.onerror = () => res(); document.body.appendChild(n); });
   const reinitWebflow = (wfPage) => { if (wfPage) document.documentElement.setAttribute('data-wf-page', wfPage);
     try { const W = window.Webflow; if (W && W.destroy) { W.destroy(); W.ready && W.ready(); const ix = W.require && W.require('ix2'); ix && ix.init && ix.init(); } } catch (e) { console.warn('[swap] webflow re-init', e); } };
+  /* a page that is thrown away (not kept alive) must give its WebGL contexts back: their loops only stop drawing once detached,
+     so without this every visited page keeps its GPU memory and phones run out after a few pages (the tab crashes).
+     getContext returns the canvas's existing context (null for 2D canvases); losing it frees the GPU side now, three.js then skips rendering. */
+  const releaseGL = (root) => { root.querySelectorAll('canvas').forEach((c) => { try { const gl = c.getContext('webgl2') || c.getContext('webgl'); const x = gl && gl.getExtension('WEBGL_lose_context'); if (x && !gl.isContextLost()) x.loseContext(); c.width = c.height = 1; } catch (e) {} }); };
   const leave = (cur) => { const ns = nsOf(cur), url = location.href;
     document.dispatchEvent(new CustomEvent('wb:leave', { detail: { namespace: ns, url } }));
     if (!keepable(cur)) return null;
@@ -48,7 +52,7 @@
     const k = key(url), back = kept.get(k);
     if (back) { /* keep-alive return: same node, same scroll, loops resume */
       const st = leave(cur); if (st) kept.set(fromKey, st);
-      cur.replaceWith(back.node); kept.delete(k); document.title = back.title;
+      cur.replaceWith(back.node); kept.delete(k); document.title = back.title; if (!st) releaseGL(cur);
       back.layers.forEach((el) => { el.style.display = el.__wbDisp || ''; }); owner = back.ns;
       reinitWebflow(back.wfPage); scrollTo(0, back.y); thaw(back.ns);
       try { window.ScrollTrigger && ScrollTrigger.update(); } catch (e) {}
@@ -58,7 +62,7 @@
     const next = doc.querySelector('[data-wb-container]'); if (!next) throw new Error('no [data-wb-container] on ' + url);
     const st = leave(cur); if (st) kept.set(fromKey, st);
     document.title = doc.title; const imp = document.importNode(next, true); owner = nsOf(imp);
-    cur.replaceWith(imp); scrollTo(0, 0);
+    cur.replaceWith(imp); scrollTo(0, 0); if (!st) releaseGL(cur);
     /* page-level scripts the new page needs that aren't loaded yet (skip Webflow core + jQuery, already present) */
     const have = loaded(), need = [...doc.querySelectorAll('script[src]')].filter((s) => !next.contains(s) && !have.has(s.src) && !/webflow\.|jquery/i.test(s.src));
     for (const s of need) await loadScript(s);
