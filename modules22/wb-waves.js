@@ -649,6 +649,6 @@ function GradientWaves({
     const cv = el.querySelector('canvas'); // the component's CSS file is not loaded, so style its canvas here
     if (cv) { cv.setAttribute('aria-hidden', 'true'); cv.style.cssText = 'position:absolute;inset:0;display:block;width:100%;height:100%;'; }
   };
-  const scan = () => document.querySelectorAll('[data-wb-waves]').forEach(mount);
+  const scan = () => document.querySelectorAll('[data-wb-waves]').forEach((el) => (window.WB_NEAR ? window.WB_NEAR(el, () => mount(el)) : mount(el))); /* starts once near the screen (site head) */
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan); else scan();
 })();

@@ -637,6 +637,6 @@ const Grainient = ({
     queue = [el, canvas];
     Grainient(props);
   };
-  const scan = () => document.querySelectorAll('[data-wb-grainient]').forEach(mount);
+  const scan = () => document.querySelectorAll('[data-wb-grainient]').forEach((el) => (window.WB_NEAR ? window.WB_NEAR(el, () => mount(el)) : mount(el))); /* starts once near the screen (site head) */
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan); else scan();
 })();

@@ -543,6 +543,6 @@ const SoftAurora = ({
     if (typeof props.colors === 'string') props.colors = [props.colors];
     SoftAurora(props);
   };
-  const scan = () => document.querySelectorAll('[data-wb-aurora]').forEach(mount);
+  const scan = () => document.querySelectorAll('[data-wb-aurora]').forEach((el) => (window.WB_NEAR ? window.WB_NEAR(el, () => mount(el)) : mount(el))); /* starts once near the screen (site head) */
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan); else scan();
 })();

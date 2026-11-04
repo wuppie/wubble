@@ -86,7 +86,7 @@ document.documentElement.classList.add('wb-live');
 document.addEventListener('DOMContentLoaded', function () { document.querySelectorAll('[data-wb-length]').forEach(function (el) { var v = parseFloat(el.getAttribute('data-wb-length')); if (v > 0) el.style.setProperty('--wb-len', v + 'vh'); }); });
  console.info('wubble: build V22-webflow r14.62 (2026-11-03)');
 var BASE = (document.currentScript && document.currentScript.dataset.base) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/';
-(function () { try { var B = (document.currentScript && document.currentScript.getAttribute('data-base')) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/'; var lo = matchMedia('(pointer: coarse)').matches || innerWidth < 820 || (navigator.deviceMemory || 8) <= 4, q = lo ? '-1k' : '-2k';
+(function () { try { var B = (document.currentScript && document.currentScript.getAttribute('data-base')) || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/'; var q = '-1k'; /* the 2K set follows after load (wb-astro.js) */
   [['models/astronaut-rig-v2.glb', 'fetch'], ['models/astro-tex-color' + q + '.webp', 'image'], ['models/astro-tex-mr' + q + '.webp', 'image'], ['models/astro-tex-normal' + q + '.webp', 'image']].forEach(function (f) { var l = document.createElement('link'); l.rel = 'preload'; l.as = f[1]; l.href = B + f[0]; l.crossOrigin = 'anonymous'; if (f[1] === 'fetch') l.setAttribute('fetchpriority', 'high'); document.head.appendChild(l); });
   ['https://esm.sh/three@0.186.1', 'https://esm.sh/three@0.186.1/examples/jsm/loaders/GLTFLoader.js', 'https://esm.sh/three@0.186.1/examples/jsm/libs/meshopt_decoder.module.js'].forEach(function (u) { var l = document.createElement('link'); l.rel = 'modulepreload'; l.href = u; l.crossOrigin = 'anonymous'; document.head.appendChild(l); });
   ['https://esm.sh', 'https://cdn.jsdelivr.net'].forEach(function (u) { var l = document.createElement('link'); l.rel = 'preconnect'; l.href = u; l.crossOrigin = 'anonymous'; document.head.appendChild(l); }); } catch (e) {} })(); /* r14.5/14.8: astronaut files + three.js start downloading immediately */
@@ -2082,7 +2082,7 @@ const Grainient = ({
     queue = [el, canvas];
     Grainient(props);
   };
-  const scan = () => document.querySelectorAll('[data-wb-grainient]').forEach(mount);
+  const scan = () => document.querySelectorAll('[data-wb-grainient]').forEach((el) => (window.WB_NEAR ? window.WB_NEAR(el, () => mount(el)) : mount(el))); /* starts once near the screen (site head) */
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan); else scan();
 })();
 
@@ -2320,7 +2320,7 @@ void main(){
       gl.uniform2f(U.uM, mx, my); gl.uniform1f(U.uK, 0.4 + k * 0.6); gl.uniform1f(U.uT, (now - t0) / 1000); gl.drawArrays(gl.TRIANGLES, 0, 3); };
     RAF(tick);
   };
-  let n = 0; const poll = () => { document.querySelectorAll('[data-wb-blurword]').forEach(init); if (++n < 40 && !document.querySelector('[data-wb-blurword]')) setTimeout(poll, 120); };
+  let n = 0; const poll = () => { document.querySelectorAll('[data-wb-blurword]').forEach((el) => (window.WB_NEAR ? window.WB_NEAR(el, () => init(el)) : init(el))); if (++n < 40 && !document.querySelector('[data-wb-blurword]')) setTimeout(poll, 120); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', poll); else poll();
   document.addEventListener('wb:swap', () => { n = 0; poll(); });
 })();
@@ -2369,7 +2369,7 @@ void main(){
       mesh.rotation.set(ty * 0.18 * MOUSE, tx * 0.22 * MOUSE, 0); r.render(sc, cam); };
     RAF(loop);
   };
-  const scan = () => document.querySelectorAll('[data-wb-glasstext]').forEach((h) => init(h).catch((e) => console.warn('[glasstext]', e)));
+  const scan = () => document.querySelectorAll('[data-wb-glasstext]').forEach((h) => { const go = () => init(h).catch((e) => console.warn('[glasstext]', e)); window.WB_NEAR ? window.WB_NEAR(h, go) : go(); });
   const start = () => { scan(); new MutationObserver(() => { clearTimeout(start.t); start.t = setTimeout(scan, 200); }).observe(document.body, { childList: true, subtree: true }); };
   if (document.readyState === 'loading') addEventListener('DOMContentLoaded', start, { once: true }); else start();
 })();
@@ -3027,6 +3027,6 @@ function GradientWaves({
     const cv = el.querySelector('canvas'); // the component's CSS file is not loaded, so style its canvas here
     if (cv) { cv.setAttribute('aria-hidden', 'true'); cv.style.cssText = 'position:absolute;inset:0;display:block;width:100%;height:100%;'; }
   };
-  const scan = () => document.querySelectorAll('[data-wb-waves]').forEach(mount);
+  const scan = () => document.querySelectorAll('[data-wb-waves]').forEach((el) => (window.WB_NEAR ? window.WB_NEAR(el, () => mount(el)) : mount(el))); /* starts once near the screen (site head) */
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan); else scan();
 })();
