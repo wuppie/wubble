@@ -10,11 +10,45 @@ Growth $2,750, most popular, up to 24 hours (everything in Care plus new pages, 
 Partner $4,950, up to 40 hours (everything in Growth plus bespoke page designs, larger redesigns, advanced GSAP and Three.js, complex interactions).
 Hours are a capacity allowance, not a fixed number of pages; unused hours expire at the end of each month; hosting and paid tools are billed separately. Retainer inquiries: the Retainer Inquiry page.
 Website packages (USD, one-time, designed in Figma and built in Webflow): Premium Webflow Website $2,500 (1 custom page), Premium Business Website $4,500 (up to 5 pages, CMS and SEO), Full Premium Experience $7,500 (5 to 8 pages, scroll effects, CMS). All include GSAP animation and 2 revision rounds. Website inquiries: the Website Inquiry page.
+AI Integration & Automation (USD, page: AI Integration & Automation): free AI Snapshot (what ChatGPT and Perplexity say about a business and its 3 biggest competitors);
+AI Visibility Sprint $1,500 launch price for the first 5 clients, then $1,950, one-time (business info and answers AI can quote, Google profile, directories and reviews, a baseline of 20 questions in 4 AI assistants, a re-test after 90 days; guarantee: no measurable improvement after 90 days means free extra work until there is, or 50% back);
+Visibility Care $190 per month after the Sprint; Lead Agent $390 per month plus $1,950 setup, Sprint included (an AI assistant like you, in the client's brand, answering 24/7, qualifying leads, booking calls, leads to WhatsApp within a minute, monthly report);
+Autopilot Plus $590 per month plus $3,900 setup (adds sector pages, a landing page per ad campaign, quarterly strategy call). Monthly plans: minimum 3 months, 2 months free when paying yearly. Never promise that ChatGPT will recommend someone.
 Contact: hello@wubble.studio, or the form on the Contact page.
 Answer visitors' questions about Wubble, its services, plans and how a project works. Keep answers short (2 to 4 sentences), warm and plain. Do not use em dashes.
 Never invent prices, clients, deadlines or promises beyond the facts above; for anything else, invite them to email hello@wubble.studio or use the Contact page.
-Wubble is a one-person studio: speak for it as "I" and never mention a team.
-Politely decline questions unrelated to Wubble or building websites.`;
+Wubble is a one-person studio run by Leroy Wubbels: speak for it as "I" and never mention a team. You are an AI assistant; if asked, say so plainly.
+Politely decline questions unrelated to Wubble or building websites.
+Leads: when a visitor shows real interest (a project, a price question for their situation, wanting a call), ask in one short question for their name and an email address or phone number, and what they need.
+Once you have a name and an email or phone number, call save_lead once, then confirm warmly that Leroy will get back to them within one working day. Never invent contact details and never ask for them twice.`;
+
+/* the lead tool: strict, so the input always matches the schema; every field is a string (empty when unknown) */
+const TOOLS = [{
+  name: 'save_lead', strict: true,
+  description: 'Save a visitor who wants to be contacted and notify Leroy. Call once, only after the visitor gave a name and an email address or phone number.',
+  input_schema: { type: 'object', additionalProperties: false, required: ['name', 'email', 'phone', 'company', 'need', 'budget', 'timeline'], properties: {
+    name: { type: 'string' }, email: { type: 'string' }, phone: { type: 'string' }, company: { type: 'string' },
+    need: { type: 'string', description: 'What they want, in one or two sentences' }, budget: { type: 'string' }, timeline: { type: 'string' } } },
+}];
+
+/* deliver a lead to the owner: email (Resend) and/or WhatsApp (CallMeBot), whichever secrets are set. Returns the channels that worked. */
+const notify = async (env, lead, page) => {
+  const lines = [`New lead from the Wubble chat${page ? ' (' + page + ')' : ''}`, `Name: ${lead.name}`, lead.email && `Email: ${lead.email}`, lead.phone && `Phone: ${lead.phone}`,
+    lead.company && `Company: ${lead.company}`, `Need: ${lead.need}`, lead.budget && `Budget: ${lead.budget}`, lead.timeline && `Timeline: ${lead.timeline}`].filter(Boolean);
+  const text = lines.join('\n'), ok = [], t = (p) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error('timeout')), 8000))]);
+  if (env.RESEND_API_KEY && env.LEAD_EMAIL) try {
+    const r = await t(fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: env.LEAD_FROM || 'Wubble chat <onboarding@resend.dev>', to: [env.LEAD_EMAIL], reply_to: lead.email || undefined, subject: `New lead: ${lead.name}`, text }) }));
+    if (r.ok) ok.push('email'); else console.error('lead email', r.status, await r.text());
+  } catch (e) { console.error('lead email', e.message); }
+  if (env.CALLMEBOT_KEY && env.LEAD_PHONE) try {
+    const r = await t(fetch(`https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(env.LEAD_PHONE)}&apikey=${encodeURIComponent(env.CALLMEBOT_KEY)}&text=${encodeURIComponent(text)}`));
+    if (r.ok) ok.push('whatsapp'); else console.error('lead whatsapp', r.status);
+  } catch (e) { console.error('lead whatsapp', e.message); }
+  if (!ok.length) console.error('lead not delivered (no channel set up or all failed):', text);
+  return ok;
+};
+const clip = (v, n) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
 
 const MAX_TURNS = 12, MAX_CHARS = 2000; // limits per request (this endpoint is public)
 
@@ -46,14 +80,26 @@ export default {
     }
 
     const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+    const system = SYSTEM + (env.BOOKING_URL ? `\nWhen a visitor wants a call, share this booking link so they can pick a time: ${env.BOOKING_URL}` : '\nWhen a visitor wants a call, ask for their details so Leroy can call them.');
+    const page = clip(body.page, 200);
     try {
-      const res = await client.messages.create({
+      const ask = (messages) => client.messages.create({
         model: 'claude-haiku-5-5', // cheapest current model, plenty for short site answers
         max_tokens: 2000, // cost cap per answer on a public endpoint
         output_config: { effort: 'low' }, // short site answers; raise if replies feel thin
-        system: SYSTEM,
-        messages: clean,
+        system, tools: TOOLS, messages,
       });
+      let res = await ask(clean);
+      /* one tool round at most: the bot saved a lead → deliver it, then let it answer the visitor */
+      const call = res.stop_reason === 'tool_use' && res.content.find((b) => b.type === 'tool_use' && b.name === 'save_lead');
+      if (call) {
+        const L = call.input || {}, lead = { name: clip(L.name, 120), email: clip(L.email, 160), phone: clip(L.phone, 40), company: clip(L.company, 120), need: clip(L.need, 600), budget: clip(L.budget, 80), timeline: clip(L.timeline, 80) };
+        const valid = lead.name && (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email) || /\d{6,}/.test(lead.phone.replace(/\D/g, '')));
+        const sent = valid ? await notify(env, lead, page) : [];
+        const result = !valid ? 'Not saved: a name and a valid email address or phone number are needed. Ask the visitor for the missing detail.'
+          : sent.length ? 'Saved and sent to Leroy.' : 'Saved, but the notification failed. Tell the visitor to also email hello@wubble.studio to be sure.';
+        res = await ask([...clean, { role: 'assistant', content: res.content }, { role: 'user', content: [{ type: 'tool_result', tool_use_id: call.id, content: result }] }]);
+      }
       if (res.stop_reason === 'refusal') return json({ reply: "Sorry, I can't help with that one. For anything about a project, email hello@wubble.studio." }, 200, h);
       const reply = res.content.filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
       return json({ reply: reply || 'Sorry, something went wrong. Email me at hello@wubble.studio.' }, 200, h);

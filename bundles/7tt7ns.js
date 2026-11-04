@@ -791,7 +791,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
   if (window.__wbChat) return; window.__wbChat = 1;
   const me = document.currentScript, D = (k, d) => (me && me.getAttribute('data-' + k)) || d;
   const URL_ = D('endpoint', window.WB_CHAT_URL || ''), C = D('color', '#f2f1ee'), INK = D('ink', '#0e0e0d');
-  const ASK = ['Which Webflow plan fits us?', 'What does a new website cost?', 'How does a project start?'];
+  const ASK = ['What does a new website cost?', 'Can AI recommend my business?', 'How does a project start?'];
   const css = `
 .wbc{position:fixed;right:var(--wb-edge,40px);bottom:clamp(20px,4vh,40px);z-index:140;font:500 14px/1.4 'Switzer',Helvetica,Arial,sans-serif}
 @media(max-width:700px){.wbc{right:16px;bottom:16px}}
@@ -824,6 +824,8 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 .wbc-form input{flex:1;min-width:0;padding:12px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:inherit;font:inherit;outline:none}
 .wbc-form input:focus{border-color:rgba(255,255,255,.4)}
 .wbc-form button{width:44px;height:44px;flex:none;border-radius:50%;border:0;background:${C};color:${INK};font-size:18px;cursor:pointer}
+.wbc-m a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.wbc-note{padding:0 16px 10px;font-size:11px;color:rgba(242,241,238,.45);text-align:center}
 @media(prefers-reduced-motion:reduce){.wbc-goo i,.wbc-box{transition:none!important}}`;
   const build = () => {
     const st = document.createElement('style'); st.textContent = css; document.head.append(st);
@@ -832,16 +834,19 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 <div class="wbc-goo" aria-hidden="true"><i></i><i></i><i></i></div>
 <button class="wbc-btn" type="button" aria-expanded="false" aria-controls="wbc-box"><span class="wbc-dot" aria-hidden="true"></span>${D('label', "Let's chat")}</button>
 <section class="wbc-box" id="wbc-box" role="dialog" aria-label="Chat with Wubble">
-  <div class="wbc-head"><div><b>Wubble assistant</b><span>Usually answers in seconds</span></div><button class="wbc-x" type="button" aria-label="Close chat">✕</button></div>
+  <div class="wbc-head"><div><b>Wubble AI assistant</b><span>Answers in seconds, day and night</span></div><button class="wbc-x" type="button" aria-label="Close chat">✕</button></div>
   <div class="wbc-log" aria-live="polite"></div>
   <div class="wbc-sug">${ASK.map((q) => `<button type="button">${q}</button>`).join('')}</div>
   <form class="wbc-form"><input name="q" autocomplete="off" placeholder="Ask anything about Wubble…" aria-label="Your message" maxlength="2000"><button type="submit" aria-label="Send">↑</button></form>
+  <p class="wbc-note">You're chatting with an AI. Wubble doesn't keep your chat.</p>
 </section>`;
     document.body.append(w);
     const btn = w.querySelector('.wbc-btn'), log = w.querySelector('.wbc-log'), form = w.querySelector('form'), input = form.q, sug = w.querySelector('.wbc-sug');
     const history = []; let busy = false;
-    const add = (role, text) => { const m = document.createElement('div'); m.className = 'wbc-m ' + role; m.textContent = text; log.append(m); log.scrollTop = log.scrollHeight; return m; };
-    add('a', "Hi, I'm Wubble's assistant. Ask me about Webflow plans, a new website or how I work. I answer in seconds.");
+    /* text with https links made clickable (built from text nodes, never innerHTML: replies are untrusted) */
+    const fill = (m, text) => { m.textContent = ''; text.split(/(https:\/\/[^\s)]+)/g).forEach((p, i) => { if (i % 2) { const a = document.createElement('a'); a.href = p.replace(/[.,!?]+$/, ''); a.textContent = p; a.target = '_blank'; a.rel = 'noopener'; m.append(a); } else if (p) m.append(p); }); };
+    const add = (role, text) => { const m = document.createElement('div'); m.className = 'wbc-m ' + role; fill(m, text); log.append(m); log.scrollTop = log.scrollHeight; return m; };
+    add('a', "Hi, I'm Wubble's AI assistant. Ask me about a new website, Webflow plans or getting found in ChatGPT. Want to talk to Leroy? I can set that up.");
     const toggle = (on) => { w.classList.toggle('open', on); btn.setAttribute('aria-expanded', on); if (on) setTimeout(() => input.focus(), 250); else btn.focus(); };
     btn.addEventListener('click', () => toggle(!w.classList.contains('open')));
     w.querySelector('.wbc-x').addEventListener('click', () => toggle(false));
@@ -850,9 +855,9 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
       q = q.trim(); if (!q || busy) return; busy = true; sug.remove(); add('u', q); history.push({ role: 'user', content: q }); input.value = '';
       const t = add('a t', '…');
       let reply = 'The chat is not connected yet. Email me at hello@wubble.studio and I reply within one working day.';
-      if (URL_) try { const r = await fetch(URL_, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: history }) });
+      if (URL_) try { const r = await fetch(URL_, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: history, page: location.pathname }) });
         const j = await r.json(); reply = j.reply || reply; } catch (e) { reply = 'Could not reach the assistant. Email me at hello@wubble.studio.'; }
-      t.className = 'wbc-m a'; t.textContent = reply; history.push({ role: 'assistant', content: reply }); log.scrollTop = log.scrollHeight; busy = false;
+      t.className = 'wbc-m a'; fill(t, reply); history.push({ role: 'assistant', content: reply }); log.scrollTop = log.scrollHeight; busy = false;
     };
     form.addEventListener('submit', (e) => { e.preventDefault(); send(input.value); });
     sug.addEventListener('click', (e) => { if (e.target.tagName === 'BUTTON') send(e.target.textContent); });
