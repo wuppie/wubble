@@ -846,7 +846,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
     /* text with https links made clickable (built from text nodes, never innerHTML: replies are untrusted) */
     const fill = (m, text) => { m.textContent = ''; text.split(/(https:\/\/[^\s)]+)/g).forEach((p, i) => { if (i % 2) { const a = document.createElement('a'); a.href = p.replace(/[.,!?]+$/, ''); a.textContent = p; a.target = '_blank'; a.rel = 'noopener'; m.append(a); } else if (p) m.append(p); }); };
     const add = (role, text) => { const m = document.createElement('div'); m.className = 'wbc-m ' + role; fill(m, text); log.append(m); log.scrollTop = log.scrollHeight; return m; };
-    add('a', "Hi, I'm Wubble's AI assistant. Ask me about a new website, Webflow plans or getting found in ChatGPT. Want to talk to Leroy? I can set that up.");
+    add('a', "Hi, I'm Wubble's AI assistant. Ask me about a new website, Webflow plans or getting found in ChatGPT. Want Leroy to get back to you by email? I can arrange that.");
     const toggle = (on) => { w.classList.toggle('open', on); btn.setAttribute('aria-expanded', on); if (on) setTimeout(() => input.focus(), 250); else btn.focus(); };
     btn.addEventListener('click', () => toggle(!w.classList.contains('open')));
     w.querySelector('.wbc-x').addEventListener('click', () => toggle(false));
@@ -860,6 +860,10 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
       t.className = 'wbc-m a'; fill(t, reply); history.push({ role: 'assistant', content: reply }); log.scrollTop = log.scrollHeight; busy = false;
     };
     form.addEventListener('submit', (e) => { e.preventDefault(); send(input.value); });
+    /* any [data-wb-chat-ask="question"] on the page opens the chat and asks it (e.g. the free AI Snapshot button).
+       Capture phase, so page transitions on the same link never fire; without this script the link's own href still works. */
+    document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('[data-wb-chat-ask]'); if (!a) return;
+      e.preventDefault(); e.stopPropagation(); toggle(true); setTimeout(() => send(a.getAttribute('data-wb-chat-ask')), 350); }, true);
     sug.addEventListener('click', (e) => { if (e.target.tagName === 'BUTTON') send(e.target.textContent); });
   };
   if (document.readyState === 'loading') addEventListener('DOMContentLoaded', build, { once: true }); else build();

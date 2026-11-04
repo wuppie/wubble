@@ -57,23 +57,27 @@
    Phones (< 768px) keep the plain layout. Transforms only, eased every frame, so it stays smooth. */
 (() => {
   if (window.__wbStack) return; window.__wbStack = 1;
-  let S = null; const T = { v: 0 };
-  const find = () => { const root = document.querySelector('[data-wb-stack]'); if (!root) return null; const cards = [...root.querySelectorAll('[data-wb-stack-card]')]; return cards.length ? { root, cards, dx: [] } : null; };
-  const measure = () => { if (!S) return; S.cards.forEach((c) => { c.style.transform = ''; c.__st = ''; }); const rs = S.cards.map((c) => c.getBoundingClientRect()), mid = rs.reduce((a, r) => a + r.left + r.width / 2, 0) / rs.length; S.dx = rs.map((r) => mid - (r.left + r.width / 2)); };
-  const reset = () => { if (!S) return; S.cards.forEach((c) => { c.style.transform = ''; c.style.zIndex = ''; c.__st = ''; }); };
-  const boot = () => { reset(); S = find(); T.v = 0; if (S) measure(); };
-  addEventListener('resize', () => { if (S) measure(); });
+  /* every [data-wb-stack] on the page is its own group (plans, packages, ...) with its own progress */
+  let G = [];
+  const find = () => [...document.querySelectorAll('[data-wb-stack]')].map((root) => ({ root, cards: [...root.querySelectorAll('[data-wb-stack-card]')], dx: [], v: 0 })).filter((S) => S.cards.length);
+  const measure1 = (S) => { S.cards.forEach((c) => { c.style.transform = ''; c.__st = ''; }); const rs = S.cards.map((c) => c.getBoundingClientRect()), mid = rs.reduce((a, r) => a + r.left + r.width / 2, 0) / rs.length; S.dx = rs.map((r) => mid - (r.left + r.width / 2)); };
+  const reset1 = (S) => S.cards.forEach((c) => { c.style.transform = ''; c.style.zIndex = ''; c.__st = ''; });
+  const measure = () => G.forEach(measure1);
+  const boot = () => { G.forEach(reset1); G = find(); measure(); };
+  addEventListener('resize', measure);
   document.addEventListener('wb:swap', boot);
   let last = performance.now();
-  const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - last) / 1000); last = now; if (!S || !S.root.isConnected) return;
-    if (innerWidth < 768) { if (S.on) { S.on = false; reset(); } return; } if (!S.on) { S.on = true; measure(); }
-    const r = S.root.getBoundingClientRect(), row = S.cards[0].parentElement, st = parseFloat(getComputedStyle(row).top) || 0, pv = row.previousElementSibling, oy = pv ? pv.getBoundingClientRect().bottom - r.top + (parseFloat(getComputedStyle(S.root).rowGap) || 0) : 0, /* the row's own offsetTop includes its sticky shift */ travel = Math.max(1, r.height - oy - row.offsetHeight);
+  const step = (S, dt) => {
+    if (innerWidth < 768) { if (S.on) { S.on = false; reset1(S); } return; } if (!S.on) { S.on = true; measure1(S); }
+    const r = S.root.getBoundingClientRect(); if (r.bottom < -innerHeight || r.top > innerHeight * 2) return; /* far off screen: nothing to animate */
+    const row = S.cards[0].parentElement, st = parseFloat(getComputedStyle(row).top) || 0, pv = row.previousElementSibling, oy = pv ? pv.getBoundingClientRect().bottom - r.top + (parseFloat(getComputedStyle(S.root).rowGap) || 0) : 0, /* the row's own offsetTop includes its sticky shift */ travel = Math.max(1, r.height - oy - row.offsetHeight);
     const p = Math.max(0, Math.min(1, (st - oy - r.top + innerHeight * 0.1) / (travel * 0.9))); /* spread runs while the row is pinned and finishes just before the pin releases */
-    T.v += (p - T.v) * (1 - Math.exp(-dt * 7)); if (Math.abs(p - T.v) < 0.0005) T.v = p;
-    const e = T.v < 0.5 ? 4 * T.v * T.v * T.v : 1 - Math.pow(-2 * T.v + 2, 3) / 2, k = 1 - e, n = S.cards.length, c0 = (n - 1) / 2;
+    S.v += (p - S.v) * (1 - Math.exp(-dt * 7)); if (Math.abs(p - S.v) < 0.0005) S.v = p;
+    const e = S.v < 0.5 ? 4 * S.v * S.v * S.v : 1 - Math.pow(-2 * S.v + 2, 3) / 2, k = 1 - e, n = S.cards.length, c0 = (n - 1) / 2;
     S.cards.forEach((c, i) => { const o = i - c0, d = Math.abs(o);
       const tf = k < 0.0005 ? '' : 'translate3d(' + (S.dx[i] * k).toFixed(1) + 'px,' + (d * 18 * k).toFixed(1) + 'px,0) rotate(' + (o * 4 * k).toFixed(2) + 'deg) scale(' + (1 - 0.05 * d * k).toFixed(4) + ')';
       if (c.__st !== tf) { c.__st = tf; c.style.transform = tf; c.style.zIndex = tf ? String(10 - Math.round(d)) : ''; } /* only on change: spread cards keep their hover tilt (data-wb-reflect) */ }); };
-  const start = () => { boot(); requestAnimationFrame(tick); if (document.fonts) document.fonts.ready.then(() => { if (S) measure(); }); };
+  const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - last) / 1000); last = now; G.forEach((S) => { if (S.root.isConnected) step(S, dt); }); };
+  const start = () => { boot(); requestAnimationFrame(tick); if (document.fonts) document.fonts.ready.then(measure); };
   document.readyState === 'loading' ? addEventListener('DOMContentLoaded', start) : start();
 })();
