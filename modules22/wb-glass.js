@@ -22,7 +22,7 @@ window.WBGlass = (T, sc, r, at) => {
   let wAsp = 0; const dir = new T.Vector3(), DEPTH = +at('glass-word-depth', 2.5);
   /* glass-live="<canvas selector>": that canvas (e.g. the homepage work helix) is drawn over the backdrop each frame, faded by window[glass-live-var], so the glass refracts it */
   const LIVE = matchMedia('(pointer: coarse)').matches ? '' : at('glass-live', '') /* phones: no live copy of another canvas (GPU memory) */, LVAR = at('glass-live-var', ''); let base = null, liveOn = false;
-  const paint = (asp) => { wAsp = asp; const CW = LIVE || matchMedia('(pointer: coarse)').matches ? 1024 : 2048; wc.width = CW; wc.height = Math.round(CW / asp);
+  const paint = (asp) => { wAsp = asp; const CW = matchMedia('(pointer: coarse)').matches ? 512 : LIVE ? 1024 : 2048; /* phones: the blurred backdrop needs no big texture */ wc.width = CW; wc.height = Math.round(CW / asp);
     const bgs = at('glass-word-bg', '#060607').split(','), W = wc.width, H = wc.height;
     if (bgs.length > 1) { const a = T.MathUtils.degToRad(+at('glass-word-angle', 55)), dx = Math.sin(a), dy = -Math.cos(a), half = (Math.abs(dx) * W + Math.abs(dy) * H) / 2;
       const gr = wx.createLinearGradient(W / 2 - dx * half, H / 2 - dy * half, W / 2 + dx * half, H / 2 + dy * half); bgs.forEach((c, i) => gr.addColorStop(i / (bgs.length - 1), c.trim())); wx.fillStyle = gr; }
