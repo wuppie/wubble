@@ -4521,6 +4521,7 @@ Object.assign(window.WBM, {
       if (op < 0.003 || !r || r.getContext().isContextLost() || !r.domElement.width || !r.domElement.height) { lastRP = rp; if (wasOn) { for (const l of L) l.g2.clearRect(0, 0, l.c.width, l.c.height); wasOn = false; } return; } wasOn = true;
       pos = (pos + dt * 30 * (P.speed ?? 1) + (window.__wbAscend ? 0 : Math.max(0, rp - lastRP) * 1400)) % 8000; lastRP = rp;
       cam.position.x += (mx - cam.position.x) * 0.01; const ty = window.__wbAscend ? -300 + sm(0, (P.hs ?? 0.04) + (P.hw ?? 0.16), rp) * 520 - my * 0.3 : -my; cam.position.y += (ty - cam.position.y) * (window.__wbAscend ? 0.12 : 0.01); cam.position.z = -pos + 8000;
+      if (window.WB_GL_OK && !window.WB_GL_OK(r.getContext())) return; /* no graphics chip: the 3D frame is frozen (site head), so skip the two full-screen copies too */
       for (const l of L) { l.U.fogColor.value.set(P.fog || '#ffffff'); l.U.uSplit.value = P.split ?? 200; l.U.uOp.value = l === L[1] ? (P.front ?? 0.4) : 1; r.render(l.sc, cam); l.g2.clearRect(0, 0, l.c.width, l.c.height); l.g2.drawImage(r.domElement, 0, 0); } };
     tick();
   };
