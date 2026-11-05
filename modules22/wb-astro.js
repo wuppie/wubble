@@ -870,7 +870,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
             const FQ = this._flQ || (this._flQ = { x: new T3.Quaternion().setFromAxisAngle(new T3.Vector3(1, 0, 0), -Math.PI / 2), z: new T3.Quaternion(), ax: new T3.Vector3(0, 0, 1) });
             FQ.z.setFromAxisAngle(FQ.ax, -ph); FLOOR.quaternion.copy(FQ.z).multiply(FQ.x); FLOOR.material.opacity *= 1 - 0.5 * Math.min(1, Math.abs(ph) * 3); }
           else FLOOR.rotation.set(-Math.PI / 2, 0, 0); } }
-      if (vis) { if (dOn && LOOK() !== 'Hologram') { const w = r.domElement.width, h = r.domElement.height; if (art.width !== w || art.height !== h) art.setSize(w, h); r.setRenderTarget(art); r.setClearColor(0x000000, 0); r.clear(); r.render(sc, cam); r.setRenderTarget(null); r.clear(); r.render(qS, qC); } else r.render(sc, cam); }
+      if (vis) { if (dOn && LOOK() !== 'Hologram') { const w = r.domElement.width, h = r.domElement.height; if (art.width !== w || art.height !== h) art.setSize(w, h); r.setRenderTarget(art); if (!window.WB_READY || window.WB_READY(r, sc, cam)) { r.setClearColor(0x000000, 0); r.clear(); r.render(sc, cam); r.setRenderTarget(null); r.clear(); r.render(qS, qC); } else r.setRenderTarget(null); } else if (!window.WB_READY || window.WB_READY(r, sc, cam)) r.render(sc, cam); } /* WB_READY (site head): new shaders compile in the background; the last frame stays up meanwhile */
       { const TM = this._term, SR = this._scrRect;
         if (!this._tp && TM && TM.__tc && SR && this._robot && (this.props.termOn3D ?? true)) {
           const tx = new T3.CanvasTexture(TM.__tc); tx.colorSpace = T3.SRGBColorSpace; tx.minFilter = T3.LinearFilter; tx.generateMipmaps = false;

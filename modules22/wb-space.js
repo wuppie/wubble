@@ -46,9 +46,10 @@
       if (starK > 0.01) for (const s of S) { const z0 = s.z; s.z -= dt * spd * (vel >= 0 ? 1 : -1); if (s.z <= 0.02) { s.z += 1; s.x = Math.random() * 2 - 1; s.y = Math.random() * 2 - 1; } else if (s.z > 1) s.z -= 1;
         const px = cx + s.x / s.z * f * 0.5, py = cy + s.y / s.z * f * 0.5; if (px < -50 || px > W + 50 || py < -50 || py > H + 50) continue;
         const a = Math.min(1, (1 - s.z) * 1.4) * s.b * starK, rad = Math.max(0.4, (1 - s.z) * 1.8);
-        g.strokeStyle = g.fillStyle = s.c ? 'rgba(210,210,215,' + a + ')' : 'rgba(255,255,255,' + a + ')';
+        if (g.__c !== s.c) { g.__c = s.c; g.strokeStyle = g.fillStyle = s.c ? 'rgb(210,210,215)' : '#fff'; } g.globalAlpha = a;
         if (warp > 0.05) { const zt = Math.min(1, z0 + dt * spd * 6 * warp), qx = cx + s.x / zt * f * 0.5, qy = cy + s.y / zt * f * 0.5; g.lineWidth = rad; g.beginPath(); g.moveTo(qx, qy); g.lineTo(px, py); g.stroke(); }
-        else { g.beginPath(); g.arc(px, py, rad, 0, 6.283); g.fill(); } }
+        else if (rad < 1.1) g.fillRect(px - rad, py - rad, rad * 2, rad * 2); else { g.beginPath(); g.arc(px, py, rad, 0, 6.283); g.fill(); } }
+      g.globalAlpha = 1; g.__c = -1;
       if (fc) { if (fc.width !== cv.width || fc.height !== cv.height) { fc.width = cv.width; fc.height = cv.height; } fc.__g.drawImage(cv, 0, 0); }
       { const SV = window.__wbSvc || (window.__wbSvc = document.querySelector('[data-svc]')); if (SV) { const hs = P.hs ?? 0.04, k = sm(hs, hs + (P.hw ?? 0.16) * 0.8, rp), ie = k * k;
           const v = ie < 0.001 ? '' : 'translate3d(0,' + (-ie * 14).toFixed(2) + 'vh,0)'; if (SV.style.transform !== v) { SV.style.transform = v; SV.style.opacity = ie < 0.001 ? '' : (1 - k).toFixed(3); SV.style.filter = ie < 0.001 ? '' : 'blur(' + (k * 10).toFixed(1) + 'px)'; SV.style.pointerEvents = k > 0.5 ? 'none' : ''; } } }

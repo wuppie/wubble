@@ -2248,7 +2248,7 @@ const Grainient = ({
       
       cam.position.set(0, 0.35 + EX * 1.2, R + 7.6 + EX * EX * 9); /* pull back, never into a single card */ cam.lookAt(0, 0, 0);
       if (!r.domElement.isConnected) { const s2 = document.querySelector('[data-wb-work-stage]'); if (s2) s2.appendChild(r.domElement); } /* the page re-rendered its stage (DC/Webflow re-mount): re-attach the canvas */
-      if (!(window.__wbInkBusy && window.__wbInkCov > 0.45 && !window.__wbWorkWarm)) { r.render(sc, cam); window.__wbWorkFrames = (window.__wbWorkFrames || 0) + 1; } };
+      if (!(window.__wbInkBusy && window.__wbInkCov > 0.45 && !window.__wbWorkWarm) && (!window.WB_READY || window.WB_READY(r, sc, cam))) { r.render(sc, cam); window.__wbWorkFrames = (window.__wbWorkFrames || 0) + 1; } };
     applyFilter(); requestAnimationFrame(tick); window.__wbWorkReady = 1;
   };
   boot().catch((e) => console.warn('[work] failed', e));
