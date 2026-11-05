@@ -16,9 +16,9 @@
     const items = [...sec.querySelectorAll('[data-tube-item], figure')].filter((f, i, a) => !a.some((o) => o !== f && o.contains(f)));
     if (!items.length) return;
     const label = (f) => { const c = f.querySelector('figcaption'); return c ? (c.firstChild && c.firstChild.nodeType === 3 ? c.firstChild.textContent : c.textContent).trim() : ''; };
-    /* the 3D layer sticks to the screen while the section scrolls by; the grid stays in the page (SEO, layout height) but is hidden */
+    /* the 3D layer covers the whole screen and fades in/out as the section enters/leaves (a sticky layer cut the photos off in a hard line at its top/bottom edge); the grid stays in the page (SEO, layout height) but is hidden */
     const stage = document.createElement('div'); stage.setAttribute('aria-hidden', 'true');
-    stage.style.cssText = 'position:sticky;top:0;height:100vh;width:100%;margin-bottom:-100vh;z-index:2;pointer-events:none;';
+    stage.style.cssText = 'position:fixed;left:0;top:0;height:100vh;width:100%;z-index:2;pointer-events:none;opacity:0;visibility:hidden;';
     sec.prepend(stage); [...sec.children].forEach((c) => { if (c !== stage) c.style.visibility = 'hidden'; });
     const r = new T.WebGLRenderer({ antialias: true, alpha: true }); r.setPixelRatio(Math.min(2, devicePixelRatio || 1)); r.setClearColor(0, 0); r.outputColorSpace = T.SRGBColorSpace;
     r.domElement.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:auto;'; stage.appendChild(r.domElement);
@@ -59,6 +59,8 @@
     const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - last) / 1000); last = now;
       const dy = scrollY - lastY; lastY = scrollY; if (!on) return;
       const b = sec.getBoundingClientRect(), p = Math.max(0, Math.min(1, -b.top / Math.max(1, b.height - innerHeight)));
+      { const k = Math.max(0, Math.min(1, (innerHeight - b.top) / (innerHeight * 0.6), b.bottom / (innerHeight * 0.6))), e = k * k * (3 - 2 * k), o = e.toFixed(3); /* fade with how far the section is on screen */
+        if (stage.__o !== o) { stage.__o = o; stage.style.opacity = o; stage.style.visibility = e > 0 ? '' : 'hidden'; r.domElement.style.pointerEvents = e > 0.6 ? 'auto' : 'none'; } if (e <= 0) return; }
       tgt = p * LOOP; vel += dy * 0.004; if (dy) dir = dy < 0 ? -1 : 1;
       cur += (tgt - cur) * 0.12; vel *= Math.pow(0.92, dt * 60); vel = Math.max(-2, Math.min(2, vel)); slow += (slowT - slow) * 0.12;
       angle += (dir * 0.25 + vel) * dt * slow; tube.position.y = cur - LOOP / 2;
