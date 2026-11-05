@@ -11,6 +11,8 @@
   if (window.__wbWork) return; window.__wbWork = 1;
   const B = 'https://esm.sh/three@0.186.1', /* 0.170: glass dispersion */ E = B + '/examples/jsm/';
   const wait = () => new Promise((r) => { const f = () => (document.querySelector('[data-wb-work-stage]') ? r() : setTimeout(f, 60)); f(); });
+  /* phones, homepage: the helix only shows ~5 screens down, so its 3D setup waits for the first touch/scroll instead of loading with the page (keeps the load light) */
+  const firstTouch = () => (matchMedia('(pointer: coarse)').matches && document.querySelector('.home_page-wrapper')) ? new Promise((r) => { const go = () => { ['touchstart', 'scroll', 'pointerdown', 'keydown'].forEach((e) => removeEventListener(e, go, true)); r(); }; ['touchstart', 'scroll', 'pointerdown', 'keydown'].forEach((e) => addEventListener(e, go, { capture: true, passive: true })); if (scrollY > 0) go(); }) : Promise.resolve();
   const ss = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
 
   /* card art: identical to the homepage ribbon covers (wb-ribbon drawCover, noTitle) */
@@ -45,7 +47,7 @@
       float ba = 1.0; if (!gl_FrontFacing) { s = col * 0.16 + vec3(0.012); ba = 0.42; } /* back of the ribbon: dim mirrored cover, see-through */
       s *= mix(0.2, 1.0, 1.0 - uDim); float al = a * uOp * ba, hz = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715)))); if (al < 0.98 && al <= hz) discard; gl_FragColor = vec4(s, 1.0); } /* opaque + dithered fade: sorts correctly with the glass astronaut and gets refracted by it */`;
   const boot = async () => {
-    await wait(); try { for (let k = 0; k < 40 && !document.fonts.check('700 200px Switzer'); k++) { try { await document.fonts.load('700 200px Switzer'); } catch (e) {} if (!document.fonts.check('700 200px Switzer')) await new Promise((r) => setTimeout(r, 100)); } } catch (e) {}
+    await wait(); await firstTouch(); try { for (let k = 0; k < 40 && !document.fonts.check('700 200px Switzer'); k++) { try { await document.fonts.load('700 200px Switzer'); } catch (e) {} if (!document.fonts.check('700 200px Switzer')) await new Promise((r) => setTimeout(r, 100)); } } catch (e) {}
     const root = document.querySelector('[data-wb-work]') || document.body, stage = document.querySelector('[data-wb-work-stage]');
     const itemEls = document.querySelectorAll('[data-wb-work-item]').length ? document.querySelectorAll('[data-wb-work-item]') : document.querySelectorAll('[data-wubble="project"]');
     const all = [...itemEls].map((el) => ({ el, title: el.dataset.title || el.textContent.trim(), type: el.dataset.type || el.dataset.services || '', cat: (el.dataset.cat || '').toLowerCase(), href: el.dataset.href || el.getAttribute('href') || (el.dataset.slug ? (window.WB_PROJECT_BASE || '/work/') + el.dataset.slug : ''), bg: el.dataset.bg, ink: el.dataset.ink, accent: el.dataset.accent || el.dataset.ink, mark: el.dataset.mark, cover: (el.querySelector('img[data-cover], img[data-wubble="cover"]') || {}).src || el.dataset.cover || '' }));
