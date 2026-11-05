@@ -84,7 +84,7 @@
       const row = (hidden) => { const r = document.createElement('span'); r.setAttribute('aria-hidden', 'true'); r.style.display = 'block'; r.style.whiteSpace = 'nowrap';
         if (hidden) { r.style.position = 'absolute'; r.style.left = '0'; r.style.top = '0'; }
         Array.from(txt).forEach((ch) => { const c = document.createElement('span'); c.style.display = 'inline-block'; c.textContent = ch === ' ' ? ' ' : ch; r.appendChild(c); }); return r; };
-      const A = row(false), B = row(true); s.textContent = ''; s.style.position = 'relative'; s.append(A, B);
+      const A = row(false), B = row(true); s.textContent = ''; s.style.position = 'relative'; s.style.display = 'block'; /* block: Safari places the copy's top:0 against an inline wrapper one line too low, so it never rolled into view */ s.append(A, B);
       /* the copy waits 125% below (glyphs are taller than the tight line-height, so 100% would peek out of the mask) */
       const la = A.children, lb = B.children; G.set(lb, { yPercent: 125 });
       const go = (up) => { G.to(la, { yPercent: up ? -125 : 0, duration: 0.75, stagger: 0.018, ease: 'expo.out', overwrite: true }); G.to(lb, { yPercent: up ? 0 : 125, duration: 0.75, stagger: 0.018, ease: 'expo.out', overwrite: true }); };
