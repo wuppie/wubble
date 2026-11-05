@@ -80,7 +80,8 @@ function wbEnsure(root) {
   var missing = ['data-hero-front', 'data-about-title', 'data-avail', 'data-fl-word', 'data-ft-bottom', 'data-footer-spacer', 'data-about', 'data-about-glass'].filter(function (a) { return !document.querySelector('[' + a + ']'); });
   if (missing.length) console.warn('wubble r14: add these attributes in Webflow for the full effect →', missing.join(', '));
 }
-if (!window.__wubbleViewerPreloaded) loadScript(BASE + 'dither-viewer.js' + VQ, true);
+/* the dither portrait viewer only loads when the hero portrait or the reach hand asks for it (both off on the current site) */
+window.__wbLoadDither = function () { if (window.__wubbleViewerPreloaded || window.__wbDitherReq) return; window.__wbDitherReq = 1; loadScript(BASE + 'dither-viewer.js' + VQ, true); };
 // ---------- hooks: data-w="name" → data-wh (V13 uses empty data-w for word reveals) ----------
 function prepHooks(scope) { scope.querySelectorAll('[data-w]').forEach(function (el) { var v = el.getAttribute('data-w'); if (v) { el.setAttribute('data-wh', v); el.removeAttribute('data-w'); } }); }
 function boot() {
