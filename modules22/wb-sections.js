@@ -457,7 +457,7 @@ Object.assign(window.WBM, {
     const loadHand = async () => {
       handLoading = true;
       try {
-        const mod = (window.DitherViewer || await new Promise((res) => { const t = setInterval(() => { if (window.DitherViewer) { clearInterval(t); res(window.DitherViewer); } }, 50); }));
+        const REACH = !!(this.props.reachSection ?? false); if (REACH && window.__wbLoadDither) window.__wbLoadDither(); const mod = !REACH ? null : (window.DitherViewer || await new Promise((res) => { const t = setInterval(() => { if (window.DitherViewer) { clearInterval(t); res(window.DitherViewer); } }, 50); }));
         if (this.dead) return;
         const url = (this.props.handModel || '').trim() || window.WB_HAND_MODEL || ((window.WB_ASSETS || 'https://cdn.jsdelivr.net/gh/wuppie/wubble@main/') + 'shaka.glb'); const SHAKA = /shaka/i.test(url);
         this._handBase = SHAKA ? [this.props.handRotX ?? 0, this.props.handRotY ?? 0, this.props.handRotZ ?? 0] : [-1.15, 0.5, -0.55 + (this.props.handFlip ?? Math.PI)];
@@ -1001,7 +1001,7 @@ Object.assign(window.WBM, {
     this.portraitLoading = true;
     while (el.firstChild) el.removeChild(el.firstChild);
     try {
-      const mod = (window.DitherViewer || await new Promise((res) => { const t = setInterval(() => { if (window.DitherViewer) { clearInterval(t); res(window.DitherViewer); } }, 50); }));
+      window.__wbLoadDither && window.__wbLoadDither(); const mod = (window.DitherViewer || await new Promise((res) => { const t = setInterval(() => { if (window.DitherViewer) { clearInterval(t); res(window.DitherViewer); } }, 50); }));
       if (this.dead) return;
       this.portrait = await mod.createPortrait(el, { model: (this.props.hero3Model || '').trim() || 'https://raw.githubusercontent.com/wuppie/wubble/main/anime_style_80s_computer.glb', eyes: null, neck: -0.9, fit: (innerWidth < 820 ? 0.92 : 0.78) / Math.max(0.2, this.props.hero3Size ?? 1.2), maxPR: this.lowPower ? 0.9 : 2, shadowSize: this.lowPower ? 512 : 2048, textureAmount: 0.35, light: 'top', clay: { color: 0x5e5650, roughness: 0.82, sheen: 0.6, sheenColor: 0xc2b19e }, post: { dither: 1, grid: 2, grain: 0.03, saturation: 0.3, contrast: 0.3, bloom: 0.05, vignette: 0.9, stipple: 0, tint: 0.6, exposure: 0.2 } });
       if (this.dead) { this.portrait.renderer.setAnimationLoop(null); return; }
