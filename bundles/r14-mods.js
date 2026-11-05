@@ -883,7 +883,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
             const FQ = this._flQ || (this._flQ = { x: new T3.Quaternion().setFromAxisAngle(new T3.Vector3(1, 0, 0), -Math.PI / 2), z: new T3.Quaternion(), ax: new T3.Vector3(0, 0, 1) });
             FQ.z.setFromAxisAngle(FQ.ax, -ph); FLOOR.quaternion.copy(FQ.z).multiply(FQ.x); FLOOR.material.opacity *= 1 - 0.5 * Math.min(1, Math.abs(ph) * 3); }
           else FLOOR.rotation.set(-Math.PI / 2, 0, 0); } }
-      if (vis) { if (dOn && LOOK() !== 'Hologram') { const w = r.domElement.width, h = r.domElement.height; if (art.width !== w || art.height !== h) art.setSize(w, h); r.setRenderTarget(art); r.setClearColor(0x000000, 0); r.clear(); r.render(sc, cam); r.setRenderTarget(null); r.clear(); r.render(qS, qC); } else r.render(sc, cam); }
+      if (vis) { if (dOn && LOOK() !== 'Hologram') { const w = r.domElement.width, h = r.domElement.height; if (art.width !== w || art.height !== h) art.setSize(w, h); r.setRenderTarget(art); if (!window.WB_READY || window.WB_READY(r, sc, cam)) { r.setClearColor(0x000000, 0); r.clear(); r.render(sc, cam); r.setRenderTarget(null); r.clear(); r.render(qS, qC); } else r.setRenderTarget(null); } else if (!window.WB_READY || window.WB_READY(r, sc, cam)) r.render(sc, cam); } /* WB_READY (site head): new shaders compile in the background; the last frame stays up meanwhile */
       { const TM = this._term, SR = this._scrRect;
         if (!this._tp && TM && TM.__tc && SR && this._robot && (this.props.termOn3D ?? true)) {
           const tx = new T3.CanvasTexture(TM.__tc); tx.colorSpace = T3.SRGBColorSpace; tx.minFilter = T3.LinearFilter; tx.generateMipmaps = false;
@@ -2027,7 +2027,7 @@ Object.assign(window.WBM, {
         if (renderer.compileAsync && pass === 0) { renderer.compileAsync(scene, camera).catch(() => {}); }
         else renderer.compile(scene, camera);
         scene.traverse((o) => { const m = o.material; if (m) [].concat(m).forEach((mm) => { for (const k in mm) { const t = mm[k]; if (t && t.isTexture && t.image) renderer.initTexture(t); } if (mm.uniforms) for (const k in mm.uniforms) { const t = mm.uniforms[k].value; if (t && t.isTexture && t.image) renderer.initTexture(t); } }); });
-        const rt = this._warmRT || (this._warmRT = new THREE.WebGLRenderTarget(8, 8)); renderer.setRenderTarget(rt); renderer.render(scene, camera); renderer.setRenderTarget(null);
+        if (pass > 0) { const rt = this._warmRT || (this._warmRT = new THREE.WebGLRenderTarget(8, 8)); renderer.setRenderTarget(rt); renderer.render(scene, camera); renderer.setRenderTarget(null); } /* pass 0: rendering right after compileAsync would force the compile to finish now and freeze the page */
         hid.forEach((o) => { o.visible = false; });
       } catch (e) { console.warn('[slider] warm-up', e); } };
       const idle = (f, t) => (window.requestIdleCallback ? requestIdleCallback(f, { timeout: t }) : setTimeout(f, t));
@@ -4467,9 +4467,10 @@ Object.assign(window.WBM, {
       if (starK > 0.01) for (const s of S) { const z0 = s.z; s.z -= dt * spd * (vel >= 0 ? 1 : -1); if (s.z <= 0.02) { s.z += 1; s.x = Math.random() * 2 - 1; s.y = Math.random() * 2 - 1; } else if (s.z > 1) s.z -= 1;
         const px = cx + s.x / s.z * f * 0.5, py = cy + s.y / s.z * f * 0.5; if (px < -50 || px > W + 50 || py < -50 || py > H + 50) continue;
         const a = Math.min(1, (1 - s.z) * 1.4) * s.b * starK, rad = Math.max(0.4, (1 - s.z) * 1.8);
-        g.strokeStyle = g.fillStyle = s.c ? 'rgba(210,210,215,' + a + ')' : 'rgba(255,255,255,' + a + ')';
+        if (g.__c !== s.c) { g.__c = s.c; g.strokeStyle = g.fillStyle = s.c ? 'rgb(210,210,215)' : '#fff'; } g.globalAlpha = a;
         if (warp > 0.05) { const zt = Math.min(1, z0 + dt * spd * 6 * warp), qx = cx + s.x / zt * f * 0.5, qy = cy + s.y / zt * f * 0.5; g.lineWidth = rad; g.beginPath(); g.moveTo(qx, qy); g.lineTo(px, py); g.stroke(); }
-        else { g.beginPath(); g.arc(px, py, rad, 0, 6.283); g.fill(); } }
+        else if (rad < 1.1) g.fillRect(px - rad, py - rad, rad * 2, rad * 2); else { g.beginPath(); g.arc(px, py, rad, 0, 6.283); g.fill(); } }
+      g.globalAlpha = 1; g.__c = -1;
       if (fc) { if (fc.width !== cv.width || fc.height !== cv.height) { fc.width = cv.width; fc.height = cv.height; } fc.__g.drawImage(cv, 0, 0); }
       { const SV = window.__wbSvc || (window.__wbSvc = document.querySelector('[data-svc]')); if (SV) { const hs = P.hs ?? 0.04, k = sm(hs, hs + (P.hw ?? 0.16) * 0.8, rp), ie = k * k;
           const v = ie < 0.001 ? '' : 'translate3d(0,' + (-ie * 14).toFixed(2) + 'vh,0)'; if (SV.style.transform !== v) { SV.style.transform = v; SV.style.opacity = ie < 0.001 ? '' : (1 - k).toFixed(3); SV.style.filter = ie < 0.001 ? '' : 'blur(' + (k * 10).toFixed(1) + 'px)'; SV.style.pointerEvents = k > 0.5 ? 'none' : ''; } } }
@@ -4649,7 +4650,7 @@ Object.assign(window.WBM, {
     pre.style.cssText = 'position:absolute;left:0;top:0;margin:0;padding:0;pointer-events:none;white-space:pre;font-family:ui-monospace,Menlo,monospace;font-weight:500;color:' + (isFoot ? 'inherit' : '#fff') + ';' + (hz !== 'auto' ? 'z-index:' + hz + ';' : '');
     if (isAbout) layer.appendChild(pre); else h.insertAdjacentElement('afterend', pre);
     const src = document.createElement('canvas'), sg = src.getContext('2d', { willReadFrequently: true });
-    let fs = 10, cw = 6, cols = 1, rows = 1, mx = 0, my = 0, tx = 0, ty = 0, last = '';
+    let fs = 10, cw = 6, cols = 1, rows = 1, mx = 0, my = 0, tx = 0, ty = 0, last = '', lastT = 0;
     const measure = () => { const P = this.props; fs = Math.max(6, Math.round((P.asciiCell ?? 9) * Math.min(1.3, Math.max(0.7, innerWidth / 1440))));
       sg.font = '500 ' + fs + 'px ui-monospace, monospace'; cw = sg.measureText('M').width || fs * 0.6;
       cols = Math.ceil(innerWidth / cw); rows = Math.ceil(innerHeight / fs); src.width = cols; src.height = rows;
@@ -4657,7 +4658,7 @@ Object.assign(window.WBM, {
     measure(); addEventListener('resize', measure);
     addEventListener('pointermove', (e) => { mx = e.clientX / innerWidth - 0.5; my = e.clientY / innerHeight - 0.5; }, { passive: true });
     const words = () => { const g = [...h.querySelectorAll('[data-gw]')]; if (g.length) return g; const leaf = [...h.querySelectorAll('span')].filter((s) => !s.querySelector('span') && s.textContent.trim()); return leaf.length ? leaf : [h]; };
-    const tick = () => { requestAnimationFrame(tick);
+    const tick = (now) => { requestAnimationFrame(tick); if (now - lastT < 32) return; lastT = now; /* 30 fps is plenty for the flicker and halves the cost */
       const P = this.props, on = ((isFoot ? P.footerTitleFx : P.aboutTitleFx) || 'ASCII') === 'ASCII'; if (isFoot) pre.style.color = (getComputedStyle(h).getPropertyValue('--ink-footer') || '').trim() || ink;
       h.style.color = on ? 'transparent' : ''; pre.style.display = on ? '' : 'none'; if (!on) return;
       const lo = +getComputedStyle(layer).opacity, ab = document.querySelector('[data-about]'), ft = isFoot ? h.closest('footer') || layer : null; let vis = lo > 0.01 && getComputedStyle(h).visibility !== 'hidden'; if (ft) vis = vis && +getComputedStyle(ft).opacity > 0.01; if (ab && isAbout) vis = vis && +getComputedStyle(ab).opacity > 0.01;
@@ -4673,7 +4674,8 @@ Object.assign(window.WBM, {
       const t = performance.now() / 1000 * (P.asciiSpeed ?? 1), A = P.asciiWave ?? 1, D = sg.getImageData(0, 0, cols, rows).data;
       const EZ = P.asciiEase ?? 0.06, TL = P.asciiTilt ?? 1; tx += (mx * TL - tx) * EZ; ty += (my * TL - ty) * EZ; if (P.asciiOpacity != null) pre.style.opacity = P.asciiOpacity; const cx = (hr.left + hr.width / 2) / cw, cy = (hr.top + hr.height / 2) / fs;
       let out = ''; const n = CHARS.length - 1;
-      for (let y = 0; y < rows; y++) { for (let x = 0; x < cols; x++) {
+      const y0 = Math.max(0, Math.floor(hr.top / fs) - 4), y1 = Math.min(rows, Math.ceil(hr.bottom / fs) + 4), x0 = Math.max(0, Math.floor(hr.left / cw) - 8), x1 = Math.min(cols, Math.ceil(hr.right / cw) + 8); /* only around the title */
+      for (let y = 0; y < rows; y++) { if (y < y0 || y >= y1) { out += '\n'; continue; } out += ' '.repeat(x0); for (let x = x0; x < x1; x++) {
           const dx = x - cx, dy = y - cy, persp = 1 + (dx * tx * 0.012 + dy * ty * 0.03);
           const sx = Math.round(cx + dx * persp + Math.sin(t * 1.6 + y * 0.35) * 1.6 * A), sy = Math.round(cy + dy * persp + Math.cos(t * 1.3 + x * 0.06) * 0.7 * A);
           let v = 0; if (sx >= 0 && sy >= 0 && sx < cols && sy < rows) { const i = (sy * cols + sx) * 4; v = D[i + 3] / 255 * (0.75 + 0.25 * Math.sin(t * (P.asciiFlicker ?? 3) + x * 0.2 + y * 0.5)); }

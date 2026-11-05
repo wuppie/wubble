@@ -853,7 +853,7 @@ Object.assign(window.WBM, {
         if (renderer.compileAsync && pass === 0) { renderer.compileAsync(scene, camera).catch(() => {}); }
         else renderer.compile(scene, camera);
         scene.traverse((o) => { const m = o.material; if (m) [].concat(m).forEach((mm) => { for (const k in mm) { const t = mm[k]; if (t && t.isTexture && t.image) renderer.initTexture(t); } if (mm.uniforms) for (const k in mm.uniforms) { const t = mm.uniforms[k].value; if (t && t.isTexture && t.image) renderer.initTexture(t); } }); });
-        const rt = this._warmRT || (this._warmRT = new THREE.WebGLRenderTarget(8, 8)); renderer.setRenderTarget(rt); renderer.render(scene, camera); renderer.setRenderTarget(null);
+        if (pass > 0) { const rt = this._warmRT || (this._warmRT = new THREE.WebGLRenderTarget(8, 8)); renderer.setRenderTarget(rt); renderer.render(scene, camera); renderer.setRenderTarget(null); } /* pass 0: rendering right after compileAsync would force the compile to finish now and freeze the page */
         hid.forEach((o) => { o.visible = false; });
       } catch (e) { console.warn('[slider] warm-up', e); } };
       const idle = (f, t) => (window.requestIdleCallback ? requestIdleCallback(f, { timeout: t }) : setTimeout(f, t));
