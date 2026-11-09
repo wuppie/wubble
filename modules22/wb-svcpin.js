@@ -16,7 +16,7 @@
       p: ['UX Strategy', 'Wireframes & Prototypes', 'UI Design', 'Design Systems', 'Responsive Layouts'] },
     { href: '/services', t: 'We build Shopify stores that look as good as they sell — custom themes, smooth checkouts and a shop that is easy to run.',
       p: ['Custom Themes', 'Store Setup', 'Product Pages', 'App Integrations', 'Conversion Optimisation'] },
-    { href: '/services', t: 'We put AI to work behind your website — chat assistants, smart workflows and automations that save time and capture more leads.',
+    { href: '/ai-integration-automation', t: 'We put AI to work behind your website — chat assistants, smart workflows and automations that save time and capture more leads.',
       p: ['AI Chat Assistants', 'Workflow Automation', 'Lead Capture', 'AI Visibility', 'Integrations & APIs'] },
     { href: '/services', t: 'We bring brands to life in 3D — immersive WebGL scenes, interactive motion and digital experiences people remember.',
       p: ['WebGL & Three.js', '3D Scenes', 'Creative Coding', 'Scroll Animation', 'Interactive Experiences'] } ];
@@ -31,28 +31,40 @@ html.wb-svcpin .home-services_block-2>.home-services_title,html.wb-svcpin .home-
 .wb-svc-left a{display:inline-flex;align-items:center;gap:.6em;font:400 32px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:-.01em;color:#f2f1ee;text-decoration:none}
 .wb-svc-left a span{transition:transform .4s cubic-bezier(.2,.7,.2,1)}.wb-svc-left a:hover span{transform:translateX(.3em)}
 .wb-svc-right{position:relative;padding:17vh 0 30vh 130px;will-change:transform}
-.wb-svc-g{position:relative;display:block;margin:0 0 26vh;color:inherit;text-decoration:none}
+.wb-svc-g{position:relative;display:block;margin:0 0 20vh;color:inherit;text-decoration:none}
 .wb-svc-g:last-child{margin-bottom:0}
-.wb-svc-i{position:absolute;right:100%;margin-right:40px;top:0;white-space:nowrap;font:700 56px/1.2 Switzer,Helvetica,Arial,sans-serif;letter-spacing:-.03em;color:rgba(242,241,238,.12)}
-.wb-svc-t{margin:0 0 56px;max-width:660px;font:700 56px/1.2 Switzer,Helvetica,Arial,sans-serif;letter-spacing:-1.68px;color:#f2f1ee}
+.wb-svc-i{position:absolute;right:100%;margin-right:40px;top:0;white-space:nowrap;font:400 34px/38px Switzer,Helvetica,Arial,sans-serif;letter-spacing:-1.02px;color:rgba(242,241,238,.22)}
+.wb-svc-t{margin:0 0 36px;max-width:620px;font:400 34px/38px Switzer,Helvetica,Arial,sans-serif;letter-spacing:-1.02px;color:#f2f1ee} /* = the About text */
 .wb-svc-p{display:flex;flex-wrap:wrap;gap:10px;max-width:660px}
 .wb-svc-p span{display:inline-flex;align-items:center;height:44px;padding:10px 20px;box-sizing:border-box;border-radius:99px;background:rgba(242,241,238,.08);font:700 14px/1 Switzer,Helvetica,Arial,sans-serif;color:#f2f1ee;transition:background .3s ease}
 .wb-svc-g:hover .wb-svc-p span{background:rgba(242,241,238,.14)}
-@media (max-width:1200px){.wb-svc-t,.wb-svc-i{font-size:44px}}`;
+/* entrance: index, statement words and pills rise out of a blur one after another (same feel as the site text reveal) */
+.wb-svc-i,.wb-svc-w,.wb-svc-p span{opacity:0;transform:translate3d(0,.5em,0);filter:blur(8px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1),filter .9s cubic-bezier(.2,.7,.2,1),background .3s ease}
+.wb-svc-w{display:inline-block}
+.wb-svc-g.in .wb-svc-i,.wb-svc-g.in .wb-svc-w,.wb-svc-g.in .wb-svc-p span{opacity:1;transform:none;filter:none}
+.wb-svc-g.in .wb-svc-w{transition-delay:calc(var(--i) * 35ms)}
+.wb-svc-g.in .wb-svc-p span{transition-delay:calc(.45s + var(--i) * 60ms)}`;
   document.head.appendChild(st);
   const pre = NL ? '/nl' : '', esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
   const left = document.createElement('div'); left.className = 'wb-svc-left';
   left.innerHTML = '<h2>Our Services</h2><div><p>If you’re looking for a website that works as hard as you do, let’s build it together.</p><a href="' + pre + '/contact">Get in touch <span aria-hidden="true">→</span></a></div>';
   const right = document.createElement('div'); right.className = 'wb-svc-right';
-  right.innerHTML = S.map((s, i) => '<a class="wb-svc-g" href="' + pre + s.href + '"><div class="wb-svc-i" aria-hidden="true">' + String.fromCharCode(65 + i) + ' /</div><h3 class="wb-svc-t">' + esc(s.t) + '</h3><div class="wb-svc-p">' + s.p.map((x) => '<span>' + esc(x) + '</span>').join('') + '</div></a>').join('');
+  right.innerHTML = S.map((s, i) => '<a class="wb-svc-g" href="' + pre + s.href + '"><div class="wb-svc-i" aria-hidden="true">' + String.fromCharCode(65 + i) + ' /</div><h3 class="wb-svc-t">' + esc(s.t).split(' ').map((w, k) => '<span class="wb-svc-w" style="--i:' + k + '">' + w + '</span>').join(' ') + '</h3><div class="wb-svc-p">' + s.p.map((x, k) => '<span style="--i:' + k + '">' + esc(x) + '</span>').join('') + '</div></a>').join('');
   box.append(left, right);
   document.documentElement.classList.add('wb-svcpin');
   /* the right column scrolls through the pinned services stretch: from when the services fade in until the section unpins */
   const START = 4.6, LEN = 3.9; /* screen heights into the section (services phase ~4.5 -> ~8.7) */
-  let last = '';
-  const tick = () => { requestAnimationFrame(tick);
-    const V = innerHeight, into = -sec.getBoundingClientRect().top / V, p = Math.max(0, Math.min(1, (into - START) / LEN));
-    const travel = Math.max(0, right.offsetHeight - V), y = -Math.round(p * travel) + 'px';
-    if (y !== last) { last = y; right.style.transform = 'translate3d(0,' + y + ',0)'; } };
+  let cur = 0, prev = performance.now(), travel = 0; const meas = () => { travel = Math.max(0, right.offsetHeight - innerHeight); };
+  meas(); addEventListener('resize', meas); document.fonts && document.fonts.ready.then(meas);
+  /* each service animates in when it scrolls into view, once its panel is actually visible (it fades in after About) */
+  const vis = (e) => { let o = 1; for (; e && e !== document.body; e = e.parentElement) o *= +getComputedStyle(e).opacity; return o; };
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting) return; const g = e.target; io.unobserve(g);
+    const go = () => { if (vis(hero) < 0.6) return setTimeout(go, 120); g.classList.add('in'); }; go(); }), { rootMargin: '0px 0px -18% 0px' });
+  right.querySelectorAll('.wb-svc-g').forEach((g) => io.observe(g));
+  /* eased follow instead of jumping to the scroll position each frame: smooth even when the scroll arrives in steps */
+  const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
+    const V = innerHeight, into = -sec.getBoundingClientRect().top / V, p = Math.max(0, Math.min(1, (into - START) / LEN)), tgt = -p * travel;
+    if (Math.abs(tgt - cur) < 0.05) return; cur += (tgt - cur) * (1 - Math.exp(-dt * 9));
+    right.style.transform = 'translate3d(0,' + cur.toFixed(2) + 'px,0)'; };
   requestAnimationFrame(tick);
 })();
