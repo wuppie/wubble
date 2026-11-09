@@ -23,9 +23,9 @@
   const st = document.createElement('style');
   st.textContent = `
 html.wb-svcpin [data-hero3]{left:0!important;right:0!important;top:0!important;height:100vh!important}
-html.wb-svcpin .home-services_block-2{position:absolute!important;inset:0;display:grid!important;grid-template-columns:40% 1fr;padding:0 40px;box-sizing:border-box;overflow:hidden}
+html.wb-svcpin .home-services_block-2{position:absolute!important;inset:0;display:grid!important;grid-template-columns:minmax(0,40%) minmax(0,1fr);align-items:start!important;align-content:start!important;padding:0 40px;box-sizing:border-box;overflow:hidden}
 html.wb-svcpin .home-services_block-2>.home-services_title,html.wb-svcpin .home-services_block-2>.home-services_rows{display:none!important}
-.wb-svc-left{display:flex;flex-direction:column;justify-content:space-between;height:100vh;padding:17vh 0 5vh;box-sizing:border-box}
+.wb-svc-left{align-self:start!important;display:flex;flex-direction:column;justify-content:space-between;height:100vh;padding:17vh 0 5vh;box-sizing:border-box}
 .wb-svc-left h2{margin:0;font:700 26px/1.4 Switzer,Helvetica,Arial,sans-serif;letter-spacing:-.01em;color:#f2f1ee}
 .wb-svc-left p{margin:0 0 6vh;max-width:280px;font:400 14px/1.6 Switzer,Helvetica,Arial,sans-serif;color:rgba(242,241,238,.5)}
 .wb-svc-left a{display:inline-flex;align-items:center;gap:.6em;font:400 32px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:-.01em;color:#f2f1ee;text-decoration:none}
