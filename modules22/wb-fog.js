@@ -31,7 +31,7 @@
     float rise=smoothstep(front-.02,front+.26,uv.y+(d-.5)*.5);
     float haze=S*(.3+.46*d);
     float a=clamp(max(rest,max(rise*.97,haze)),0.,1.);
-    vec3 dayA=vec3(.97,.93,.84),dayB=vec3(.79,.78,.71);
+    vec3 dayA=vec3(.80,.80,.80),dayB=vec3(.42,.42,.43); /* neutral smoke for the dark site */
     vec3 nitA=vec3(.40,.45,.57),nitB=vec3(.15,.19,.29);
     vec3 c=mix(mix(dayB,dayA,d*1.15),mix(nitB,nitA,d*1.1),K);
     O=vec4(c*a,a);
@@ -57,10 +57,12 @@
   const frame = (now) => { requestAnimationFrame(frame);
     const m = mark(); if (!m) return;
     /* a cloud band over the seam between the last section and the footer (b = that seam on screen), above the footer's top */
-    const V = innerHeight, b = m.getBoundingClientRect().top, vis = smooth(1.45 * V, 1.0 * V, b) * smooth(-0.35 * V, 0.05 * V, b), S = 1;
+    /* seam from scroll left, not the marker's position: on the homepage the sections are pinned, so the marker sits near the top */
+    const V = innerHeight, left = document.documentElement.scrollHeight - V - scrollY, fh = Math.min(m.offsetHeight || V, V),
+      b = left > fh ? V + (left - fh) : V - (fh - left), vis = smooth(1.45 * V, 1.0 * V, b) * smooth(-0.35 * V, 0.05 * V, b), S = 1;
     const key = vis.toFixed(3) + '|' + Math.round(b); if (key !== shown) { shown = key; if (vis > 0 && !cv) init();
-      if (cv) { cv.style.opacity = vis.toFixed(3); cv.style.visibility = vis > 0.002 ? '' : 'hidden';
-        const mk = 'linear-gradient(to bottom, transparent ' + Math.round(b - 0.34 * V) + 'px, #000 ' + Math.round(b - 0.08 * V) + 'px, #000 ' + Math.round(b + 0.1 * V) + 'px, transparent ' + Math.round(b + 0.34 * V) + 'px)';
+      if (cv) { cv.style.opacity = (0.85 * vis).toFixed(3); cv.style.visibility = vis > 0.002 ? '' : 'hidden';
+        const mk = 'linear-gradient(to bottom, transparent ' + Math.round(b - 0.22 * V) + 'px, #000 ' + Math.round(b - 0.05 * V) + 'px, #000 ' + Math.round(b + 0.06 * V) + 'px, transparent ' + Math.round(b + 0.22 * V) + 'px)';
         cv.style.webkitMaskImage = cv.style.maskImage = mk; } }
     if (!gl || vis <= 0.002 || (window.WB_GL_OK && !window.WB_GL_OK(gl))) return;
     gl.uniform2f(U.R, cv.width, cv.height); gl.uniform1f(U.T, now / 1000); gl.uniform1f(U.S, S); gl.uniform1f(U.K, K); gl.drawArrays(gl.TRIANGLES, 0, 3);
