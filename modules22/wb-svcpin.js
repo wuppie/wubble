@@ -16,15 +16,15 @@ html.wb-svcpin .home-services_block-2{position:absolute!important;inset:0;displa
 .wb-svc-left a{display:inline-flex;align-items:center;gap:.6em;font:400 clamp(24px,2.2vw,34px)/1 Switzer,Helvetica,Arial,sans-serif;color:#f2f1ee;text-decoration:none}
 .wb-svc-left a span{transition:transform .4s cubic-bezier(.2,.7,.2,1)}.wb-svc-left a:hover span{transform:translateX(.3em)}
 .wb-svc-right{min-height:0;will-change:transform}
-html.wb-svcpin .home-services_title{position:relative!important;inset:auto!important;transform:none!important;margin:0 0 9vh!important;font:700 clamp(36px,4.2vw,72px)/1.08 Switzer,Helvetica,Arial,sans-serif!important;letter-spacing:-.035em!important;text-align:left!important;color:#f2f1ee}
+html.wb-svcpin .home-services_title{display:block!important;position:relative!important;inset:auto!important;transform:none!important;margin:0 0 9vh!important;font:700 clamp(36px,4.2vw,72px)/1.08 Switzer,Helvetica,Arial,sans-serif!important;letter-spacing:-.035em!important;text-align:left!important;color:#f2f1ee}
 html.wb-svcpin .home-services_title::before{content:'A/';position:absolute;right:100%;margin-right:.45em;color:rgba(242,241,238,.16);font-weight:500}
 html.wb-svcpin .home-services_title .home-services_text{display:inline!important}
 html.wb-svcpin .home-services_title .home-hero_word{transform:none!important;opacity:1!important}
 html.wb-svcpin .home-services_rows{position:relative!important;inset:auto!important;transform:none!important;margin:0!important;display:block!important}
-html.wb-svcpin .about-services_row{display:grid!important;grid-template-columns:5em 1fr;align-items:baseline;padding:4.2vh 0!important;border-top:1px solid rgba(242,241,238,.14);position:relative!important;transform:none!important}
-html.wb-svcpin .about-services_row:last-child{border-bottom:1px solid rgba(242,241,238,.14)}
+html.wb-svcpin .about-services_row{display:grid!important;grid-template-columns:5em 1fr!important;column-gap:0!important;align-items:baseline!important;padding:5vh 0!important;border-top:1px solid rgba(242,241,238,.14)!important;position:relative!important;transform:none!important}
+html.wb-svcpin .about-services_row:last-child{border-bottom:1px solid rgba(242,241,238,.14)!important}
 html.wb-svcpin .about-services_number{color:rgba(242,241,238,.4);font:400 clamp(13px,.95vw,15px)/1 Switzer,Helvetica,Arial,sans-serif}
-html.wb-svcpin .about-services_title.is-home{margin:0!important;font:600 clamp(26px,2.6vw,44px)/1.1 Switzer,Helvetica,Arial,sans-serif!important;letter-spacing:-.025em}`;
+html.wb-svcpin .about-services_title.is-home{margin:0!important;font:600 clamp(26px,2.6vw,44px)/1.1 Switzer,Helvetica,Arial,sans-serif!important;letter-spacing:-.025em;text-transform:none!important}`;
   document.head.appendChild(st);
   const left = document.createElement('div'); left.className = 'wb-svc-left';
   left.innerHTML = '<h2>Our Services</h2><div><p>Not sure where to start? Let’s find the right build for your brand, together.</p><a href="' + (/^nl/i.test(document.documentElement.lang) ? '/nl' : '') + '/contact">Get in touch <span aria-hidden="true">→</span></a></div>';
