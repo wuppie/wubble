@@ -33,6 +33,7 @@ html.wb-svcpin .home-services_block-2>.home-services_title,html.wb-svcpin .home-
 .wb-svc-right{position:relative;padding:17vh 0 30vh 130px;will-change:transform}
 .wb-svc-g{position:relative;display:block;margin:0 0 20vh;color:inherit;text-decoration:none}
 .wb-svc-g:last-child{margin-bottom:0}
+html.wb-svc-live .wb-svc-g,html.wb-svc-live .wb-svc-left a{pointer-events:auto} /* the panel has clicks off; links work only while the services are on screen */
 .wb-svc-i{position:absolute;right:100%;margin-right:40px;top:0;white-space:nowrap;font:400 34px/38px Switzer,Helvetica,Arial,sans-serif;letter-spacing:-1.02px;color:rgba(242,241,238,.22)}
 .wb-svc-t{margin:0 0 36px;max-width:620px;font:400 34px/38px Switzer,Helvetica,Arial,sans-serif;letter-spacing:-1.02px;color:#f2f1ee} /* = the About text */
 .wb-svc-p{display:flex;flex-wrap:wrap;gap:10px;max-width:660px}
@@ -62,7 +63,9 @@ html.wb-svcpin .home-services_block-2>.home-services_title,html.wb-svcpin .home-
     const go = () => { if (vis(hero) < 0.6) return setTimeout(go, 120); g.classList.add('in'); }; go(); }), { rootMargin: '0px 0px -18% 0px' });
   right.querySelectorAll('.wb-svc-g').forEach((g) => io.observe(g));
   /* eased follow instead of jumping to the scroll position each frame: smooth even when the scroll arrives in steps */
+  let live = null;
   const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
+    const lv = +getComputedStyle(hero).opacity > 0.5; if (lv !== live) { live = lv; document.documentElement.classList.toggle('wb-svc-live', lv); }
     const V = innerHeight, into = -sec.getBoundingClientRect().top / V, p = Math.max(0, Math.min(1, (into - START) / LEN)), tgt = -p * travel;
     if (Math.abs(tgt - cur) < 0.05) return; cur += (tgt - cur) * (1 - Math.exp(-dt * 9));
     right.style.transform = 'translate3d(0,' + cur.toFixed(2) + 'px,0)'; };

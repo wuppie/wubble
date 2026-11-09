@@ -33,9 +33,17 @@
   };
   const mark = () => document.querySelector('[data-footer-spacer]') || document.querySelector('[data-footer]') || document.querySelector('footer');
   let shown = '', on = null;
-  const frame = () => { requestAnimationFrame(frame);
+  /* homepage: the footer lies on top of the page and switches on at the end (a cut, not a seam), so the marker says nothing about
+     where the edge is. There the clouds sweep up through the screen when the footer switches on, as if the camera flies through them. */
+  const ft = document.querySelector('.footer_wrap'), CUT = !!(ft && document.querySelector('.home-footer_fig')), fcs = ft && getComputedStyle(ft);
+  let ftOn = false, t0 = -1e9; const SWEEP = 1.4;
+  const frame = (now) => { requestAnimationFrame(frame);
     const m = mark(); if (!m) return;
-    const V = innerHeight, b = m.getBoundingClientRect().top, vis = smooth(1.45 * V, 1.0 * V, b) * smooth(-0.35 * V, 0.05 * V, b); /* b = the seam on screen */
+    if (CUT && !box && document.readyState === 'complete') init(); /* ready before the cut, so the first sweep has its clouds */
+    const V = innerHeight; let b, vis;
+    if (CUT) { const o = fcs.visibility !== 'hidden'; if (o && !ftOn) t0 = now; ftOn = o; const k = (now - t0) / 1000 / SWEEP;
+      if (!o || k >= 1) { b = V; vis = 0; } else { const e = k * k * (3 - 2 * k); b = V * 1.15 - V * 1.9 * e; vis = Math.min(1, k * 6) * Math.min(1, (1 - k) * 4); } }
+    else { b = m.getBoundingClientRect().top; vis = smooth(1.45 * V, 1.0 * V, b) * smooth(-0.35 * V, 0.05 * V, b); } /* b = the seam on screen */
     if (vis > 0 && !box) init(); if (!box) return;
     const key = vis.toFixed(3) + '|' + Math.round(b); if (key === shown) return; shown = key;
     box.style.opacity = vis.toFixed(3); box.style.transform = 'translate3d(0,' + Math.round(b - SEAM * BAND * V) + 'px,0)';

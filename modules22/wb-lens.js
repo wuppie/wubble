@@ -35,16 +35,14 @@
   mk('wb-lens-grain'); mk('wb-lens wb-lens-vig'); const grade = coarse ? null : mk('wb-lens wb-lens-grade');
   const cnt = mk('wb-lens-count'); cnt.innerHTML = '<b>01</b><i>/</i><i>06</i><em>' + CH[0][0] + '</em>';
   const num = cnt.querySelector('b'), name = cnt.querySelector('em');
-  /* focus pull on the astronaut: he goes soft while you scroll (more blur the faster), a short rack-focus at each chapter
-     change, and he settles back into sharp focus when you stop. CSS blur on his canvas only while it is > 0 (no cost when sharp). Desktop only. */
-  const MAXB = 9; let cur = -1, lastY = scrollY, vel = 0, last = performance.now(), blur = 0, pulse = 0, shown = -1, astro = null;
+  /* focus pull on the astronaut: he goes soft while you scroll (more blur the faster), and he settles back into sharp focus when you stop. CSS blur on his canvas only while it is > 0 (no cost when sharp). Desktop only. */
+  const MAXB = 3; let cur = -1, lastY = scrollY, vel = 0, last = performance.now(), blur = 0, shown = -1, astro = null;
   const frame = (now) => { requestAnimationFrame(frame); if (document.hidden) return;
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    const c = chapter(); if (c !== cur) { if (cur >= 0) pulse = 1; cur = c; num.textContent = String(c + 1).padStart(2, '0'); name.textContent = CH[c][0]; if (grade) grade.style.backgroundColor = CH[c][1]; }
+    const c = chapter(); if (c !== cur) { cur = c; num.textContent = String(c + 1).padStart(2, '0'); name.textContent = CH[c][0]; if (grade) grade.style.backgroundColor = CH[c][1]; }
     if (coarse || still) return;
     const dy = scrollY - lastY; lastY = scrollY; vel += (Math.abs(dy) / Math.max(dt, 0.001) - vel) * (1 - Math.exp(-dt * 6)); /* px per second, smoothed */
-    pulse = Math.max(0, pulse - dt * 1.4);
-    const want = Math.min(MAXB, vel / 260 + Math.sin(Math.min(1, pulse) * Math.PI) * 6);
+    const want = Math.min(MAXB, vel / 700); /* only while scrolling, gently */
     blur += (want - blur) * (1 - Math.exp(-dt * (want > blur ? 7 : 3.5))); /* defocus quickly, refocus slowly like a lens */
     const b = blur < 0.15 ? 0 : Math.round(blur * 10) / 10; if (b === shown) return; shown = b;
     astro = astro && astro.isConnected ? astro : document.querySelector('.home_astronaut-layer canvas');
