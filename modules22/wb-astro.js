@@ -66,7 +66,7 @@ Object.assign(window.WBM, {
       for (const c of g.animations) { if (c.name !== 'floating') flat(c); const a = MX.clipAction(c); a.play(); a.setEffectiveWeight(c.name === 'floating' ? 1 : 0); ACT[c.name] = a; }
       for (const n of ['wave', 'tumble', 'look', 'sit', 'hang', 'drop', 'walk']) { const J = (window.WB_CLIPS || {})[n]; if (!J || ACT[n]) continue; const c = T3.AnimationClip.parse(J); c.uuid = T3.MathUtils.generateUUID(); c.name = n; flat(c); const a = MX.clipAction(c); a.play(); a.setEffectiveWeight(0); if (n === 'sit' || n === 'drop') { a.setLoop(T3.LoopOnce, 1); a.clampWhenFinished = true; } ACT[n] = a; }
       // idle: the uploaded "Falling" loop replaces the old floating clip (same hip anchor, so heights don't jump)
-      { const J = (window.WB_CLIPS || {}).fall; if (J && (this.props.astroIdle || 'Falling') === 'Falling' && ACT.floating && !ACT.floating.__fall) { const c = T3.AnimationClip.parse(J); c.uuid = T3.MathUtils.generateUUID(); c.name = 'floating'; flat(c); const w = ACT.floating.getEffectiveWeight(); ACT.floating.stop(); const a = MX.clipAction(c); a.__fall = 1; a.play(); a.setEffectiveWeight(w); ACT.floating = a; } }
+      { const J = (window.WB_CLIPS || {}).fall; if (J && (this.props.astroIdle || 'Falling') === 'Falling' && ACT.floating && !ACT.floating.__fall) { const c = T3.AnimationClip.parse(J); c.uuid = T3.MathUtils.generateUUID(); c.name = 'floating'; flat(c); const w = ACT.floating.getEffectiveWeight(); const of = ACT.floating; of.setEffectiveWeight(0); ACT.wfloat = of; /* keep the model's own floating clip (= the /work astronaut) for the Work section */ const a = MX.clipAction(c); a.__fall = 1; a.play(); a.setEffectiveWeight(w); ACT.floating = a; } }
       if (ACT.jump) ACT.jump.paused = true; if (ACT.tumble) ACT.tumble.paused = true;
       console.log('[astro] clips', Object.keys(ACT).join(','), 'wave tracks', ACT.wave ? ACT.wave._propertyBindings.filter((b) => b && b.binding && b.binding.node).length + '/' + ACT.wave.getClip().tracks.length : 'none');
       MX.update(0); }
@@ -639,9 +639,9 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
         const P = this.props, sm = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
         const inHero = rq <= 0.0005 && r3 <= 0.0005, hp = inHero ? rp : 1;
         const HS = P.heroStart ?? 0.04; const wFy = sm(HS, HS + (P.heroSpan ?? 0.16), hp) * (1 - sm(0.82, 0.98, hp));
-        // Work: wave → leaving Work: fly through space → About: tumble in (scroll-scrubbed) → float
+        // Work: blend into the /work floating clip → leaving Work: fly through space → About: tumble in (scroll-scrubbed) → float
         const fA = P.astroFly2Start ?? 0.3, tA = P.astroTumbleStart ?? 0.55, tB = P.astroTumbleEnd ?? 0.95, done = r3 > 0.0005;
-        const wWv = ACT.wave ? sm(0.85, 0.98, hp) * (1 - sm(fA, fA + 0.08, rq)) * (done ? 0 : 1) : 0;
+        const wWv = (ACT.wfloat || ACT.wave) ? sm(0.85, 0.98, hp) * (1 - sm(fA, fA + 0.08, rq)) * (done ? 0 : 1) : 0;
         const wF2 = done ? 0 : sm(fA, fA + 0.08, rq) * (1 - sm(tA - 0.02, tA + 0.04, rq));
         // tumble: plays once in real time when you arrive in About (re-arms when you scroll back above it)
         const TD = ACT.tumble ? ACT.tumble.getClip().duration : 2.8;
@@ -650,7 +650,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
         if (PH.tmb != null && PH.tmb < TD) PH.tmb += dt * (P.astroTumbleSpeed ?? 1);
         const tq = PH.tmb == null ? 0 : Math.min(TD * 0.999, PH.tmb), k = tq / TD;
         const wT = PH.tmb == null ? 0 : sm(0, 0.12, k) * (1 - sm(0.62, 0.86, k)), ra = this.ra || 0, wSec = (P.astroFlyAll ?? true) ? Math.max(sm(0.04, 0.25, ra) * (1 - sm(0.7, 0.95, ra)), sm(0.03, 0.2, r3) * (1 - sm(0.55, 0.8, r3))) : 0, wPF = (P.astroFlyAll ?? true) && !inHero ? Math.max(wSec, sm(0.12, 0.45, PH.pathFall || 0)) * (1 - wT) : 0, wFly = Math.max(wFy, wF2, wPF); window.__wbFly = Math.max(wF2, wPF); wFl = Math.max(0, 1 - Math.max(wWv, wFly, wT));
-        const tgt = { floating: wFl, jump: ACT.tumble ? 0 : wT, tumble: wT, flying: wFly, wave: wWv * (1 - wPF) }, f = 1 - Math.exp(-dt * 10);
+        const tgt = { floating: wFl, jump: ACT.tumble ? 0 : wT, tumble: wT, flying: wFly, wave: ACT.wfloat ? 0 : wWv * (1 - wPF), wfloat: ACT.wfloat ? wWv * (1 - wPF) : 0 } /* Work: blend into the /work astronaut's floating clip (was: wave) */, f = 1 - Math.exp(-dt * 10);
         { const km = this._moonK || 0; if (km > 0 && ACT.look) { for (const n in tgt) tgt[n] *= 1 - km; const ww = ACT.walk ? ((this._wk && this._wk.w) || 0) : 0; tgt.look = km * (1 - ww); tgt.walk = km * ww; if (ACT.walk) ACT.walk.timeScale = this.props.footerWalkAnim ?? 0.8; } else { tgt.look = 0; tgt.walk = 0; } }
         if (ACT.drop) { const ao = window.__wbAboutOp || 0, td = !!window.__wbTypeDone; let ph = this._abPh || 'none';
           // About: fly in → land next to the screen (drop clip, holds its landed pose) → fly on when the screen zooms out
