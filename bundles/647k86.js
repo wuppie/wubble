@@ -4368,7 +4368,7 @@ Object.assign(window.WBM, {
       if (back.style.transform !== ft.style.transform) back.style.transform = ft.style.transform; if (back.style.clipPath !== ft.style.clipPath) back.style.clipPath = ft.style.clipPath; if (back.style.height !== H + 'px') back.style.height = H + 'px';
       if (inner && inner.style.transform) inner.style.transform = '';
     };
-    this._ftLetters = (p) => { const FL = this._flEls; if (FL) { const n = FL.length; for (let i = 0; i < n; i++) { const a = Math.max(0, Math.min(1, (p - 0.35 - i * 0.045) / 0.4)), q = 1 - Math.pow(1 - a, 3), st = FL[i].style, tf = q > 0.999 ? '' : 'translate3d(0,' + ((1 - q) * 115).toFixed(2) + '%,0) rotate(' + ((1 - q) * 10).toFixed(2) + 'deg) skewY(' + ((1 - q) * 7).toFixed(2) + 'deg)'; if (st.transform !== tf) st.transform = tf; st.opacity = q > 0.999 ? '' : q.toFixed(3); } } };
+    this._ftLetters = (p) => { const FL = this._flEls; if (FL) { const n = FL.length, stp = Math.min(0.045, 0.25 / Math.max(1, n - 1)); /* stagger fits the word: the last letter lands when the footer is fully in */ for (let i = 0; i < n; i++) { const a = Math.max(0, Math.min(1, (p - 0.35 - i * stp) / 0.4)), q = 1 - Math.pow(1 - a, 3), st = FL[i].style, tf = q > 0.999 ? '' : 'translate3d(0,' + ((1 - q) * 115).toFixed(2) + '%,0) rotate(' + ((1 - q) * 10).toFixed(2) + 'deg) skewY(' + ((1 - q) * 7).toFixed(2) + 'deg)'; if (st.transform !== tf) st.transform = tf; st.opacity = q > 0.999 ? '' : q.toFixed(3); } } };
     tick();
   },
   initSound() {
