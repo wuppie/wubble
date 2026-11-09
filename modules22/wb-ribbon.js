@@ -661,7 +661,7 @@ Object.assign(window.WBM, {
         const rct = this.reachContent || (this.reachContent = rs && rs.querySelector('[data-reach-content]'));
         if (rs && rpn && cs && cpn) {
           const rt = rtT;
-          const q0 = Math.max(0, Math.min(1, (vh - rt) / (vh * 2.4)));
+          const q0 = Math.max(0, Math.min(1, (vh * (1 + (window.WB_R3_LEAD ?? 0.8)) - rt) / (vh * 2.4))); /* WB_R3_LEAD: the services → reach galaxy flight starts this many screens before Reach out arrives */
           this.r3 = this.sceneTween('r3', q0); if (q0 === 0 && this.r3 < 0.02) { this.r3 = 0; if (this._tw && this._tw.r3) this._tw.r3.v = 0; }
           
           const e3 = this.r3 < 0.5 ? 4 * this.r3 * this.r3 * this.r3 : 1 - Math.pow(-2 * this.r3 + 2, 3) / 2;

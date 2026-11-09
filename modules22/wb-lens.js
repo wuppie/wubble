@@ -11,7 +11,7 @@
   const q = (s) => document.querySelector(s), hero = q('.section_home-hero'), work = q('.section_home-work'), cta = q('.section_home-services'), reach = q('.section_home-reach');
   const chapter = () => { const V = innerHeight, left = document.documentElement.scrollHeight - V - scrollY;
     if (left < V * 0.6) return 5;
-    if (reach && reach.getBoundingClientRect().top < V * 0.5) return 4;
+    if (reach && reach.getBoundingClientRect().top < V * 0.15) return 4; /* only once Reach out is really in view */
     if (cta) { const t = cta.getBoundingClientRect().top; if (t < V * 0.5) return -t / V >= 4.4 ? 3 : 2; } /* the pinned panel: About first, Services from ~4.4 screens in */
     if (work && work.getBoundingClientRect().top < V * 0.5) return 1;
     return 0; };

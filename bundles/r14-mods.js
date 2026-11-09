@@ -1835,7 +1835,7 @@ Object.assign(window.WBM, {
         const rct = this.reachContent || (this.reachContent = rs && rs.querySelector('[data-reach-content]'));
         if (rs && rpn && cs && cpn) {
           const rt = rtT;
-          const q0 = Math.max(0, Math.min(1, (vh - rt) / (vh * 2.4)));
+          const q0 = Math.max(0, Math.min(1, (vh * (1 + (window.WB_R3_LEAD ?? 0.8)) - rt) / (vh * 2.4))); /* WB_R3_LEAD: the services → reach galaxy flight starts this many screens before Reach out arrives */
           this.r3 = this.sceneTween('r3', q0); if (q0 === 0 && this.r3 < 0.02) { this.r3 = 0; if (this._tw && this._tw.r3) this._tw.r3.v = 0; }
           
           const e3 = this.r3 < 0.5 ? 4 * this.r3 * this.r3 * this.r3 : 1 - Math.pow(-2 * this.r3 + 2, 3) / 2;
@@ -2863,7 +2863,7 @@ Object.assign(window.WBM, {
         const ss = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
         if (!this.mainTickRunning) { const vh1 = window.__svh || innerHeight, c = this.ctaRef.current, rr = this.reachRef.current;
           if (c) { const q = Math.max(0, Math.min(1, (vh1 - c.getBoundingClientRect().top) / (vh1 * 1.6))); this.rq = this.sceneTween('rq', q); if (q === 0 && this.rq < 0.02) { this.rq = 0; if (this._tw && this._tw.rq) this._tw.rq.v = 0; } }
-          if (rr) { const q = Math.max(0, Math.min(1, (vh1 - rr.getBoundingClientRect().top) / (vh1 * 2.4))); this.r3 = this.sceneTween('r3', q); if (q === 0 && this.r3 < 0.02) { this.r3 = 0; if (this._tw && this._tw.r3) this._tw.r3.v = 0; } } }
+          if (rr) { const q = Math.max(0, Math.min(1, (vh1 * (1 + (window.WB_R3_LEAD ?? 0.8)) - rr.getBoundingClientRect().top) / (vh1 * 2.4))); this.r3 = this.sceneTween('r3', q); if (q === 0 && this.r3 < 0.02) { this.r3 = 0; if (this._tw && this._tw.r3) this._tw.r3.v = 0; } } }
         const rp = this.rp || 0, rq = this.rq || 0, r3 = this.r3 || 0;
         { const on = (this.props.ditherStyle ?? true) ? 1 : 0; { const pu = this.portrait && this.portrait.post; if (pu && pu.uDither) { pu.uDither.value = on; if (pu.uGrid) pu.uGrid.value = this.props.ditherSize ?? 1; } } [this.hand].forEach((v) => { const u = v && v.post; if (!u) return; if (u.uDither) u.uDither.value = 0; if (u.uGrid) u.uGrid.value = this.props.ditherSize ?? 1; if (u.uDitherGray) u.uDitherGray.value = 0; if (u.uDitherInvert) u.uDitherInvert.value = 0; if (u.uStipple) u.uStipple.value = 0; }); }
         const heroD = Math.max(1 - ss(0.3, 0.9, rq), ss(0.1, 0.7, r3), ss(0.15, 0.55, this.ra || 0)), handD = 1 - ss(0.3, 0.9, r3), astroD = ss(0.1, 0.7, r3);
