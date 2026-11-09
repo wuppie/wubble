@@ -1,8 +1,8 @@
 /* Wubble "camera look" for the homepage (after ysuriadesign.co): one light overlay over the whole page instead of
    post-processing inside each WebGL scene. Film grain (a noise tile shifted by CSS, no per-frame JS), a vignette,
-   a per-chapter colour grade (soft-light tint, eased between chapters), out-of-focus bokeh dots drifting in depth
-   (a small 2D canvas, a few dozen pre-drawn sprites, parallax on scroll) and a chapter counter "02 / 06 Work".
-   Phones: grain + vignette + counter only (no blend layer, no bokeh: GPU budget). Remove the loader line to undo. */
+   a per-chapter colour grade (soft-light tint, eased between chapters), a focus pull on the astronaut (soft while scrolling, sharp when still)
+   and a chapter counter "02 / 06 Work".
+   Phones: grain + vignette + counter only (no blend layer, no focus pull: GPU budget). Remove the loader line to undo. */
 (() => {
   if (window.__wbLens || !document.querySelector('.section_home-hero')) return; window.__wbLens = 1;
   const coarse = matchMedia('(pointer: coarse)').matches, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -35,28 +35,19 @@
   mk('wb-lens-grain'); mk('wb-lens wb-lens-vig'); const grade = coarse ? null : mk('wb-lens wb-lens-grade');
   const cnt = mk('wb-lens-count'); cnt.innerHTML = '<b>01</b><i>/</i><i>06</i><em>' + CH[0][0] + '</em>';
   const num = cnt.querySelector('b'), name = cnt.querySelector('em');
-  /* bokeh: soft discs with a brighter rim, a few sizes, pre-drawn once and tinted by the chapter colour */
-  let bk = null, bg = null, BW = 0, BH = 0; const dots = [];
-  if (!coarse && !still) {
-    bk = document.createElement('canvas'); bk.className = 'wb-lens'; bk.setAttribute('aria-hidden', 'true'); document.body.appendChild(bk); bg = bk.getContext('2d');
-    const size = () => { BW = bk.width = Math.round(innerWidth * 0.75); BH = bk.height = Math.round(innerHeight * 0.75); bk.style.width = '100%'; bk.style.height = '100%'; };
-    size(); addEventListener('resize', size);
-    for (let i = 0; i < 34; i++) { const z = Math.random(); dots.push({ x: Math.random(), y: Math.random(), z, r: 6 + z * z * 46, a: 0.05 + 0.13 * (1 - z * 0.5), vx: (Math.random() - 0.5) * 0.004, vy: -0.002 - Math.random() * 0.004, ph: Math.random() * 6.28 }); }
-  }
-  const disc = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-    gr.addColorStop(0, 'rgba(255,255,255,.55)'); gr.addColorStop(0.72, 'rgba(255,255,255,.7)'); gr.addColorStop(0.86, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
-    g.fillStyle = gr; g.beginPath(); g.arc(64, 64, 64, 0, 7); g.fill(); return c; })();
-  const tint = document.createElement('canvas'); tint.width = tint.height = 128; const tg = tint.getContext('2d'); let tintC = '';
-  const setTint = (c) => { if (c === tintC) return; tintC = c; tg.clearRect(0, 0, 128, 128); tg.globalCompositeOperation = 'source-over'; tg.drawImage(disc, 0, 0); tg.globalCompositeOperation = 'source-atop'; tg.fillStyle = c; tg.globalAlpha = 0.55; tg.fillRect(0, 0, 128, 128); tg.globalAlpha = 1; };
-  let cur = -1, lastY = scrollY, vel = 0, last = performance.now();
+  /* focus pull on the astronaut: he goes soft while you scroll (more blur the faster), a short rack-focus at each chapter
+     change, and he settles back into sharp focus when you stop. CSS blur on his canvas only while it is > 0 (no cost when sharp). Desktop only. */
+  const MAXB = 9; let cur = -1, lastY = scrollY, vel = 0, last = performance.now(), blur = 0, pulse = 0, shown = -1, astro = null;
   const frame = (now) => { requestAnimationFrame(frame); if (document.hidden) return;
-    const c = chapter(); if (c !== cur) { cur = c; num.textContent = String(c + 1).padStart(2, '0'); name.textContent = CH[c][0]; if (grade) grade.style.backgroundColor = CH[c][1]; setTint(CH[c][1]); }
-    if (!bg) return;
-    const dt = Math.min(0.05, (now - last) / 1000); last = now; const dy = scrollY - lastY; lastY = scrollY; vel += (dy - vel) * 0.15;
-    bg.clearRect(0, 0, BW, BH);
-    for (const d of dots) { d.x += d.vx * dt * 10; d.y += d.vy * dt * 10 - vel * (0.2 + d.z * 1.6) / BH; d.ph += dt * 0.6;
-      if (d.y < -0.15) d.y += 1.3; if (d.y > 1.15) d.y -= 1.3; if (d.x < -0.1) d.x += 1.2; if (d.x > 1.1) d.x -= 1.2;
-      const r = d.r * (BW / 1080), al = d.a * (0.75 + 0.25 * Math.sin(d.ph)); bg.globalAlpha = al; bg.drawImage(tint, d.x * BW - r, d.y * BH - r, r * 2, r * 2); }
-    bg.globalAlpha = 1; };
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const c = chapter(); if (c !== cur) { if (cur >= 0) pulse = 1; cur = c; num.textContent = String(c + 1).padStart(2, '0'); name.textContent = CH[c][0]; if (grade) grade.style.backgroundColor = CH[c][1]; }
+    if (coarse || still) return;
+    const dy = scrollY - lastY; lastY = scrollY; vel += (Math.abs(dy) / Math.max(dt, 0.001) - vel) * (1 - Math.exp(-dt * 6)); /* px per second, smoothed */
+    pulse = Math.max(0, pulse - dt * 1.4);
+    const want = Math.min(MAXB, vel / 260 + Math.sin(Math.min(1, pulse) * Math.PI) * 6);
+    blur += (want - blur) * (1 - Math.exp(-dt * (want > blur ? 7 : 3.5))); /* defocus quickly, refocus slowly like a lens */
+    const b = blur < 0.15 ? 0 : Math.round(blur * 10) / 10; if (b === shown) return; shown = b;
+    astro = astro && astro.isConnected ? astro : document.querySelector('.home_astronaut-layer canvas');
+    if (astro) astro.style.filter = b ? 'blur(' + b + 'px)' : ''; };
   requestAnimationFrame(frame);
 })();
