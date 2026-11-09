@@ -1,71 +1,47 @@
-/* Wubble footer fog: soft drifting fog that rolls in just before the footer (shader after the "Lumen Roof" fog, fog only).
-   The clouds sit as a band over the seam between the last section and the footer (on top of the footer's top edge) and
-   travel with that seam while it scrolls by. Scroll position drives where; the shader itself drifts forever.
-   Footer: [data-footer-spacer] (homepage reveal) or the first [data-footer] / footer element. Light (morning) colours by default;
-   data-wb-fog-night on <html> switches to the night palette. One WebGL2 context, created only once the footer is near, at most
-   960px wide (phones much less); paused while out of range. */
+/* Wubble footer clouds: a soft cloud bank on top of the seam between the last section and the footer.
+   Plain 2D canvas (no WebGL, no shader compile, so no scroll stall): a few cloud sprites are painted once at start,
+   then drifting copies are drawn into a small canvas (max 900px wide, 480 on phones) that the browser scales up.
+   The band follows the seam (from scroll left, works on the pinned homepage too) and only draws while it is on screen. */
 (() => {
   if (window.__wbFog || matchMedia('(prefers-reduced-motion: reduce)').matches) return; window.__wbFog = 1;
   const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x)), smooth = (a, b, x) => { x = clamp((x - a) / (b - a)); return x * x * (3 - 2 * x); };
-  const coarse = matchMedia('(pointer: coarse)').matches, K = document.documentElement.hasAttribute('data-wb-fog-night') ? 1 : 0;
-  const FS = `#version 300 es
-  precision highp float;
-  uniform vec2 R;uniform float T,S,K;out vec4 O;
-  float h(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
-  float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
-    return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
-  float fbm(vec2 p){float a=.5,s=0.;mat2 m=mat2(1.6,1.2,-1.2,1.6);p=mat2(.8,.6,-.6,.8)*p+5.3;for(int i=0;i<5;i++){s+=a*n(p);p=m*p;a*=.5;}return s;}
-  void main(){
-    vec2 uv=gl_FragCoord.xy/R;uv.y=1.-uv.y;
-    float asp=R.x/R.y;vec2 p=vec2(uv.x*asp,uv.y);
-    float t=T*.05;
-    vec2 w=vec2(fbm(p*1.3+vec2(t,-t*.6)),fbm(p*1.3+vec2(-t*.8,t)+7.));
-    float d=fbm(p*1.9+w*1.7+vec2(t*1.6,-t*1.1+S*.5));
-    float e=fbm(p*.9-w+vec2(-t,t*.5)+3.);
-    float low=smoothstep(.70,1.04,uv.y+(d-.5)*.34);
-    float side=smoothstep(.2,.0,uv.x+(e-.5)*.28)+smoothstep(.8,1.,uv.x+(e-.5)*.28);
-    side*=smoothstep(.25,.6,uv.y)*.2;
-    float wisps=smoothstep(.5,.78,d)*smoothstep(.22,.5,uv.y)*smoothstep(.86,.6,uv.y)*.18;
-    float rest=clamp(low+side+wisps,0.,1.);
-    float front=1.02-S*.68;
-    float rise=smoothstep(front-.02,front+.26,uv.y+(d-.5)*.5);
-    float haze=S*(.3+.46*d);
-    float a=clamp(max(rest,max(rise*.97,haze)),0.,1.);
-    vec3 dayA=vec3(.80,.80,.80),dayB=vec3(.42,.42,.43); /* neutral smoke for the dark site */
-    vec3 nitA=vec3(.40,.45,.57),nitB=vec3(.15,.19,.29);
-    vec3 c=mix(mix(dayB,dayA,d*1.15),mix(nitB,nitA,d*1.1),K);
-    O=vec4(c*a,a);
-  }`;
-  let cv = null, gl = null, U = {};
+  const coarse = matchMedia('(pointer: coarse)').matches, N = coarse ? 16 : 26, SEAM = 0.62;
+  let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  // one cauliflower-shaped cloud: overlapping soft blobs, lit from above, grey underneath
+  const sprite = () => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+    for (let i = 0; i < 16; i++) { const a = rnd() * Math.PI, d = rnd() * 70, x = 128 + Math.cos(a) * d * 1.3, y = 165 - Math.sin(a) * d * 0.8, r = 34 + rnd() * 46;
+      const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(255,255,255,.55)'); gr.addColorStop(0.6, 'rgba(255,255,255,.3)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
+    g.globalCompositeOperation = 'source-atop'; const sh = g.createLinearGradient(0, 70, 0, 230);
+    sh.addColorStop(0, 'rgba(250,250,252,0)'); sh.addColorStop(1, 'rgba(78,82,92,.7)'); g.fillStyle = sh; g.fillRect(0, 0, 256, 256); return c; };
+  let cv = null, g = null, W = 0, H = 0, S = [], P = [];
   const init = () => {
+    S = [sprite(), sprite(), sprite(), sprite()];
+    P = Array.from({ length: N }, (_, i) => { const l = i / (N - 1); return { l, x: rnd(), s: (0.16 + 0.2 * l) * (0.75 + 0.5 * rnd()), y: (rnd() - 0.5) * 0.12 + l * 0.08, v: 0.004 + 0.01 * l * rnd() + 0.003, k: i % 4 }; });
     cv = document.createElement('canvas'); cv.setAttribute('aria-hidden', 'true');
-    cv.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;z-index:62;pointer-events:none;opacity:0;visibility:hidden;';
-    document.body.appendChild(cv);
-    gl = cv.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false });
-    if (!gl) return;
-    const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); return o; };
-    const pr = gl.createProgram();
-    gl.attachShader(pr, sh(gl.VERTEX_SHADER, '#version 300 es\nvoid main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);gl_Position=vec4(p*2.-1.,0,1);}'));
-    gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr); gl.useProgram(pr);
-    for (const u of ['R', 'T', 'S', 'K']) U[u] = gl.getUniformLocation(pr, u);
-    size(); addEventListener('resize', size);
+    cv.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:58vh;z-index:62;pointer-events:none;opacity:0;visibility:hidden;will-change:transform,opacity;' +
+      '-webkit-mask-image:linear-gradient(to bottom,transparent,#000 30%,#000 72%,transparent);mask-image:linear-gradient(to bottom,transparent,#000 30%,#000 72%,transparent);';
+    document.body.appendChild(cv); g = cv.getContext('2d'); size(); addEventListener('resize', size);
   };
-  const size = () => { if (!gl) return; const cap = coarse ? 480 : 960, w = Math.round(Math.min(innerWidth, cap)), h = Math.round(w * innerHeight / innerWidth);
-    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; gl.viewport(0, 0, w, h); } };
+  const size = () => { W = Math.round(Math.min(innerWidth, coarse ? 480 : 900)); H = Math.round(W * 0.58 * innerHeight / innerWidth); cv.width = W; cv.height = H; };
+  const draw = (t) => { g.clearRect(0, 0, W, H); const yb = H * SEAM;
+    const half = (from, to) => { for (let i = from; i < to; i++) { const p = P[i], s = p.s * W, span = W + s * 2, x = ((p.x * span + t * p.v * W) % span) - s, y = yb - s * 0.42 + p.y * H;
+      g.globalAlpha = 0.5 + 0.5 * p.l; g.drawImage(S[p.k], x - s / 2, y - s / 2, s, s); } };
+    half(0, N >> 1); g.globalAlpha = 1;
+    const hz = g.createLinearGradient(0, yb - H * 0.18, 0, H); hz.addColorStop(0, 'rgba(214,217,224,0)'); hz.addColorStop(0.35, 'rgba(214,217,224,.75)'); hz.addColorStop(1, 'rgba(150,154,164,.5)');
+    g.fillStyle = hz; g.fillRect(0, yb - H * 0.18, W, H); half(N >> 1, N); g.globalAlpha = 1; };
   const mark = () => document.querySelector('[data-footer-spacer]') || document.querySelector('[data-footer]') || document.querySelector('footer');
-  let shown = -1;
+  let shown = '';
   const frame = (now) => { requestAnimationFrame(frame);
     const m = mark(); if (!m) return;
-    /* a cloud band over the seam between the last section and the footer (b = that seam on screen), above the footer's top */
     /* seam from scroll left, not the marker's position: on the homepage the sections are pinned, so the marker sits near the top */
     const V = innerHeight, left = document.documentElement.scrollHeight - V - scrollY, fh = Math.min(m.offsetHeight || V, V),
-      b = left > fh ? V + (left - fh) : V - (fh - left), vis = smooth(1.45 * V, 1.0 * V, b) * smooth(-0.35 * V, 0.05 * V, b), S = 1;
-    const key = vis.toFixed(3) + '|' + Math.round(b); if (key !== shown) { shown = key; if (vis > 0 && !cv) init();
-      if (cv) { cv.style.opacity = (0.85 * vis).toFixed(3); cv.style.visibility = vis > 0.002 ? '' : 'hidden';
-        const mk = 'linear-gradient(to bottom, transparent ' + Math.round(b - 0.22 * V) + 'px, #000 ' + Math.round(b - 0.05 * V) + 'px, #000 ' + Math.round(b + 0.06 * V) + 'px, transparent ' + Math.round(b + 0.22 * V) + 'px)';
-        cv.style.webkitMaskImage = cv.style.maskImage = mk; } }
-    if (!gl || vis <= 0.002 || (window.WB_GL_OK && !window.WB_GL_OK(gl))) return;
-    gl.uniform2f(U.R, cv.width, cv.height); gl.uniform1f(U.T, now / 1000); gl.uniform1f(U.S, S); gl.uniform1f(U.K, K); gl.drawArrays(gl.TRIANGLES, 0, 3);
+      b = left > fh ? V + (left - fh) : V - (fh - left), vis = smooth(1.45 * V, 1.0 * V, b) * smooth(-0.35 * V, 0.05 * V, b);
+    if (vis > 0 && !cv) init(); if (!cv) return;
+    const key = vis.toFixed(3) + '|' + Math.round(b); if (key !== shown) { shown = key;
+      cv.style.opacity = vis.toFixed(3); cv.style.visibility = vis > 0.002 ? '' : 'hidden';
+      cv.style.transform = 'translate3d(0,' + Math.round(b - SEAM * 0.58 * V) + 'px,0)'; }
+    if (vis > 0.002) draw(now / 1000);
   };
   requestAnimationFrame(frame);
 })();
