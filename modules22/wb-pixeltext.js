@@ -104,7 +104,7 @@
       if (S.play) { const k = (now - S.play.t0) / S.play.dur; target = Math.max(0, Math.min(1, k)); if (k >= 1) S.play = null; S.t = target; }
       else if (S.trig === 'scrub') target = ss(0.95, 0.45, (r.top + r.height * 0.5) / vh);
       else if (S.trig === 'pin') target = Math.max(0, Math.min(1, window.__wbAboutProg || 0));
-      else if (S.trig === 'inview') { if (vis && r.top < vh * 0.88 && !S.seen && !window.__wbInkBusy && effOp(el, null) > 0.3) { S.seen = true;
+      else if (S.trig === 'inview') { if (vis && r.top < vh * 0.88 && !S.seen && !window.__wbInkBusy && (S.loco ? effOp(el.parentElement, null) > 0.85 : effOp(el, null) > 0.3)) { S.seen = true; /* loco rows: wait until their block has faded in, or the reveal plays half-transparent and the row pops in */
           if (S.loco && r.top < vh * 0.75) { S.ly = 60; S.lo = 0; } /* started late (its block was still fading in): glide in from below like the rows after it */
           window.wbPixelPlay(el, +(el.getAttribute('data-pixel-delay') || 0)); return; }
         if (!S.once && S.seen && (r.top > vh || r.bottom < 0)) { S.seen = false; S.t = 0; drop(S); hide(S, true); } }

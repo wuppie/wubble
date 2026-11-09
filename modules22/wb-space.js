@@ -39,7 +39,7 @@
       if (!fc && op < 0.003 && (!window.__wbStudio || Math.abs((window.__wbStudio.__bgO ?? 1) - 1) < 0.002)) return;
       const wr = Math.min(1, Math.abs(vel) * 1.1), warp = wr * wr * (3 - 2 * wr) * (P.warp ?? 0.5), spd = 0.025 + warp * 0.45; drift += dt * 0.01;
       g.setTransform(dpr, 0, 0, dpr, 0, 0); if (window.__wbAbyss || host.hasAttribute('data-space-clear')) g.clearRect(0, 0, W, H); else { g.fillStyle = '#030303'; g.fillRect(0, 0, W, H); } /* data-space-clear: stars + warp trails only, over a background below */ /* teal abyss underneath: stars + nebula draw over it */
-      g.globalAlpha = 0.9; const ns = Math.max(W, H) * 1.5; g.drawImage(neb, W / 2 - ns / 2 + Math.sin(drift) * 40, H / 2 - ns / 2 + (window.__wbAscend ? 1 : -1) * rp * H * 0.3, ns, ns); g.globalAlpha = 1;
+      g.globalAlpha = 0.9 * (host.getAttribute('data-space-stars') === 'scroll' ? starK : 1); const ns = Math.max(W, H) * 1.5; /* scroll mode: the dark nebula comes with the warp, the sky behind stays clean when still */ g.drawImage(neb, W / 2 - ns / 2 + Math.sin(drift) * 40, H / 2 - ns / 2 + (window.__wbAscend ? 1 : -1) * rp * H * 0.3, ns, ns); g.globalAlpha = 1;
       const cx = W / 2, cy = window.__wbAscend ? -H * 0.6 : H * 0.45, f = Math.max(W, H) * 0.5;
       /* data-space-stars="scroll": stars only show while moving between sections (as trails), the sky is clean when still */
       const SOM = host.getAttribute('data-space-stars') === 'scroll', mvg = warp > 0.05 ? 1 : 0; starK += ((SOM ? mvg : 1) - starK) * (1 - Math.exp(-dt * (mvg ? 8 : 2.5)));
