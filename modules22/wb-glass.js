@@ -28,7 +28,10 @@ window.WBGlass = (T, sc, r, at) => {
       const gr = wx.createLinearGradient(W / 2 - dx * half, H / 2 - dy * half, W / 2 + dx * half, H / 2 + dy * half); bgs.forEach((c, i) => gr.addColorStop(i / (bgs.length - 1), c.trim())); wx.fillStyle = gr; }
     else wx.fillStyle = bgs[0];
     wx.fillRect(0, 0, W, H);
-    if (LIVE) { plain = plain || document.createElement('canvas'); plain.width = W; plain.height = H; plain.getContext('2d').drawImage(wc, 0, 0); } /* backdrop without the word */
+    if (LIVE) { plain = plain || document.createElement('canvas'); plain.width = W; plain.height = H; const pg = plain.getContext('2d'); pg.drawImage(wc, 0, 0);
+      /* the live (helix) backdrop gets the /work page's own word, so the glass looks the same as on /work: data-glass-live-word="work" at data-glass-live-word-y */
+      const LW = at('glass-live-word', 'work'); if (LW) { pg.font = '800 100px Switzer, Helvetica, sans-serif'; const fs2 = 100 * W * 0.87 / Math.max(1, pg.measureText(LW).width);
+        pg.font = `800 ${fs2}px Switzer, Helvetica, sans-serif`; pg.fillStyle = at('glass-word-color', '#e9eef2'); pg.textAlign = 'center'; pg.textBaseline = 'middle'; pg.fillText(LW, W / 2, H * +at('glass-live-word-y', 0.75)); } }
     wx.font = '800 100px Switzer, Helvetica, sans-serif'; const fs = 100 * W * 0.87 / Math.max(1, wx.measureText(WORD).width);
     wx.font = `800 ${fs}px Switzer, Helvetica, sans-serif`; wx.fillStyle = at('glass-word-color', '#e9eef2'); wx.textAlign = 'center'; wx.textBaseline = 'middle';
     wx.fillText(WORD, W / 2, H * +at('glass-word-y', 0.22)); wt.needsUpdate = true;
@@ -39,7 +42,7 @@ window.WBGlass = (T, sc, r, at) => {
   wq.onBeforeRender = (rr, s0, cam) => { const rt = rr.getRenderTarget(), ts = GU && GU.transmissionSamplerMap, inT = !!rt && !!ts && rt.texture === ts.value; wm.colorWrite = inT; wm.depthWrite = inT;
     if (Math.abs(cam.aspect - wAsp) > 0.02) paint(cam.aspect);
     if (LIVE && inT && base) { const src = document.querySelector(LIVE), k = LVAR ? Math.max(0, Math.min(1, +window[LVAR] || 0)) : 1;
-      if (src && k > 0.01) { wx.globalAlpha = 1; wx.drawImage(plain, 0, 0); wx.globalAlpha = 1 - k; wx.drawImage(base, 0, 0); wx.globalAlpha = k; wx.drawImage(src, 0, 0, wc.width, wc.height); /* the word fades out as the live canvas fades in, so it never shows through the cards */ wx.globalAlpha = 1; wt.needsUpdate = true; liveOn = true; }
+      if (src && k > 0.01) { wx.globalAlpha = 1; wx.drawImage(plain, 0, 0); wx.globalAlpha = 1 - k; wx.drawImage(base, 0, 0); wx.globalAlpha = k; wx.drawImage(src, 0, 0, wc.width, wc.height); /* the hero word cross-fades to the /work backdrop as the live canvas fades in, so it never shows through the cards */ wx.globalAlpha = 1; wt.needsUpdate = true; liveOn = true; }
       else if (liveOn) { wx.drawImage(base, 0, 0); wt.needsUpdate = true; liveOn = false; } }
     const d = cam.position.length() + DEPTH, h = 2 * Math.tan(T.MathUtils.degToRad(cam.fov) / 2) * d; cam.getWorldDirection(dir);
     wq.position.copy(cam.position).addScaledVector(dir, d); wq.quaternion.copy(cam.quaternion); wq.scale.set(h * cam.aspect, h, 1); wq.updateMatrixWorld(); };
