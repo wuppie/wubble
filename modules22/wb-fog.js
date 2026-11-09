@@ -39,10 +39,10 @@
     if (CUT && !box && document.readyState === 'complete') init(); /* homepage: ready before the footer arrives, so the clouds are there on first view */
     const V = innerHeight; let b, vis;
     b = m.getBoundingClientRect().top; vis = smooth(1.45 * V, 1.0 * V, b) * smooth(-0.35 * V, 0.05 * V, b); /* b = the seam on screen */
-    if (CUT) { /* homepage: the footer lies over the page and its cloud floor starts at a fixed horizon (~mid screen) as soon as it shows,
-                  so the band sits on that horizon and fades in/out with the footer, instead of following the marker (which is still low then) */
-      const want = fcs.visibility === 'hidden' ? 0 : 1, dt = Math.min(0.05, ((now || 0) - (frame.t || now || 0)) / 1000); frame.t = now;
-      frame.k = (frame.k || 0) + (want - (frame.k || 0)) * (1 - Math.exp(-dt * 4)); b = V * (window.WB_FOOT_HORIZON ?? 0.5); vis = frame.k < 0.003 ? 0 : frame.k; }
+    if (CUT) { /* homepage: the footer lies over the page, so the clouds are a pass the camera flies through while it arrives: driven by
+                  the marker (s: from a screen down to the top as you scroll in), they rise from low on the screen past its top and are gone once
+                  the footer has landed; nothing while the footer is switched off */
+      const s = b; b = V * 0.02 + s * 0.95; vis = fcs.visibility === 'hidden' ? 0 : smooth(1.12 * V, 0.8 * V, s) * smooth(0.02 * V, 0.32 * V, s); }
     if (vis > 0 && !box) init(); if (!box) return;
     const key = vis.toFixed(3) + '|' + Math.round(b); if (key === shown) return; shown = key;
     box.style.opacity = vis.toFixed(3); box.style.transform = 'translate3d(0,' + Math.round(b - SEAM * BAND * V) + 'px,0)';

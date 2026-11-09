@@ -1,17 +1,16 @@
 /* Wubble "camera look" for the homepage (after ysuriadesign.co): one light overlay over the whole page instead of
    post-processing inside each WebGL scene. Film grain (a noise tile shifted by CSS, no per-frame JS), a vignette,
-   a per-chapter colour grade (soft-light tint, eased between chapters), and a chapter counter "02 / 06 Work".
+   a per-chapter colour grade (soft-light tint, eased between chapters), and a chapter counter "02 / 05 Work".
    Phones: grain + vignette + counter only (no blend layer: GPU budget). Remove the loader line to undo. */
 (() => {
   if (window.__wbLens || !document.querySelector('.section_home-hero')) return; window.__wbLens = 1;
   const coarse = matchMedia('(pointer: coarse)').matches, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   /* chapters: [name, tint] in page order; tint = colour grade (soft-light) */
-  const CH = [['Wubble', '#8fa6c9'], ['Work', '#6f86b3'], ['About', '#c9a27c'], ['Services', '#c4564a'], ['Reach out', '#8a78c2'], ['Landing', '#d9c7a2']];
+  const CH = [['Wubble', '#8fa6c9'], ['Work', '#6f86b3'], ['About', '#c9a27c'], ['Services', '#c4564a'], ['Landing', '#d9c7a2']]; /* no Reach out: that section is switched off on the homepage */
   const GRADE = 0.32; /* strength of the colour grade */
   const q = (s) => document.querySelector(s), hero = q('.section_home-hero'), work = q('.section_home-work'), cta = q('.section_home-services'), reach = q('.section_home-reach');
   const chapter = () => { const V = innerHeight, left = document.documentElement.scrollHeight - V - scrollY;
-    if (left < V * 0.6) return 5;
-    if (reach && reach.getBoundingClientRect().top < V * 0.15) return 4; /* only once Reach out is really in view */
+    if (left < V * 0.6) return 4; /* footer (Landing) */
     if (cta) { const t = cta.getBoundingClientRect().top; if (t < V * 0.5) return -t / V >= 4.4 ? 3 : 2; } /* the pinned panel: About first, Services from ~4.4 screens in */
     if (work && work.getBoundingClientRect().top < V * 0.5) return 1;
     return 0; };
@@ -35,7 +34,7 @@
   document.head.appendChild(st);
   const mk = (c) => { const e = document.createElement('div'); e.className = c; e.setAttribute('aria-hidden', 'true'); document.body.appendChild(e); return e; };
   mk('wb-lens-grain'); mk('wb-lens wb-lens-vig'); const grade = coarse ? null : mk('wb-lens wb-lens-grade');
-  const cnt = mk('wb-lens-count'); cnt.innerHTML = '<b><span>01</span></b><i>/</i><i>06</i><em>' + CH[0][0] + '</em>';
+  const cnt = mk('wb-lens-count'); cnt.innerHTML = '<b><span>01</span></b><i>/</i><i>' + String(CH.length).padStart(2, '0') + '</i><em>' + CH[0][0] + '</em>';
   const num = cnt.querySelector('b'), name = cnt.querySelector('em');
   /* roll the number: the old one slides out (up when going forward, down when going back), the new one slides in; the name crossfades */
   const E = 'cubic-bezier(.7,0,.2,1)';
