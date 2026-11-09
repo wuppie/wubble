@@ -1,8 +1,7 @@
 /* Wubble "camera look" for the homepage (after ysuriadesign.co): one light overlay over the whole page instead of
    post-processing inside each WebGL scene. Film grain (a noise tile shifted by CSS, no per-frame JS), a vignette,
-   a per-chapter colour grade (soft-light tint, eased between chapters), a focus pull on the astronaut (soft while scrolling, sharp when still)
-   and a chapter counter "02 / 06 Work".
-   Phones: grain + vignette + counter only (no blend layer, no focus pull: GPU budget). Remove the loader line to undo. */
+   a per-chapter colour grade (soft-light tint, eased between chapters), and a chapter counter "02 / 06 Work".
+   Phones: grain + vignette + counter only (no blend layer: GPU budget). Remove the loader line to undo. */
 (() => {
   if (window.__wbLens || !document.querySelector('.section_home-hero')) return; window.__wbLens = 1;
   const coarse = matchMedia('(pointer: coarse)').matches, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -45,17 +44,8 @@
     old.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(' + (-110 * d) + '%)' }], { duration: 650, easing: E, fill: 'forwards' }).onfinish = () => { old.remove(); nw.style.position = ''; };
     nw.animate([{ transform: 'translateY(' + (110 * d) + '%)' }, { transform: 'translateY(0)' }], { duration: 650, easing: E });
     name.animate([{ opacity: .7 }, { opacity: 0 }], { duration: 250, easing: 'ease-in' }).onfinish = () => { name.textContent = nm; name.animate([{ opacity: 0, transform: 'translateY(.4em)' }, { opacity: .7, transform: 'none' }], { duration: 450, easing: E }); }; };
-  /* focus pull on the astronaut: he goes soft while you scroll (more blur the faster), and he settles back into sharp focus when you stop. CSS blur on his canvas only while it is > 0 (no cost when sharp). Desktop only. */
-  const MAXB = 3; let cur = -1, lastY = scrollY, vel = 0, last = performance.now(), blur = 0, shown = -1, astro = null;
-  const frame = (now) => { requestAnimationFrame(frame); if (document.hidden) return;
-    const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    const c = chapter(); if (c !== cur) { const cur0 = cur; cur = c; roll(String(c + 1).padStart(2, '0'), CH[c][0], c > cur0); if (grade) grade.style.backgroundColor = CH[c][1]; }
-    if (coarse || still) return;
-    const dy = scrollY - lastY; lastY = scrollY; vel += (Math.abs(dy) / Math.max(dt, 0.001) - vel) * (1 - Math.exp(-dt * 6)); /* px per second, smoothed */
-    const want = Math.min(MAXB, vel / 700); /* only while scrolling, gently */
-    blur += (want - blur) * (1 - Math.exp(-dt * (want > blur ? 7 : 3.5))); /* defocus quickly, refocus slowly like a lens */
-    const b = blur < 0.15 ? 0 : Math.round(blur * 10) / 10; if (b === shown) return; shown = b;
-    astro = astro && astro.isConnected ? astro : document.querySelector('.home_astronaut-layer canvas');
-    if (astro) astro.style.filter = b ? 'blur(' + b + 'px)' : ''; };
+  let cur = -1;
+  const frame = () => { requestAnimationFrame(frame); if (document.hidden) return;
+    const c = chapter(); if (c !== cur) { const cur0 = cur; cur = c; roll(String(c + 1).padStart(2, '0'), CH[c][0], c > cur0); if (grade) grade.style.backgroundColor = CH[c][1]; } };
   requestAnimationFrame(frame);
 })();
