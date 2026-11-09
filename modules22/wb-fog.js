@@ -6,16 +6,16 @@
   if (window.__wbFog) return; window.__wbFog = 1;
   const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x)), smooth = (a, b, x) => { x = clamp((x - a) / (b - a)); return x * x * (3 - 2 * x); };
   const MOB = matchMedia('(pointer: coarse)').matches || innerWidth < 820, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const N = MOB ? 260 : 520, DEPTH = 1500, PR = 0.5, BAND = 0.7, SEAM = 0.45, FOG = '#e9e6dd';
+  const N = MOB ? 170 : 320, DEPTH = 1500, PR = 0.5, BAND = 0.7, SEAM = 0.45, FOG = '#e9e6dd';
   let box = null, cv = null, img = null, fogI = null;
   const paint = () => { if (!img || !img.naturalWidth || !fogI) return;
     const W = Math.max(1, Math.round(innerWidth * PR)), H = Math.max(1, Math.round(innerHeight * BAND * PR)); cv.width = W * 2; cv.height = H;
     const g = cv.getContext('2d'), f = (innerHeight / 2) / Math.tan(15 * Math.PI / 180) * PR, y0 = H * 0.3; /* horizon high in the band: the cloud floor covers the seam below it */
     let seed = 11; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647); /* same clouds every time */
-    const S = []; for (let i = 0; i < N; i++) S.push({ x: rnd(), y: -rnd() * rnd() * 200 - 15, d: 40 + (i / N) * 860, j: (rnd() - 0.5) * 0.14, r: rnd() * Math.PI, s: rnd() * rnd() * 1.5 + 0.5 });
+    const S = []; for (let i = 0; i < N; i++) S.push({ x: rnd(), y: -rnd() * rnd() * 200 - 15, d: 40 + (i / N) * 480, j: (rnd() - 0.5) * 0.14, r: rnd() * Math.PI, s: rnd() * rnd() * 1.5 + 0.5 });
     S.sort((a, b) => b.d - a.d); /* far first */
     for (const s of S) { const k = f / s.d, sz = 64 * s.s * k; if (sz < 2) continue; const py = y0 - s.y * k + s.j * H; /* no far clouds piling up on one flat horizon line */ if (py - sz > H || py + sz < 0) continue;
-      const ff = clamp((s.d + 100) / 1000), a = Math.min(1, (s.d - 8) / 90), px = s.x * W;
+      const ff = clamp((s.d + 60) / 900), a = Math.min(1, (s.d - 8) / 90), px = s.x * W;
       for (const ox of [-W, 0, W, 2 * W]) { const x = px + ox; if (x + sz < 0 || x - sz > 2 * W) continue; /* period W: the strip repeats seamlessly */
         g.save(); g.translate(x, py); g.rotate(s.r); g.globalAlpha = a * (1 - ff); g.drawImage(img, -sz / 2, -sz / 2, sz, sz); g.globalAlpha = a * ff; g.drawImage(fogI, -sz / 2, -sz / 2, sz, sz); g.restore(); } }
   };
