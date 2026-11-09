@@ -836,7 +836,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
         else { if (box.style.clipPath) box.style.clipPath = ''; const g = this._glR && document.querySelector('[data-about-glass]'); if (g && g.style.transform) g.style.transform = ''; }
       } if (box.style.filter && !this._inTerm) box.style.filter = '';
       // leaving Work: no fade — he flies up and out the top; only hidden once fully past
-      const keepR = !(this.props.reachSection ?? false), fade = ((PH.exitU || 0) < 0.999 || (PH.rb || 0) > 0.5) && (keepR || r3 < 0.6) ? 1 : 0, vis = (!this.state.page || this.closing) && (this.props.astroGlobal ?? true) && fade > 0.001 && (keepR || r3 < 0.6) && !window.__wbHelixOn; /* Reach off: he stays with you down to the moon */
+      const keepR = !(this.props.reachSection ?? false), fade = ((PH.exitU || 0) < 0.999 || (PH.rb || 0) > 0.5) && (keepR || r3 < 0.6) ? 1 : 0, vis = (!this.state.page || this.closing) && (this.props.astroGlobal ?? true) && fade > 0.001 && (keepR || r3 < 0.6) && (window.__wbHelixK || 0) < 0.999; /* Reach off: he stays with you down to the moon. __wbHelixK: crossfade into the helix's own astronaut */
       if (this._scrRect && this._robot && this._robot.visible && this._scrPx && this._scrPx.z > 0.001) {
         const SR = this._scrRect, kz = Math.min(1, this._scrPx.z * 1.6); piv.updateMatrixWorld(true);
         const gw = piv.localToWorld(new T3.Vector3(SR.cx, SR.cy, 0)), nd = gw.clone().project(cam), dist = Math.abs(cam.position.z - gw.z), hh = Math.tan(cam.fov * Math.PI / 360) * dist;
@@ -850,7 +850,7 @@ reflectedLight.indirectDiffuse *= occ; reflectedLight.indirectSpecular *= mix(oc
       } else this._scrQuad = null;
       if (!NATIVE && (this.props.astroArmAnims ?? false)) FIST(dt);
       if (!NATIVE && vis && (this.props.astroPhysics ?? true) && (this.props.astroMotion || 'Clean clip') !== 'Clean clip') PHYS(dt, tt); // rigged clips play exactly as recorded
-      const op = vis ? fade.toFixed(3) : '0'; if (box.style.opacity !== op) box.style.opacity = op; shown = vis;
+      const op = vis ? (fade * (1 - (window.__wbHelixK || 0))).toFixed(3) : '0'; if (box.style.opacity !== op) box.style.opacity = op; shown = vis;
       // moon walk: once landed, walk clockwise along the moon's rim, off screen on the right, back in from the left
       { const WK = this._wk || (this._wk = { t: 0, phi: 0, w: 0 }), P = this.props, asp0 = halfW / Math.max(0.001, halfH), MC = window.__wbMoonC || { r: (P.footerMoonSize ?? 2.4) * Math.max(1, asp0 * 0.6) }, landed = (this._moonK || 0) > 0.98; // footer moon camera is ortho with half-height 1, so its radius is already in screen units
         /* footer data-moon="0": no moon, he walks in a straight line (right, then back in from the left) */

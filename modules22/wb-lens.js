@@ -26,20 +26,30 @@
 @keyframes wbGrain{0%{transform:translate(0,0)}15%{transform:translate(-37px,23px)}30%{transform:translate(19px,-53px)}45%{transform:translate(-61px,-11px)}60%{transform:translate(41px,67px)}75%{transform:translate(-13px,47px)}90%{transform:translate(59px,-29px)}100%{transform:translate(0,0)}}
 .wb-lens-vig{background:radial-gradient(120% 95% at 50% 50%,transparent 52%,rgba(0,0,0,.5) 100%)}
 .wb-lens-grade{mix-blend-mode:soft-light;opacity:${GRADE};transition:background-color 1.6s ease}
-.wb-lens-count{position:fixed;top:34px;right:132px;z-index:64;pointer-events:none;display:flex;gap:.55em;align-items:baseline;font:500 13px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.02em;color:#f2f1ee;mix-blend-mode:difference}
-.wb-lens-count b{font-weight:600}.wb-lens-count i{font-style:normal;opacity:.45}
-.wb-lens-count em{font-style:normal;opacity:.6;margin-left:.6em;display:inline-block;transition:opacity .4s ease,transform .4s ease}
-@media (max-width:767px){.wb-lens-count{top:auto;bottom:22px;right:auto;left:20px}}`;
+/* chapter counter in the bottom-left corner of the top bar (where "digital motion" was), white; the number rolls on each change */
+.home-nav_block-4{display:none!important}
+.wb-lens-count{position:fixed;left:28px;bottom:32px;z-index:64;pointer-events:none;display:flex;gap:.5em;align-items:baseline;font:500 13px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.02em;color:#fff}
+.wb-lens-count b{position:relative;display:inline-block;overflow:hidden;height:1em;font-weight:600}.wb-lens-count b span{display:block}
+.wb-lens-count i{font-style:normal;opacity:.5}
+.wb-lens-count em{font-style:normal;opacity:.7;margin-left:.6em;display:inline-block}
+@media (max-width:767px){.wb-lens-count{left:20px;bottom:22px}}`;
   document.head.appendChild(st);
   const mk = (c) => { const e = document.createElement('div'); e.className = c; e.setAttribute('aria-hidden', 'true'); document.body.appendChild(e); return e; };
   mk('wb-lens-grain'); mk('wb-lens wb-lens-vig'); const grade = coarse ? null : mk('wb-lens wb-lens-grade');
-  const cnt = mk('wb-lens-count'); cnt.innerHTML = '<b>01</b><i>/</i><i>06</i><em>' + CH[0][0] + '</em>';
+  const cnt = mk('wb-lens-count'); cnt.innerHTML = '<b><span>01</span></b><i>/</i><i>06</i><em>' + CH[0][0] + '</em>';
   const num = cnt.querySelector('b'), name = cnt.querySelector('em');
+  /* roll the number: the old one slides out (up when going forward, down when going back), the new one slides in; the name crossfades */
+  const E = 'cubic-bezier(.7,0,.2,1)';
+  const roll = (n, nm, fwd) => { const old = num.firstElementChild; if (old && old.textContent === n) return; const nw = document.createElement('span'); nw.textContent = n;
+    if (!old || still) { num.replaceChildren(nw); name.textContent = nm; return; } nw.style.cssText = 'position:absolute;left:0;top:0'; num.appendChild(nw); const d = fwd ? 1 : -1;
+    old.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(' + (-110 * d) + '%)' }], { duration: 650, easing: E, fill: 'forwards' }).onfinish = () => { old.remove(); nw.style.position = ''; };
+    nw.animate([{ transform: 'translateY(' + (110 * d) + '%)' }, { transform: 'translateY(0)' }], { duration: 650, easing: E });
+    name.animate([{ opacity: .7 }, { opacity: 0 }], { duration: 250, easing: 'ease-in' }).onfinish = () => { name.textContent = nm; name.animate([{ opacity: 0, transform: 'translateY(.4em)' }, { opacity: .7, transform: 'none' }], { duration: 450, easing: E }); }; };
   /* focus pull on the astronaut: he goes soft while you scroll (more blur the faster), and he settles back into sharp focus when you stop. CSS blur on his canvas only while it is > 0 (no cost when sharp). Desktop only. */
   const MAXB = 3; let cur = -1, lastY = scrollY, vel = 0, last = performance.now(), blur = 0, shown = -1, astro = null;
   const frame = (now) => { requestAnimationFrame(frame); if (document.hidden) return;
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    const c = chapter(); if (c !== cur) { cur = c; num.textContent = String(c + 1).padStart(2, '0'); name.textContent = CH[c][0]; if (grade) grade.style.backgroundColor = CH[c][1]; }
+    const c = chapter(); if (c !== cur) { const cur0 = cur; cur = c; roll(String(c + 1).padStart(2, '0'), CH[c][0], c > cur0); if (grade) grade.style.backgroundColor = CH[c][1]; }
     if (coarse || still) return;
     const dy = scrollY - lastY; lastY = scrollY; vel += (Math.abs(dy) / Math.max(dt, 0.001) - vel) * (1 - Math.exp(-dt * 6)); /* px per second, smoothed */
     const want = Math.min(MAXB, vel / 700); /* only while scrolling, gently */
