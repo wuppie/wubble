@@ -10,18 +10,18 @@
   let box = null, cv = null, img = null, fogI = null;
   const paint = () => { if (!img || !img.naturalWidth || !fogI) return;
     const W = Math.max(1, Math.round(innerWidth * PR)), H = Math.max(1, Math.round(innerHeight * BAND * PR)); cv.width = W * 2; cv.height = H;
-    const g = cv.getContext('2d'), f = (innerHeight / 2) / Math.tan(15 * Math.PI / 180) * PR, y0 = H * 0.22; /* horizon high in the band: the cloud floor covers the seam below it */
+    const g = cv.getContext('2d'), f = (innerHeight / 2) / Math.tan(15 * Math.PI / 180) * PR, y0 = H * 0.3; /* horizon high in the band: the cloud floor covers the seam below it */
     let seed = 11; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647); /* same clouds every time */
-    const S = []; for (let i = 0; i < N; i++) S.push({ x: rnd(), y: -rnd() * rnd() * 200 - 15, d: 40 + (i / N) * (DEPTH - 40), r: rnd() * Math.PI, s: rnd() * rnd() * 1.5 + 0.5 });
+    const S = []; for (let i = 0; i < N; i++) S.push({ x: rnd(), y: -rnd() * rnd() * 200 - 15, d: 40 + (i / N) * 860, j: (rnd() - 0.5) * 0.14, r: rnd() * Math.PI, s: rnd() * rnd() * 1.5 + 0.5 });
     S.sort((a, b) => b.d - a.d); /* far first */
-    for (const s of S) { const k = f / s.d, sz = 64 * s.s * k; if (sz < 2) continue; const py = y0 - s.y * k; if (py - sz > H || py + sz < 0) continue;
-      const ff = clamp((s.d + 100) / (DEPTH + 100)), a = Math.min(1, (s.d - 8) / 90), px = s.x * W;
+    for (const s of S) { const k = f / s.d, sz = 64 * s.s * k; if (sz < 2) continue; const py = y0 - s.y * k + s.j * H; /* no far clouds piling up on one flat horizon line */ if (py - sz > H || py + sz < 0) continue;
+      const ff = clamp((s.d + 100) / 1000), a = Math.min(1, (s.d - 8) / 90), px = s.x * W;
       for (const ox of [-W, 0, W, 2 * W]) { const x = px + ox; if (x + sz < 0 || x - sz > 2 * W) continue; /* period W: the strip repeats seamlessly */
         g.save(); g.translate(x, py); g.rotate(s.r); g.globalAlpha = a * (1 - ff); g.drawImage(img, -sz / 2, -sz / 2, sz, sz); g.globalAlpha = a * ff; g.drawImage(fogI, -sz / 2, -sz / 2, sz, sz); g.restore(); } }
   };
   const init = () => {
     box = document.createElement('div'); box.setAttribute('aria-hidden', 'true');
-    const mk = 'linear-gradient(to bottom,transparent,#000 28%,#000 66%,transparent)';
+    const mk = 'linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.3) 16%,#000 36%,#000 54%,rgba(0,0,0,.45) 76%,transparent 100%)'; /* long soft fades: no visible top or bottom edge */
     box.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:' + BAND * 100 + 'vh;z-index:62;pointer-events:none;overflow:hidden;opacity:0;visibility:hidden;will-change:transform,opacity;-webkit-mask-image:' + mk + ';mask-image:' + mk + ';';
     cv = document.createElement('canvas'); cv.style.cssText = 'position:absolute;left:0;top:0;width:200%;height:100%;will-change:transform;' + (still ? '' : 'animation:wbFogDrift 140s linear infinite;');
     const st = document.createElement('style'); st.textContent = '@keyframes wbFogDrift{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}'; document.head.appendChild(st);
