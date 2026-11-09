@@ -892,7 +892,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
    API: WBConsent.get() -> { necessary, analytics, marketing, region } | null · WBConsent.open() · event 'wb:consent' on document. */
 (() => {
   if (window.WBConsent) return;
-  const me = document.currentScript, POLICY = (me && me.dataset.policy) || '/privacy', KEY = 'wb-consent', VERSION = 1, MAX_AGE = 365 * 864e5;
+  const me = document.currentScript, POLICY0 = (me && me.dataset.policy) || '/privacy', POLICY = (/^nl/i.test(document.documentElement.lang || '') && POLICY0.charAt(0) === '/' && !/^\/nl(\/|$)/.test(POLICY0)) ? '/nl' + POLICY0 : POLICY0, /* Dutch pages (Webflow Localize /nl): Dutch privacy page */ KEY = 'wb-consent', VERSION = 1, MAX_AGE = 365 * 864e5;
   const tz = (Intl.DateTimeFormat().resolvedOptions().timeZone || '');
   const US_TZ = /^America\/(New_York|Detroit|Chicago|Denver|Phoenix|Los_Angeles|Anchorage|Boise|Indiana|Kentucky|North_Dakota|Menominee|Juneau|Sitka|Nome|Yakutat|Metlakatla|Adak)|^Pacific\/Honolulu$|^US\//;
   const REGION = US_TZ.test(tz) ? 'us' : 'eu', NL = /^nl\b/i.test(navigator.language || ''), GPC = navigator.globalPrivacyControl === true;
