@@ -104,7 +104,7 @@
         const WAT = (k, d) => root.getAttribute('data-' + k) ?? d;
         const glassA = WAT('look', '') === 'glass' && window.WBGlass ? WBGlass(T, sc, r, WAT) : new T.MeshPhysicalMaterial({ color: 0x15161a, metalness: 0.05, roughness: 0.0, transmission: 1, thickness: 1.4, ior: 1.5, dispersion: window.WB_WORK_DISPERSION ?? 6, attenuationColor: new T.Color(0x0a0a0d), attenuationDistance: 1.2,
           flatShading: true, clearcoat: 1, clearcoatRoughness: 0, envMapIntensity: 2.6, specularIntensity: 1, side: T.FrontSide });
-        m.traverse((o) => { if (o.isMesh) o.material = glassA; });
+        m.traverse((o) => { if (o.isMesh) o.material = glassA; }); if (SCRUB) { glassA.transparent = true; glassA.opacity = 0; root.__hxA = { m: glassA, piv: pivot }; } /* homepage: fades in/out against the hero astronaut (transparent stays on: no shader rebuild mid-scroll) */
 
         const clip = g.animations.find((a) => /float/i.test(a.name)) || g.animations[0]; if (clip) { mixer = new T.AnimationMixer(m); mixer.clipAction(clip).play(); } },
         undefined, (e) => console.warn('[work] astronaut failed', e)); }
@@ -137,7 +137,9 @@
         const rpv = window.__wbRP, g0 = rpv == null ? (root.closest('.home_page-wrapper') ? 0 : 1) /* homepage: hidden until the hero runs (it showed the huge phone WORK text during loading) */ : Math.max(0, Math.min(1, (rpv - 0.8) / 0.2)), gIn = g0 * g0 * (3 - 2 * g0), q0 = Math.max(0, Math.min(1, (window.__wbRQ || 0) / 0.25)); EX = q0 * q0 * (3 - 2 * q0); /* work → About: the ring flies apart past the camera, gone before the About text */
         const gOut = 1 - Math.max(0, Math.min(1, (EX - 0.2) / 0.6)), gs = (gIn * gOut).toFixed(3); window.__wbWorkIn = gIn * (1 - Math.max(0, Math.min(1, EX / 0.45))); { const wv = window.__wbWorkIn.toFixed(2); if (wv !== root.__wv) { root.__wv = wv; document.documentElement.style.setProperty('--wb-work-in', wv); } } /* CSS can follow it too (phones: plain-text WORK title) */ /* the WORK blur word leaves a little ahead of the cards */ if (stage.__op !== gs) { stage.__op = gs; stage.style.opacity = gIn * gOut >= 0.999 ? '' : gs; }
         const pn = root.closest('[data-panel]'), po = pn ? +getComputedStyle(pn).opacity : 1, on = rr.top < innerHeight && rr.bottom > 0 && po > 0.02 && gIn * gOut > 0.001;
-        { const hk = OWN_ASTRO && on ? Math.max(0, Math.min(1, (po - 0.15) / 0.7)) : 0; window.__wbHelixK = hk * hk * (3 - 2 * hk); window.__wbHelixOn = window.__wbHelixK > 0.999; } /* one astronaut at a time: the homepage one (wb-astro) crossfades into the helix's own glass astronaut as the panel fades in */
+        { const c01 = (x) => Math.max(0, Math.min(1, x)), sm = (x) => x * x * (3 - 2 * x), hk = OWN_ASTRO && on ? sm(c01(p / 0.12)) * (1 - sm(c01((p - 0.86) / 0.12))) * sm(c01((po - 0.15) / 0.7)) : 0;
+          window.__wbHelixK = hk; window.__wbHelixOn = hk > 0.999; const A = root.__hxA; if (A) { A.m.opacity = hk; A.piv.visible = hk > 0.005; } }
+        /* one astronaut at a time, crossfaded by scroll: over the first part of the work section the floating hero astronaut (wb-astro) fades out while the helix's own glass astronaut fades in; over the last part it runs back */
         if (!on) return; tgt = p * Math.max(0, all.length - 1); }
       else { const AUTO = +(root.getAttribute('data-auto') || 0), idl = now - idleT, ramp = Math.max(0, Math.min(1, (idl - 2500) / 2000));
       if (AUTO && !hovered && ramp > 0) tgt += AUTO * dt * ramp * ramp * (3 - 2 * ramp);
