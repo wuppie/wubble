@@ -32,7 +32,7 @@ html.wb-svcpin .about-services_title.is-home{margin:0!important;font:600 clamp(2
   [...box.children].forEach((c) => right.appendChild(c)); box.append(left, right);
   document.documentElement.classList.add('wb-svcpin');
   /* the right column scrolls through the pinned services stretch: from when the panel pins until the rows have all passed */
-  const START = 0.15, LEN = 2.2; /* in screen heights after the panel pins; tune if the services phase is longer/shorter */
+  const START = 5.0, LEN = 3.3; /* screen heights into the section: the services phase runs from ~4.5 (fade-in after About) to ~8.7 (unpin) */
   let last = '';
   const tick = () => { requestAnimationFrame(tick);
     const V = innerHeight, into = -sec.getBoundingClientRect().top / V, p = Math.max(0, Math.min(1, (into - START) / LEN));
