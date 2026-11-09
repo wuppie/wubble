@@ -6,22 +6,22 @@
   if (window.__wbFog) return; window.__wbFog = 1;
   const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x)), smooth = (a, b, x) => { x = clamp((x - a) / (b - a)); return x * x * (3 - 2 * x); };
   const MOB = matchMedia('(pointer: coarse)').matches || innerWidth < 820, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const N = MOB ? 170 : 320, DEPTH = 1500, PR = 0.5, BAND = 0.7, SEAM = 0.45, FOG = '#e9e6dd';
+  const N = MOB ? 160 : 300, PR = 0.5, BAND = 0.7, SEAM = 0.45, FOG = '#e9e6dd';
   let box = null, cv = null, img = null, fogI = null;
   const paint = () => { if (!img || !img.naturalWidth || !fogI) return;
     const W = Math.max(1, Math.round(innerWidth * PR)), H = Math.max(1, Math.round(innerHeight * BAND * PR)); cv.width = W * 2; cv.height = H;
-    const g = cv.getContext('2d'), f = (innerHeight / 2) / Math.tan(15 * Math.PI / 180) * PR, y0 = H * 0.3; /* horizon high in the band: the cloud floor covers the seam below it */
-    let seed = 11; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647); /* same clouds every time */
-    const S = []; for (let i = 0; i < N; i++) S.push({ x: rnd(), y: -rnd() * rnd() * 200 - 15, d: 40 + (i / N) * 480, j: (rnd() - 0.5) * 0.14, r: rnd() * Math.PI, s: rnd() * rnd() * 1.5 + 0.5 });
-    S.sort((a, b) => b.d - a.d); /* far first */
-    for (const s of S) { const k = f / s.d, sz = 64 * s.s * k; if (sz < 2) continue; const py = y0 - s.y * k + s.j * H; /* no far clouds piling up on one flat horizon line */ if (py - sz > H || py + sz < 0) continue;
-      const ff = clamp((s.d + 60) / 900), a = Math.min(1, (s.d - 8) / 90), px = s.x * W;
-      for (const ox of [-W, 0, W, 2 * W]) { const x = px + ox; if (x + sz < 0 || x - sz > 2 * W) continue; /* period W: the strip repeats seamlessly */
-        g.save(); g.translate(x, py); g.rotate(s.r); g.globalAlpha = a * (1 - ff); g.drawImage(img, -sz / 2, -sz / 2, sz, sz); g.globalAlpha = a * ff; g.drawImage(fogI, -sz / 2, -sz / 2, sz, sz); g.restore(); } }
+    const g = cv.getContext('2d'); let seed = 11; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647); /* same clouds every time */
+    /* billowing cloud bank with an uneven top line (no horizon, so no straight edge); integer frequencies: repeats every W */
+    const T = Math.PI * 2, p = [rnd() * T, rnd() * T, rnd() * T], top = (x) => H * (0.3 + 0.09 * Math.sin(T * 2 * x / W + p[0]) + 0.05 * Math.sin(T * 5 * x / W + p[1]) + 0.025 * Math.sin(T * 11 * x / W + p[2]));
+    [[N * 0.3, 0.07, 0.55, 0.06], [N * 0.35, 0.1, 0.8, 0.03], [N * 0.35, 0.14, 1, 0]].forEach(([n, sc, al, up], l) => { /* back (small, faint, higher) to front (big, bright) */
+      for (let i = 0; i < n; i++) { const x0 = rnd() * W, sz = W * sc * (0.6 + 0.8 * rnd()), y = top(x0) - up * H + sz * 0.38 + rnd() * rnd() * H * 0.45, r = rnd() * T;
+        for (const ox of [-W, 0, W, 2 * W]) { const x = x0 + ox; if (x + sz < 0 || x - sz > 2 * W) continue;
+          g.save(); g.translate(x, y); g.rotate(r); g.globalAlpha = al * (l ? 1 : 0.6); g.drawImage(img, -sz / 2, -sz / 2, sz, sz); if (!l) { g.globalAlpha = al * 0.5; g.drawImage(fogI, -sz / 2, -sz / 2, sz, sz); } g.restore(); } } });
+    g.globalAlpha = 1; const fl = g.createLinearGradient(0, H * 0.5, 0, H); fl.addColorStop(0, 'rgba(233,230,221,0)'); fl.addColorStop(1, 'rgba(233,230,221,.8)'); g.fillStyle = fl; g.fillRect(0, H * 0.5, W * 2, H * 0.5); /* melts into the footer's cloud floor */
   };
   const init = () => {
     box = document.createElement('div'); box.setAttribute('aria-hidden', 'true');
-    const mk = 'linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.3) 16%,#000 36%,#000 54%,rgba(0,0,0,.45) 76%,transparent 100%)'; /* long soft fades: no visible top or bottom edge */
+    const mk = 'linear-gradient(to bottom,transparent 0%,#000 10%,#000 56%,rgba(0,0,0,.5) 78%,transparent 100%)'; /* top: open above the highest cloud tops, so the edge is the clouds themselves; long soft fade into the footer */
     box.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:' + BAND * 100 + 'vh;z-index:62;pointer-events:none;overflow:hidden;opacity:0;visibility:hidden;will-change:transform,opacity;-webkit-mask-image:' + mk + ';mask-image:' + mk + ';';
     cv = document.createElement('canvas'); cv.style.cssText = 'position:absolute;left:0;top:0;width:200%;height:100%;will-change:transform;' + (still ? '' : 'animation:wbFogDrift 140s linear infinite;');
     const st = document.createElement('style'); st.textContent = '@keyframes wbFogDrift{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}'; document.head.appendChild(st);
