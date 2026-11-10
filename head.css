@@ -1,0 +1,46 @@
+/* Wubble site-wide CSS (loaded from the Webflow site head, same pin as head.js). Used to live inline in the Webflow head. */
+.privacy,
+.privacy p,
+.privacy a {
+  color: #fff;
+  font-family: Switzer, Arial, sans-serif;
+}
+
+.home_clouds-front {
+  width: 100vw;
+  height: 100vh;
+}
+
+div[data-media-in][data-w-slot] {
+  padding: 90px;
+}
+/* service list titles: when a title wraps, split it into even lines (never one lonely word on the second line) */
+[data-wb-row-title] { text-wrap: balance; }
+/* footer AI icons: hover = black circle with a white icon */
+.footer_ai-button .wb-btn-fill { background: #0e0e0d !important; }
+.footer_ai-icon { position: relative; transition: filter .3s ease; }
+.footer_ai-button:hover .footer_ai-icon { filter: brightness(0) invert(1); }
+/* top bar tone (wb-navtone.js sets html.wb-nav-ink over light backgrounds): logo, status text and buttons turn dark; the green status dot is never touched */
+.navbar_logo, .navbar_actions, .home-nav_logo, .home-nav_block-3, .navbar_status > :not([data-wb-status-dot]), .home-nav_block-2 > :not([data-avail-dot]) { transition: filter .5s ease; }
+html.wb-nav-ink .navbar_logo, html.wb-nav-ink .navbar_actions, html.wb-nav-ink .home-nav_logo, html.wb-nav-ink .home-nav_block-3, html.wb-nav-ink .navbar_status > :not([data-wb-status-dot]), html.wb-nav-ink .home-nav_block-2 > :not([data-avail-dot]) { filter: invert(1); }
+/* the cursor blob (difference blend: .home_ink on Home, a body layer elsewhere) would tint the green status dot pink: it fades out while over the top bar */
+.home_ink, body > [data-wb-persist][style*="difference"] { transition: opacity .25s ease; }
+html:has(.navbar_container:hover, .home-nav_block:hover) .home_ink, html:has(.navbar_container:hover, .home-nav_block:hover) body > [data-wb-persist][style*="difference"] { opacity: 0 !important; }
+/* footer on pages other than Home: as tall as its content (min 75% of the screen) instead of a full screen; Home keeps the full height for the moon landing */
+.footer_wrap:not(:has(.home-footer_fig)) { height: auto; min-height: 75vh; }
+/* phones: the homepage WORK title as plain grey text (the WebGL blur word is off there to save GPU), fading with the work helix */
+@media (pointer: coarse) {
+  .home-work_panel > .page-hero_blur-word { position: fixed; left: 6vw; right: 6vw; top: 16vh; width: auto; height: auto; overflow: visible; clip: auto; clip-path: none; margin: 0; white-space: nowrap; font: 700 34vw/0.9 Switzer, Helvetica, Arial, sans-serif; letter-spacing: -0.04em; text-transform: lowercase; color: #5a5c60; filter: blur(1.5px); opacity: var(--wb-work-in, 0); pointer-events: none; z-index: 0; }
+}
+/* Mobile */
+@media screen and (max-width: 767px) {
+  .home_astronaut-layer canvas {
+    position: relative;
+    top: -90px;
+  }
+  /* footer on phones: Ask AI | Follow side by side, Contact full width below */
+  .footer_columns > .footer_column:nth-child(5) { order: 3; }
+  .footer_columns > .footer_column:nth-child(4) { order: 4; }
+  .footer_columns > .footer_column:nth-child(3) { order: 5; grid-column: 1 / -1; }
+  .footer_columns > .footer_column:nth-child(3) a[data-wb-btn] { display: flex; width: 100%; justify-content: center; box-sizing: border-box; }
+}
