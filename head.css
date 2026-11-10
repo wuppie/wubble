@@ -44,3 +44,6 @@ html:has(.navbar_container:hover, .home-nav_block:hover) .home_ink, html:has(.na
   .footer_columns > .footer_column:nth-child(3) { order: 5; grid-column: 1 / -1; }
   .footer_columns > .footer_column:nth-child(3) a[data-wb-btn] { display: flex; width: 100%; justify-content: center; box-sizing: border-box; }
 }
+/* footer content sits lower on every page (more air above "Ready for the next level?") */
+.footer_inner { padding-top: max(96px, 22vh) !important; }
+@media (max-width: 767px) { .footer_inner { padding-top: max(72px, 12vh) !important; } }
