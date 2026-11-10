@@ -4,7 +4,7 @@
    services stretch, so the left block stays put until every service has been in view. Desktop only; remove the loader line to undo.
    The services panel is already sticky (wb-sections), so the left block needs no pinning of its own; only the right column moves. */
 (() => {
-  if (window.__wbSvcPin || matchMedia('(pointer: coarse)').matches) return;
+  if (window.__wbSvcPin) return;
   const sec = document.querySelector('.section_home-services'), hero = document.querySelector('[data-hero3]'), box = hero && hero.querySelector('.home-services_block-2');
   if (!sec || !box) return; window.__wbSvcPin = 1;
   const NL = /^nl/i.test(document.documentElement.lang || '');
@@ -32,8 +32,9 @@ html.wb-svcpin .home-services_block-2>.home-services_title,html.wb-svcpin .home-
 .wb-svc-left a span{transition:transform .4s cubic-bezier(.2,.7,.2,1)}.wb-svc-left a:hover span{transform:translateX(.3em)}
 .wb-svc-right{position:relative;padding:17vh 0 30vh 130px;will-change:transform}
 .wb-svc-g{position:relative;display:block;margin:0 0 20vh;color:inherit;text-decoration:none}
-.wb-svc-g:last-child{margin-bottom:0}
-html.wb-svc-live .wb-svc-g,html.wb-svc-live .wb-svc-left a{pointer-events:auto} /* the panel has clicks off; links work only while the services are on screen */
+.wb-svc-g:last-of-type{margin-bottom:0}
+html.wb-svc-live .wb-svc-g,html.wb-svc-live .wb-svc-left a,html.wb-svc-live .wb-svc-mc a{pointer-events:auto}
+.wb-svc-mh,.wb-svc-mc{display:none} /* the panel has clicks off; links work only while the services are on screen */
 .wb-svc-i{position:absolute;right:100%;margin-right:40px;top:0;white-space:nowrap;font:400 34px/38px Switzer,Helvetica,Arial,sans-serif;letter-spacing:-1.02px;color:rgba(242,241,238,.22)}
 .wb-svc-t{margin:0 0 36px;max-width:620px;font:400 34px/38px Switzer,Helvetica,Arial,sans-serif;letter-spacing:-1.02px;color:#f2f1ee} /* = the About text */
 .wb-svc-p{display:flex;flex-wrap:wrap;gap:10px;max-width:660px}
@@ -44,16 +45,33 @@ html.wb-svc-live .wb-svc-g,html.wb-svc-live .wb-svc-left a{pointer-events:auto} 
 .wb-svc-w{display:inline-block}
 .wb-svc-g.in .wb-svc-i,.wb-svc-g.in .wb-svc-w,.wb-svc-g.in .wb-svc-p span{opacity:1;transform:none;filter:none}
 .wb-svc-g.in .wb-svc-w{transition-delay:calc(var(--i) * 35ms)}
-.wb-svc-g.in .wb-svc-p span{transition-delay:calc(.45s + var(--i) * 60ms)}`;
+.wb-svc-g.in .wb-svc-p span{transition-delay:calc(.45s + var(--i) * 60ms)}
+/* phones: one column. "Our Services" heads the list and scrolls with it, the index sits above each statement, Get in touch closes the list */
+@media (max-width:767px){
+html.wb-svcpin .home-services_block-2{grid-template-columns:minmax(0,1fr);padding:0 20px}
+.wb-svc-left{display:none!important}
+.wb-svc-right{padding:16vh 0 30vh}
+.wb-svc-mh{display:block;margin:0 0 7vh;font:700 20px/1.4 Switzer,Helvetica,Arial,sans-serif;color:#f2f1ee}
+.wb-svc-g{margin-bottom:12vh}
+.wb-svc-i{position:static;margin:0 0 10px;font:400 22px/26px Switzer,Helvetica,Arial,sans-serif;letter-spacing:-.6px}
+.wb-svc-t{margin:0 0 20px;font:400 24px/29px Switzer,Helvetica,Arial,sans-serif;letter-spacing:-.6px}
+.wb-svc-p{gap:8px}
+.wb-svc-p span{height:36px;padding:8px 14px;font-size:12px}
+.wb-svc-i,.wb-svc-w,.wb-svc-p span{filter:none} /* no blur on phones: cheaper to animate */
+.wb-svc-mc{display:block;margin-top:12vh}
+.wb-svc-mc p{margin:0 0 20px;max-width:280px;font:400 14px/1.6 Switzer,Helvetica,Arial,sans-serif;color:rgba(242,241,238,.5)}
+.wb-svc-mc a{display:inline-flex;align-items:center;gap:.6em;font:400 26px/1 Switzer,Helvetica,Arial,sans-serif;color:#f2f1ee;text-decoration:none}
+}`;
   document.head.appendChild(st);
   const pre = NL ? '/nl' : '', esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
   const left = document.createElement('div'); left.className = 'wb-svc-left';
   left.innerHTML = '<h2>Our Services</h2><div><p>If you’re looking for a website that works as hard as you do, let’s build it together.</p><a href="' + pre + '/contact">Get in touch <span aria-hidden="true">→</span></a></div>';
   const right = document.createElement('div'); right.className = 'wb-svc-right';
-  right.innerHTML = S.map((s, i) => '<a class="wb-svc-g" href="' + pre + s.href + '"><div class="wb-svc-i" aria-hidden="true">' + String.fromCharCode(65 + i) + ' /</div><h3 class="wb-svc-t">' + esc(s.t).split(' ').map((w, k) => '<span class="wb-svc-w" style="--i:' + k + '">' + w + '</span>').join(' ') + '</h3><div class="wb-svc-p">' + s.p.map((x, k) => '<span style="--i:' + k + '">' + esc(x) + '</span>').join('') + '</div></a>').join('');
+  right.innerHTML = '<h2 class="wb-svc-mh">Our Services</h2>' + S.map((s, i) => '<a class="wb-svc-g" href="' + pre + s.href + '"><div class="wb-svc-i" aria-hidden="true">' + String.fromCharCode(65 + i) + ' /</div><h3 class="wb-svc-t">' + esc(s.t).split(' ').map((w, k) => '<span class="wb-svc-w" style="--i:' + k + '">' + w + '</span>').join(' ') + '</h3><div class="wb-svc-p">' + s.p.map((x, k) => '<span style="--i:' + k + '">' + esc(x) + '</span>').join('') + '</div></a>').join('') +
+    '<div class="wb-svc-mc"><p>If you’re looking for a website that works as hard as you do, let’s build it together.</p><a href="' + pre + '/contact">Get in touch <span aria-hidden="true">→</span></a></div>';
   box.append(left, right);
   /* links open through the site ink page transition, like the work cards */
-  box.addEventListener('click', (e) => { const a = e.target.closest('.wb-svc-g, .wb-svc-left a'); if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; const go = window.wbSwapGo || window.wbInkGo; if (!go) return; e.preventDefault(); go(a.getAttribute('href'), e.clientX, e.clientY); });
+  box.addEventListener('click', (e) => { const a = e.target.closest('.wb-svc-g, .wb-svc-left a, .wb-svc-mc a'); if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; const go = window.wbSwapGo || window.wbInkGo; if (!go) return; e.preventDefault(); go(a.getAttribute('href'), e.clientX, e.clientY); });
   document.documentElement.classList.add('wb-svcpin');
   /* the right column scrolls through the pinned services stretch: from when the services fade in until the section unpins */
   const START = 4.6, LEN = 3.0; /* ends before the galaxy flight to Reach out starts (WB_R3_LEAD) */ /* screen heights into the section (services phase ~4.5 -> ~8.7) */

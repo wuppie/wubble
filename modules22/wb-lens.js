@@ -24,6 +24,7 @@
 @keyframes wbGrain{0%{transform:translate(0,0)}15%{transform:translate(-37px,23px)}30%{transform:translate(19px,-53px)}45%{transform:translate(-61px,-11px)}60%{transform:translate(41px,67px)}75%{transform:translate(-13px,47px)}90%{transform:translate(59px,-29px)}100%{transform:translate(0,0)}}
 .wb-lens-vig{background:radial-gradient(120% 95% at 50% 50%,transparent 52%,rgba(0,0,0,.5) 100%)}
 .wb-lens-grade{mix-blend-mode:soft-light;opacity:${GRADE};transition:background-color 1.6s ease}
+${coarse ? '.wb-lens-grade{mix-blend-mode:normal;opacity:.1}' : ''} /* phones: a plain see-through tint, no full-screen blend (GPU budget) */
 /* chapter counter in the bottom-left corner of the top bar (where "digital motion" was), white; the number rolls on each change */
 .home-nav_block-4{display:none!important}
 .wb-lens-count{position:fixed;left:28px;bottom:32px;z-index:64;pointer-events:none;display:flex;gap:.5em;align-items:baseline;font:500 13px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.02em;color:#fff}
@@ -33,7 +34,7 @@
 @media (max-width:767px){.wb-lens-count{left:20px;bottom:22px}}`;
   document.head.appendChild(st);
   const mk = (c) => { const e = document.createElement('div'); e.className = c; e.setAttribute('aria-hidden', 'true'); document.body.appendChild(e); return e; };
-  mk('wb-lens-grain'); mk('wb-lens wb-lens-vig'); const grade = coarse ? null : mk('wb-lens wb-lens-grade');
+  mk('wb-lens-grain'); mk('wb-lens wb-lens-vig'); const grade = mk('wb-lens wb-lens-grade');
   const cnt = mk('wb-lens-count'); cnt.innerHTML = '<b><span>01</span></b><i>/</i><i>' + String(CH.length).padStart(2, '0') + '</i><em>' + CH[0][0] + '</em>';
   const num = cnt.querySelector('b'), name = cnt.querySelector('em');
   /* roll the number: the old one slides out (up when going forward, down when going back), the new one slides in; the name crossfades */
