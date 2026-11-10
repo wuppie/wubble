@@ -6,7 +6,7 @@
   if (window.__wbFog) return; window.__wbFog = 1;
   const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x)), smooth = (a, b, x) => { x = clamp((x - a) / (b - a)); return x * x * (3 - 2 * x); };
   const MOB = matchMedia('(pointer: coarse)').matches || innerWidth < 820, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const N = MOB ? 160 : 300, PR = 0.5, BAND = 0.7, SEAM = 0.45, FOG = '#e9e6dd';
+  const N = MOB ? 160 : 300, PR = 0.5, BAND = 0.7, SEAM = 0.62, /* the seam sits low in the band: the billows rise above the edge, the bank fades just below it */ FOG = '#e9e6dd';
   let box = null, cv = null, img = null, fogI = null;
   const paint = () => { if (!img || !img.naturalWidth || !fogI) return;
     const W = Math.max(1, Math.round(innerWidth * PR)), H = Math.max(1, Math.round(innerHeight * BAND * PR)); cv.width = W * 2; cv.height = H;
@@ -38,11 +38,9 @@
     const m = mark(); if (!m) return;
     if (CUT && !box && document.readyState === 'complete') init(); /* homepage: ready before the footer arrives, so the clouds are there on first view */
     const V = innerHeight; let b, vis;
-    b = m.getBoundingClientRect().top; vis = smooth(1.45 * V, 1.0 * V, b) * smooth(-0.35 * V, 0.05 * V, b); /* b = the seam on screen */
-    if (CUT) { /* homepage: the footer lies over the page, so the clouds are a pass the camera flies through while it arrives: driven by
-                  the marker (s: from a screen down to the top as you scroll in), they rise from low on the screen past its top and are gone once
-                  the footer has landed; nothing while the footer is switched off */
-      const s = Math.min(b, V); b = s * (window.WB_FOOT_HORIZON ?? 0.5); /* start on the floor's horizon (~mid screen) the moment the footer shows, rise to the top as it lands */ vis = fcs.visibility === 'hidden' ? 0 : smooth(1.12 * V, 0.8 * V, s) * smooth(0.02 * V, 0.32 * V, s); }
+    b = m.getBoundingClientRect().top; /* b = the seam on screen */
+    if (fcs && fcs.visibility === 'hidden') b = V * 1.6; /* footer switched off (homepage, before it arrives): no clouds over nothing */
+    vis = smooth(1.45 * V, 1.0 * V, b) * smooth(-0.35 * V, 0.05 * V, b);
     if (vis > 0 && !box) init(); if (!box) return;
     const key = vis.toFixed(3) + '|' + Math.round(b); if (key === shown) return; shown = key;
     box.style.opacity = vis.toFixed(3); box.style.transform = 'translate3d(0,' + Math.round(b - SEAM * BAND * V) + 'px,0)';
