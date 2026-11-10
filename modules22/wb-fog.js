@@ -6,7 +6,7 @@
   if (window.__wbFog) return; window.__wbFog = 1;
   const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x)), smooth = (a, b, x) => { x = clamp((x - a) / (b - a)); return x * x * (3 - 2 * x); };
   const MOB = matchMedia('(pointer: coarse)').matches || innerWidth < 820, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const N = MOB ? 160 : 300, PR = 0.5, BAND = 0.7, SEAM = 0.62, /* the seam sits low in the band: the billows rise above the edge, the bank fades just below it */ FOG = '#e9e6dd';
+  const N = MOB ? 160 : 300, PR = 0.5, BAND = 0.7, SEAM = 0.5, /* the seam sits low in the band: the billows rise above the edge, the bank fades just below it */ FOG = '#e9e6dd';
   let box = null, cv = null, img = null, fogI = null;
   const paint = () => { if (!img || !img.naturalWidth || !fogI) return;
     const W = Math.max(1, Math.round(innerWidth * PR)), H = Math.max(1, Math.round(innerHeight * BAND * PR)); cv.width = W * 2; cv.height = H;
@@ -21,7 +21,7 @@
   };
   const init = () => {
     box = document.createElement('div'); box.setAttribute('aria-hidden', 'true');
-    const mk = 'linear-gradient(to bottom,transparent 0%,#000 10%,#000 56%,rgba(0,0,0,.5) 78%,transparent 100%)'; /* top: open above the highest cloud tops, so the edge is the clouds themselves; long soft fade into the footer */
+    const mk = 'linear-gradient(to bottom,transparent 0%,#000 10%,#000 68%,rgba(0,0,0,.6) 84%,transparent 100%)'; /* full clouds well past the edge, so the straight footer edge disappears under them */ /* top: open above the highest cloud tops, so the edge is the clouds themselves; long soft fade into the footer */
     box.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:' + BAND * 100 + 'vh;z-index:62;pointer-events:none;overflow:hidden;opacity:0;visibility:hidden;will-change:transform,opacity;-webkit-mask-image:' + mk + ';mask-image:' + mk + ';';
     cv = document.createElement('canvas'); cv.style.cssText = 'position:absolute;left:0;top:0;width:200%;height:100%;will-change:transform;' + (still ? '' : 'animation:wbFogDrift 140s linear infinite;');
     const st = document.createElement('style'); st.textContent = '@keyframes wbFogDrift{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}'; document.head.appendChild(st);
@@ -39,7 +39,9 @@
     if (CUT && !box && document.readyState === 'complete') init(); /* homepage: ready before the footer arrives, so the clouds are there on first view */
     const V = innerHeight; let b, vis;
     b = m.getBoundingClientRect().top; /* b = the seam on screen */
-    if (fcs && fcs.visibility === 'hidden') b = V * 1.6; /* footer switched off (homepage, before it arrives): no clouds over nothing */
+    /* follow the footer's DRAWN edge, not the scroll: the reveal (wb-ui) eases the fixed footer and cuts it from the top (clip-path inset),
+       so edge = footer top + that cut. On the homepage the reveal lags the scroll; following the marker made the clouds jump when it caught up. */
+    if (fcs) { if (fcs.visibility === 'hidden') b = V * 1.6; else { const ci = /inset\(\s*(-?[\d.]+)px/.exec(fcs.clipPath || ''); if (ci) b = ft.getBoundingClientRect().top + parseFloat(ci[1]); } }
     vis = smooth(1.45 * V, 1.0 * V, b) * smooth(-0.35 * V, 0.05 * V, b);
     if (vis > 0 && !box) init(); if (!box) return;
     const key = vis.toFixed(3) + '|' + Math.round(b); if (key === shown) return; shown = key;
