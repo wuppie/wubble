@@ -42,7 +42,7 @@
     if (CUT) { /* homepage: the footer lies over the page, so the clouds are a pass the camera flies through while it arrives: driven by
                   the marker (s: from a screen down to the top as you scroll in), they rise from low on the screen past its top and are gone once
                   the footer has landed; nothing while the footer is switched off */
-      const s = b; b = V * 0.02 + s * 0.95; vis = fcs.visibility === 'hidden' ? 0 : smooth(1.12 * V, 0.8 * V, s) * smooth(0.02 * V, 0.32 * V, s); }
+      const s = Math.min(b, V); b = s * (window.WB_FOOT_HORIZON ?? 0.5); /* start on the floor's horizon (~mid screen) the moment the footer shows, rise to the top as it lands */ vis = fcs.visibility === 'hidden' ? 0 : smooth(1.12 * V, 0.8 * V, s) * smooth(0.02 * V, 0.32 * V, s); }
     if (vis > 0 && !box) init(); if (!box) return;
     const key = vis.toFixed(3) + '|' + Math.round(b); if (key === shown) return; shown = key;
     box.style.opacity = vis.toFixed(3); box.style.transform = 'translate3d(0,' + Math.round(b - SEAM * BAND * V) + 'px,0)';
