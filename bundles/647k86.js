@@ -2842,6 +2842,9 @@ const SoftAurora = ({
     };
     window.addEventListener('pointermove', onPointerMove, { passive: true });
     window.addEventListener('pointerdown', onPointerDown, { passive: true });
+    /* Wubble: the same pulse on its own, at a random spot every 6 s (data-auto-pulse="6", 0 = off) */
+    const autoEvery = +(container.getAttribute('data-auto-pulse') ?? 6);
+    if (autoEvery > 0 && !reduced) setInterval(() => { if (document.hidden || !settingsRef.current.clickPulse) return; pulses.push({ x: Math.random() * (size.width / size.height), y: Math.random(), age: 0 }); if (pulses.length > MAX_PULSES) pulses.shift(); wake(); }, autoEvery * 1000);
     window.addEventListener('pointerup', onPointerUp, { passive: true });
     window.addEventListener('pointercancel', onPointerUp, { passive: true });
     document.documentElement.addEventListener('pointerleave', onLeave);

@@ -67,7 +67,7 @@ html.wb-svc-live .wb-svc-g,html.wb-svc-live .wb-svc-left a{pointer-events:auto} 
   /* eased follow instead of jumping to the scroll position each frame: smooth even when the scroll arrives in steps */
   let live = null;
   const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
-    const lv = +getComputedStyle(hero).opacity > 0.5; if (lv !== live) { live = lv; document.documentElement.classList.toggle('wb-svc-live', lv); }
+    const lv = +getComputedStyle(hero).opacity > 0.08; /* clickable as soon as the services start fading in */ if (lv !== live) { live = lv; document.documentElement.classList.toggle('wb-svc-live', lv); }
     const V = innerHeight, into = -sec.getBoundingClientRect().top / V, p = Math.max(0, Math.min(1, (into - START) / LEN)), tgt = -p * travel;
     if (Math.abs(tgt - cur) < 0.05) return; cur += (tgt - cur) * (1 - Math.exp(-dt * 9));
     right.style.transform = 'translate3d(0,' + cur.toFixed(2) + 'px,0)'; };

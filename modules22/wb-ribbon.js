@@ -815,7 +815,7 @@ Object.assign(window.WBM, {
         }
       });
       grid.visible = P.showGrid ?? false;
-      curved.visible = P.curvedGrid ?? true; if (curved.visible) { const cu = curved.material.uniforms; cu.uOff.value = cur * (P.curvedGridParallax ?? 0.35); cu.uOp.value = P.curvedGridOpacity ?? 0.22; cu.uCells.value = P.curvedGridCells ?? 64; curved.position.set(camera.position.x, 0, camera.position.z - CR * 0.62); }
+      curved.visible = P.curvedGrid ?? false; /* homepage Work: no grid backdrop */ if (curved.visible) { const cu = curved.material.uniforms; cu.uOff.value = cur * (P.curvedGridParallax ?? 0.35); cu.uOp.value = P.curvedGridOpacity ?? 0.22; cu.uCells.value = P.curvedGridCells ?? 64; curved.position.set(camera.position.x, 0, camera.position.z - CR * 0.62); }
       grid.material.uniforms.uOffset.value = cur;
       const a = ((Math.round(cur / STEP) % N) + N) % N;
       if (a !== this.state.active) this.setState({ active: a });
