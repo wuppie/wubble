@@ -40,3 +40,10 @@ window.WB_PIXEL_LINES=true;
 window.WB_PIXEL_ROWS=true;
 /* AI chat backend (wubble/chat-worker, Cloudflare): the Let's chat widget posts here */
 window.WB_CHAT_URL='https://wubble-chat.wubble.workers.dev';
+/* menu: simple language switcher (EN / NL) left of the close button; the target is worked out on click, so it stays right after a page swap */
+(function(){var path=function(){return location.pathname.replace(/^\/nl(?=\/|$)/,'')||'/';},nl=function(){return /^nl/i.test(document.documentElement.lang||'');};
+var add=function(){document.querySelectorAll('[data-wb-menu-close]').forEach(function(b){if(b.previousElementSibling&&b.previousElementSibling.classList.contains('wb-lang'))return;var n=document.createElement('nav');n.className='wb-lang';n.setAttribute('aria-label','Language');
+n.innerHTML='<a href="#" data-lang="en" hreflang="en" lang="en">EN</a><span aria-hidden="true">/</span><a href="#" data-lang="nl" hreflang="nl" lang="nl">NL</a>';b.parentNode.insertBefore(n,b);});
+document.querySelectorAll('.wb-lang a').forEach(function(a){var on=(a.getAttribute('data-lang')==='nl')===nl();a.classList.toggle('is-on',on);if(on)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current');a.href=a.getAttribute('data-lang')==='nl'?'/nl'+(path()==='/'?'':path()):path();});};
+document.readyState==='loading'?addEventListener('DOMContentLoaded',add):add();
+addEventListener('click',function(e){var o=e.target.closest&&e.target.closest('[data-wb-menu-open]');if(o)add();var a=e.target.closest&&e.target.closest('.wb-lang a');if(!a)return;e.preventDefault();e.stopPropagation();if(a.classList.contains('is-on'))return;var p=path();location.href=a.getAttribute('data-lang')==='nl'?'/nl'+(p==='/'?'':p)+location.search:p+location.search;},true);})();

@@ -47,3 +47,8 @@ html:has(.navbar_container:hover, .home-nav_block:hover) .home_ink, html:has(.na
 /* footer content sits lower on every page (more air above "Ready for the next level?") */
 .footer_inner { padding-top: max(96px, 22vh) !important; }
 @media (max-width: 767px) { .footer_inner { padding-top: max(72px, 12vh) !important; } }
+/* menu language switcher (head.js): EN / NL left of the close button */
+.wb-lang { display: flex; align-items: center; gap: .45em; margin-left: auto; margin-right: 18px; font: 500 13px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing: .04em; color: inherit; }
+.wb-lang a { color: inherit; text-decoration: none; opacity: .45; transition: opacity .3s ease; }
+.wb-lang a:hover, .wb-lang a.is-on { opacity: 1; }
+.wb-lang span { opacity: .3; }
