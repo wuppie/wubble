@@ -27,7 +27,8 @@
 ${coarse ? '.wb-lens-grade{mix-blend-mode:normal;opacity:.1}' : ''} /* phones: a plain see-through tint, no full-screen blend (GPU budget) */
 /* chapter counter in the bottom-left corner of the top bar (where "digital motion" was), white; the number rolls on each change */
 .home-nav_block-4{display:none!important}
-.wb-lens-count{position:fixed;left:28px;bottom:32px;z-index:64;pointer-events:none;display:flex;gap:.5em;align-items:baseline;font:500 13px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.02em;color:#fff}
+.wb-lens-count{position:fixed;left:28px;bottom:32px;z-index:64;pointer-events:none;display:flex;gap:.5em;align-items:baseline;font:500 13px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.02em;color:#fff;transition:color .6s ease,opacity .4s ease}
+.wb-lens-count.ink{color:#0e0e0d} /* over the light footer */ .wb-lens-count.end{opacity:0} /* page bottom: clear of the footer badge */
 .wb-lens-count b{position:relative;display:inline-block;overflow:hidden;height:1em;font-weight:600}.wb-lens-count b span{display:block}
 .wb-lens-count i{font-style:normal;opacity:.5}
 .wb-lens-count em{font-style:normal;opacity:.7;margin-left:.6em;display:inline-block}
@@ -46,6 +47,7 @@ ${coarse ? '.wb-lens-grade{mix-blend-mode:normal;opacity:.1}' : ''} /* phones: a
     name.animate([{ opacity: .7 }, { opacity: 0 }], { duration: 250, easing: 'ease-in' }).onfinish = () => { name.textContent = nm; name.animate([{ opacity: 0, transform: 'translateY(.4em)' }, { opacity: .7, transform: 'none' }], { duration: 450, easing: E }); }; };
   let cur = -1;
   const frame = () => { requestAnimationFrame(frame); if (document.hidden) return;
-    const c = chapter(); if (c !== cur) { const cur0 = cur; cur = c; roll(String(c + 1).padStart(2, '0'), CH[c][0], c > cur0); if (grade) grade.style.backgroundColor = CH[c][1]; } };
+    const c = chapter(); if (c !== cur) { const cur0 = cur; cur = c; roll(String(c + 1).padStart(2, '0'), CH[c][0], c > cur0); if (grade) grade.style.backgroundColor = CH[c][1]; cnt.classList.toggle('ink', c === 4); }
+    const end = scrollY > document.documentElement.scrollHeight - innerHeight - 140; if (end !== cnt.__end) { cnt.__end = end; cnt.classList.toggle('end', end); } };
   requestAnimationFrame(frame);
 })();
