@@ -14,7 +14,7 @@
     /* billowing cloud bank with an uneven top line (no horizon, so no straight edge); integer frequencies: repeats every W */
     const T = Math.PI * 2, p = [rnd() * T, rnd() * T, rnd() * T], top = (x) => H * (0.3 + 0.09 * Math.sin(T * 2 * x / W + p[0]) + 0.05 * Math.sin(T * 5 * x / W + p[1]) + 0.025 * Math.sin(T * 11 * x / W + p[2]));
     [[N * 0.3, 0.07, 0.55, 0.06], [N * 0.35, 0.1, 0.8, 0.03], [N * 0.35, 0.14, 1, 0]].forEach(([n, sc, al, up], l) => { /* back (small, faint, higher) to front (big, bright) */
-      for (let i = 0; i < n; i++) { const x0 = rnd() * W, sz = W * sc * (0.6 + 0.8 * rnd()), y = top(x0) - up * H + sz * 0.38 + rnd() * rnd() * H * 0.45, r = rnd() * T;
+      for (let i = 0; i < n; i++) { const x0 = rnd() * W, sz = (MOB ? Math.max(W, H * 2.7) : W) * sc * (0.6 + 0.8 * rnd()) /* size from the band height on tall screens: on a phone the width alone made tiny clouds */, y = top(x0) - up * H + sz * 0.38 + rnd() * rnd() * H * 0.45, r = rnd() * T;
         for (const ox of [-W, 0, W, 2 * W]) { const x = x0 + ox; if (x + sz < 0 || x - sz > 2 * W) continue;
           g.save(); g.translate(x, y); g.rotate(r); g.globalAlpha = al * (l ? 1 : 0.6); g.drawImage(img, -sz / 2, -sz / 2, sz, sz); if (!l) { g.globalAlpha = al * 0.5; g.drawImage(fogI, -sz / 2, -sz / 2, sz, sz); } g.restore(); } } });
     g.globalAlpha = 1; const fl = g.createLinearGradient(0, H * 0.5, 0, H); fl.addColorStop(0, 'rgba(233,230,221,0)'); fl.addColorStop(1, 'rgba(233,230,221,.8)'); g.fillStyle = fl; g.fillRect(0, H * 0.5, W * 2, H * 0.5); /* melts into the footer's cloud floor */

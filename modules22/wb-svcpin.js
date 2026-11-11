@@ -75,7 +75,8 @@ html.wb-svcpin .home-services_block-2{grid-template-columns:minmax(0,1fr);paddin
   document.documentElement.classList.add('wb-svcpin');
   /* the right column scrolls through the pinned services stretch: from when the services fade in until the section unpins */
   const START = 4.6, LEN = 3.0; /* ends before the galaxy flight to Reach out starts (WB_R3_LEAD) */ /* screen heights into the section (services phase ~4.5 -> ~8.7) */
-  let cur = 0, prev = performance.now(), travel = 0; const meas = () => { travel = Math.max(0, right.offsetHeight - innerHeight); };
+  const PH = matchMedia('(max-width:767px)'); let VS = innerHeight, VW = innerWidth; /* phones start the list once the services are fully in (~3.4 screens into the section) */
+  let cur = 0, prev = performance.now(), travel = 0; const meas = () => { if (innerWidth !== VW) { VW = innerWidth; VS = innerHeight; } travel = Math.max(0, right.offsetHeight - (PH.matches ? VS : innerHeight)); };
   meas(); addEventListener('resize', meas); document.fonts && document.fonts.ready.then(meas);
   /* each service animates in when it scrolls into view, once its panel is actually visible (it fades in after About) */
   const vis = (e) => { let o = 1; for (; e && e !== document.body; e = e.parentElement) o *= +getComputedStyle(e).opacity; return o; };
@@ -86,6 +87,8 @@ html.wb-svcpin .home-services_block-2{grid-template-columns:minmax(0,1fr);paddin
   let live = null;
   const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
     const lv = +getComputedStyle(hero).opacity > 0.08; /* clickable as soon as the services start fading in */ if (lv !== live) { live = lv; document.documentElement.classList.toggle('wb-svc-live', lv); }
+    if (PH.matches) { /* phones: the list moves 1:1 with the finger (no easing lag), measured on a fixed screen height so the address bar showing/hiding never makes it jump */
+      const y = -Math.max(0, Math.min(travel, -sec.getBoundingClientRect().top - 3.4 * VS)); if (y !== cur) { cur = y; right.style.transform = 'translate3d(0,' + y.toFixed(1) + 'px,0)'; } return; }
     const V = innerHeight, into = -sec.getBoundingClientRect().top / V, p = Math.max(0, Math.min(1, (into - START) / LEN)), tgt = -p * travel;
     if (Math.abs(tgt - cur) < 0.05) return; cur += (tgt - cur) * (1 - Math.exp(-dt * 9));
     right.style.transform = 'translate3d(0,' + cur.toFixed(2) + 'px,0)'; };
