@@ -101,7 +101,7 @@ html.wb-svcpin .home-services_block-2{grid-template-columns:minmax(0,1fr);paddin
   /* the right column scrolls through the pinned services stretch: from when the services fade in until the section unpins */
   const START = 4.6, LEN = 3.0; /* ends before the galaxy flight to Reach out starts (WB_R3_LEAD) */ /* screen heights into the section (services phase ~4.5 -> ~8.7) */
   const PH = matchMedia('(max-width:767px)'); let VS = innerHeight, VW = innerWidth; /* phones start the list once the services are fully in (~3.4 screens into the section) */
-  let cur = 0, prev = performance.now(), travel = 0; const meas = () => { if (innerWidth !== VW) { VW = innerWidth; VS = innerHeight; } travel = Math.max(0, right.offsetHeight - (PH.matches ? VS : innerHeight)); };
+  let cur = 0, prev = performance.now(), travel = 0; const meas = () => { if (innerWidth !== VW) { VW = innerWidth; VS = innerHeight; } travel = PH.matches ? Math.max(0, right.lastElementChild.previousElementSibling.offsetTop - 0.24 * VS) /* phones: stop with the last service below the faded top edge, Get in touch under it */ : Math.max(0, right.offsetHeight - innerHeight); };
   meas(); addEventListener('resize', meas); document.fonts && document.fonts.ready.then(meas);
   /* each service animates in when it scrolls into view, once its panel is actually visible (it fades in after About) */
   const vis = (e) => { let o = 1; for (; e && e !== document.body; e = e.parentElement) o *= +getComputedStyle(e).opacity; return o; };
