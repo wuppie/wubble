@@ -48,7 +48,7 @@ html.wb-svc-live .wb-svc-g,html.wb-svc-live .wb-svc-left a,html.wb-svc-live .wb-
 .wb-svc-g.in .wb-svc-p span{transition-delay:calc(.45s + var(--i) * 60ms)}
 /* phones: one column. "Our Services" heads the list and scrolls with it, the index sits above each statement, Get in touch closes the list */
 @media (max-width:767px){
-html.wb-svcpin .home-services_block-2{grid-template-columns:minmax(0,1fr);padding:0 20px}
+html.wb-svcpin .home-services_block-2{grid-template-columns:minmax(0,1fr);padding:0 20px;-webkit-mask-image:linear-gradient(to bottom,transparent 0,transparent 96px,#000 150px,#000 calc(100% - 150px),transparent calc(100% - 96px));mask-image:linear-gradient(to bottom,transparent 0,transparent 96px,#000 150px,#000 calc(100% - 150px),transparent calc(100% - 96px))} /* text fades out before the top bar and the counter / chat button */
 .wb-svc-left{display:none!important}
 .wb-svc-right{padding:16vh 0 30vh}
 .wb-svc-mh{display:block;margin:0 0 7vh;font:700 20px/1.4 Switzer,Helvetica,Arial,sans-serif;color:#f2f1ee}
@@ -88,7 +88,7 @@ html.wb-svcpin .home-services_block-2{grid-template-columns:minmax(0,1fr);paddin
   const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
     const lv = +getComputedStyle(hero).opacity > 0.08; /* clickable as soon as the services start fading in */ if (lv !== live) { live = lv; document.documentElement.classList.toggle('wb-svc-live', lv); }
     if (PH.matches) { /* phones: the list moves 1:1 with the finger (no easing lag), measured on a fixed screen height so the address bar showing/hiding never makes it jump */
-      const y = -Math.max(0, Math.min(travel, -sec.getBoundingClientRect().top - 3.4 * VS)); if (y !== cur) { cur = y; right.style.transform = 'translate3d(0,' + y.toFixed(1) + 'px,0)'; } return; }
+      const y = -Math.max(0, Math.min(travel, -sec.getBoundingClientRect().top - 4.5 * VS)); /* 4.5: on phones the services are fully in only then (measured) */ if (y !== cur) { cur = y; right.style.transform = 'translate3d(0,' + y.toFixed(1) + 'px,0)'; } return; }
     const V = innerHeight, into = -sec.getBoundingClientRect().top / V, p = Math.max(0, Math.min(1, (into - START) / LEN)), tgt = -p * travel;
     if (Math.abs(tgt - cur) < 0.05) return; cur += (tgt - cur) * (1 - Math.exp(-dt * 9));
     right.style.transform = 'translate3d(0,' + cur.toFixed(2) + 'px,0)'; };
