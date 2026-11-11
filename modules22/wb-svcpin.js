@@ -113,7 +113,7 @@ html.wb-svcpin .home-services_block-2{grid-template-columns:minmax(0,1fr);paddin
   const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
     const hop = +getComputedStyle(hero).opacity, lv = hop > 0.08; /* clickable as soon as the services start fading in */ if (lv !== live) { live = lv; document.documentElement.classList.toggle('wb-svc-live', lv); }
     if (PH.matches) { /* phones: the list moves 1:1 with the finger (no easing lag), measured on a fixed screen height so the address bar showing/hiding never makes it jump */
-      const y = -Math.max(0, Math.min(travel, -sec.getBoundingClientRect().top - 5.2 * VS)); /* 5.2: on phones the services panel is fully faded in only then (measured) */ if (y !== cur) { cur = y; right.style.transform = 'translate3d(0,' + y.toFixed(1) + 'px,0)'; }
+      const y = -Math.max(0, Math.min(travel, -sec.getBoundingClientRect().top - 4.6 * VS)); /* 4.6: phones run the homepage with direct scrub (site footer code), so the panel is fully in at 4.5 screens, every time (measured) */ if (y !== cur) { cur = y; right.style.transform = 'translate3d(0,' + y.toFixed(1) + 'px,0)'; }
       /* reveal from the position, so it is the same every time and also works scrolling back: in below 85% of the screen, out again below 95% */
       if (hop > 0.6) groups.forEach((g) => { const t = g.getBoundingClientRect().top; if (t < 0.85 * VS) g.classList.add('in'); else if (t > 0.95 * VS) g.classList.remove('in'); });
       return; }
