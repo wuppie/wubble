@@ -36,7 +36,7 @@ html:has(.navbar_container:hover, .home-nav_block:hover) .home_ink, html:has(.na
 @media screen and (max-width: 767px) {
   .home_astronaut-layer canvas {
     position: relative;
-    top: -90px;
+    top: calc(-90px * var(--wb-astro-up, 1)); /* lifted 90px; head.js lowers it back while the footer arrives, else the landing astronaut was cut off at the bottom */
   }
   /* footer on phones: Ask AI | Follow side by side, Contact full width below */
   .footer_columns > .footer_column:nth-child(5) { order: 3; }
