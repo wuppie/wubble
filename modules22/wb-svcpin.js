@@ -79,6 +79,9 @@ html.wb-svcpin .home-services_block-2{grid-template-columns:minmax(0,1fr);paddin
 .wb-svc-mc a{display:inline-flex;align-items:center;gap:.6em;font:400 26px/1 Switzer,Helvetica,Arial,sans-serif;color:#f2f1ee;text-decoration:none}
 .wb-svc-about{grid-template-columns:minmax(0,1fr)}
 .wb-svc-about .wb-svc-right{padding:8vh 0 10vh}
+/* homepage: the list scrolls natively with the page (smooth like a normal page), placed where the services panel is fully in */
+.wb-svc-track{position:absolute;left:20px;right:20px;top:0;z-index:6;opacity:0;pointer-events:none}
+.wb-svc-native{position:sticky;padding:16vh 0 22vh!important} /* sticky: once the last service and Get in touch are in view it stays there until the section ends (no empty panel) */
 /* each service rises in as one block (a word-by-word reveal lagged behind the finger and looked half-written) */
 .wb-svc-i,.wb-svc-w,.wb-svc-p span{transition-duration:.6s}
 .wb-svc-g.in .wb-svc-w,.wb-svc-g.in .wb-svc-p span{transition-delay:0s}
@@ -91,8 +94,10 @@ html.wb-svcpin .home-services_block-2{grid-template-columns:minmax(0,1fr);paddin
   right.innerHTML = '<h2 class="wb-svc-mh">' + L.h + '</h2>' + S.map((s, i) => '<a class="wb-svc-g" href="' + pre + s.href + '"><div class="wb-svc-i" aria-hidden="true">' + String.fromCharCode(65 + i) + ' /</div><h3 class="wb-svc-t">' + esc(s.t).split(' ').map((w, k) => '<span class="wb-svc-w" style="--i:' + k + '">' + w + '</span>').join(' ') + '</h3><div class="wb-svc-p">' + s.p.map((x, k) => '<span style="--i:' + k + '">' + esc(x) + '</span>').join('') + '</div></a>').join('') +
     '<div class="wb-svc-mc"><p>' + L.p + '</p><a href="' + pre + '/contact">' + L.a + ' <span aria-hidden="true">→</span></a></div>';
   box.append(left, right);
+  /* phones (homepage): the list leaves the pinned panel and scrolls natively in the section: a JS-moved list always trails the finger by a frame and looked bumpy */
+  const NAT = HOME && matchMedia('(max-width:767px)').matches; const track = NAT && document.createElement('div'); if (NAT) { track.className = 'wb-svc-track'; right.classList.add('wb-svc-native'); track.appendChild(right); sec.appendChild(track); }
   /* links open through the site ink page transition, like the work cards */
-  box.addEventListener('click', (e) => { const a = e.target.closest('.wb-svc-g, .wb-svc-left a, .wb-svc-mc a'); if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; const go = window.wbSwapGo || window.wbInkGo; if (!go) return; e.preventDefault(); go(a.getAttribute('href'), e.clientX, e.clientY); });
+  (NAT ? right : box).addEventListener('click', (e) => { const a = e.target.closest('.wb-svc-g, .wb-svc-left a, .wb-svc-mc a'); if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; const go = window.wbSwapGo || window.wbInkGo; if (!go) return; e.preventDefault(); go(a.getAttribute('href'), e.clientX, e.clientY); });
   const groups = right.querySelectorAll('.wb-svc-g');
   if (!HOME) { box.classList.add('wb-svc-about'); abs.style.overflow = 'clip'; /* hidden made it a scroll box, which breaks the sticky left block; clip cuts the same */ /* About: plain page flow, each service animates in as it scrolls into view */
     const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -12% 0px' });
@@ -112,8 +117,14 @@ html.wb-svcpin .home-services_block-2{grid-template-columns:minmax(0,1fr);paddin
   let live = null;
   const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
     const hop = +getComputedStyle(hero).opacity, lv = hop > 0.08; /* clickable as soon as the services start fading in */ if (lv !== live) { live = lv; document.documentElement.classList.toggle('wb-svc-live', lv); }
-    if (PH.matches) { /* phones: the list moves 1:1 with the finger (no easing lag), measured on a fixed screen height so the address bar showing/hiding never makes it jump */
-      const y = -Math.max(0, Math.min(travel, -sec.getBoundingClientRect().top - 4.6 * VS)); /* 4.6: phones run the homepage with direct scrub (site footer code), so the panel is fully in at 4.5 screens, every time (measured) */ if (y !== cur) { cur = y; right.style.transform = 'translate3d(0,' + y.toFixed(1) + 'px,0)'; }
+    if (NAT) { /* phones: place the list where the engine has the services panel fully in, with the engine's own numbers (wb-ribbon: section rect from 100/965 of its height, screen = __svh, About->Services handover into 2.2 + 1.2 * ra, panel fully in at ra 0.95), so the first service is always the first you see */
+      const vhE = window.__svh || innerHeight, t0 = sec.offsetHeight * 100 / 965 + (2.2 + (window.__wbAboutDesk ? 0.75 : 0.95) * 1.2 + 0.3) * vhE; /* +0.3: the first service rests a moment once the panel is in */
+      const lh = right.offsetHeight, th = Math.max(lh, sec.offsetHeight - t0 - vhE), k = t0.toFixed(0) + '|' + th.toFixed(0) + '|' + lh + '|' + vhE;
+      if (k !== cur) { cur = k; track.style.top = t0.toFixed(0) + 'px'; track.style.height = th.toFixed(0) + 'px'; right.style.top = Math.min(0, vhE - lh).toFixed(0) + 'px'; }
+      const op = hop.toFixed(3); if (track.__op !== op) { track.__op = op; track.style.opacity = op; }
+      /* fade the list out under the top bar and above the counter / chat button: a mask in the track's own coordinates, moved with the scroll */
+      if (hop > 0.002) { const tt = track.getBoundingClientRect().top, V = innerHeight, m = 'linear-gradient(to bottom,transparent ' + (100 - tt).toFixed(0) + 'px,#000 ' + (160 - tt).toFixed(0) + 'px,#000 ' + (V - 150 - tt).toFixed(0) + 'px,transparent ' + (V - 95 - tt).toFixed(0) + 'px)';
+        if (track.__m !== m) { track.__m = m; track.style.webkitMaskImage = m; track.style.maskImage = m; } }
       /* reveal from the position, so it is the same every time and also works scrolling back: in below 85% of the screen, out again below 95% */
       if (hop > 0.6) groups.forEach((g) => { const t = g.getBoundingClientRect().top; if (t < 0.85 * VS) g.classList.add('in'); else if (t > 0.95 * VS) g.classList.remove('in'); });
       return; }

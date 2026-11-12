@@ -6,7 +6,7 @@
   if (window.__wbFog) return; window.__wbFog = 1;
   const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x)), smooth = (a, b, x) => { x = clamp((x - a) / (b - a)); return x * x * (3 - 2 * x); };
   const MOB = matchMedia('(pointer: coarse)').matches || innerWidth < 820, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const N = MOB ? 160 : 300, PR = 0.5, BAND = 0.7, SEAM = 0.5, /* the seam sits low in the band: the billows rise above the edge, the bank fades just below it */ FOG = '#e9e6dd';
+  const N = MOB ? 160 : 300, PR = 0.5, BAND = 0.7, SEAM = MOB ? 0.3 : 0.5, /* phones: lower, so the clouds no longer cover the last section (FAQ) */ /* the seam sits low in the band: the billows rise above the edge, the bank fades just below it */ FOG = '#e9e6dd';
   let box = null, cv = null, img = null, fogI = null;
   const paint = () => { if (!img || !img.naturalWidth || !fogI) return;
     const W = Math.max(1, Math.round(innerWidth * PR)), H = Math.max(1, Math.round(innerHeight * BAND * PR)); cv.width = W * 2; cv.height = H;

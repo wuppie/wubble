@@ -30,13 +30,13 @@ html:has(.navbar_container:hover, .home-nav_block:hover) .home_ink, html:has(.na
 .footer_wrap:not(:has(.home-footer_fig)) { height: auto; min-height: 75vh; }
 /* phones: the homepage WORK title as plain grey text (the WebGL blur word is off there to save GPU), fading with the work helix */
 @media (pointer: coarse) {
-  .home-work_panel > .page-hero_blur-word { position: fixed; left: 6vw; right: 6vw; top: 16vh; width: auto; height: auto; overflow: visible; clip: auto; clip-path: none; margin: 0; white-space: nowrap; font: 700 34vw/0.9 Switzer, Helvetica, Arial, sans-serif; letter-spacing: -0.04em; text-transform: lowercase; color: #5a5c60; filter: blur(1.5px); opacity: var(--wb-work-in, 0); pointer-events: none; z-index: 0; }
+  .home-work_panel > .page-hero_blur-word { position: fixed; left: 6vw; right: 6vw; top: 50%; transform: translateY(-50%); width: auto; height: auto; overflow: visible; clip: auto; clip-path: none; margin: 0; white-space: nowrap; font: 700 34vw/0.9 Switzer, Helvetica, Arial, sans-serif; letter-spacing: -0.04em; text-transform: lowercase; color: #5a5c60; filter: blur(1.5px); opacity: var(--wb-work-in, 0); pointer-events: none; z-index: 0; }
 }
 /* Mobile */
 @media screen and (max-width: 767px) {
   .home_astronaut-layer canvas {
     position: relative;
-    top: calc(-90px * var(--wb-astro-up, 1)); /* lifted 90px; head.js lowers it back while the footer arrives, else the landing astronaut was cut off at the bottom */
+    top: calc(-90px * var(--wb-astro-up, 1)); /* lifted 90px in the hero only; head.js lowers it after the hero, so the astronaut sits centred in Work/About/Services and the landing astronaut is not cut off */
   }
   /* footer on phones: Ask AI | Follow side by side, Contact full width below */
   .footer_columns > .footer_column:nth-child(5) { order: 3; }
@@ -52,3 +52,8 @@ html:has(.navbar_container:hover, .home-nav_block:hover) .home_ink, html:has(.na
 .wb-lang a { color: inherit; text-decoration: none; opacity: .45; transition: opacity .3s ease; }
 .wb-lang a:hover, .wb-lang a.is-on { opacity: 1; }
 .wb-lang span { opacity: .3; }
+/* phones, homepage hero title: no slide out of the masks (the skewed letters were cut off halfway and looked broken); the title fades out with the scroll instead (--wb-hero-out, head.js) */
+@media (max-width: 767px) {
+  h1[data-gt="hero"] [data-gw], h1[data-gt="hero"] [data-gc], h1[data-w-words="title"] span { transform: none !important; filter: none !important; }
+  h1[data-gt="hero"], h1[data-w-words="title"] { opacity: calc(1 - var(--wb-hero-out, 0)) !important; } /* both the title and the engine's copy in front of the clouds */
+}
