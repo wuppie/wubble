@@ -215,7 +215,7 @@ class Component extends DCLogic {
     const h1 = this.headlineRef && this.headlineRef.current;
     const fly = (window.__wbRP || 0) > 0.02 && window.__heroInk;
     if (h1 && !fly) { h1.style.color = on ? ink : '#ece9e2'; h1.style.textShadow = on ? 'none' : '0 0.03em 0.09em rgba(0,0,0,0.45)'; }
-    { const fh = document.querySelector('[data-hero-front] h1'); if (fh && !fly) { fh.style.color = on ? ink : ''; fh.style.textShadow = on ? 'none' : ''; }
+    { const fh = document.querySelector('[data-hero-front] :is(h1,h2)'); if (fh && !fly) { fh.style.color = on ? ink : ''; fh.style.textShadow = on ? 'none' : ''; }
       const hx = /^#([0-9a-f]{6})$/i.exec(ink); window.__heroInk = on && hx ? { rgb: [0, 2, 4].map((i) => parseInt(hx[1].slice(i, i + 2), 16)), els: [h1, fh], last: fly ? window.__heroInk.last : '' } : null;
       window.__wbLink = { on: this.props.linkHover ?? true, dur: this.props.linkHoverDur ?? 0.5, stagger: this.props.linkHoverStagger ?? 0.022 };
       window.__wbScr = { on: (this.props.textScramble ?? true), base: this.props.scrambleBase ?? 0.6, max: this.props.scrambleMax ?? 1.4 };
@@ -306,7 +306,7 @@ class Component extends DCLogic {
     setTimeout(() => this.initFooterLetters && this.initFooterLetters(), 1500);
     { const on = this.props.heroStudio ?? true, hs = document.querySelector('[data-hero-studio]');
       if (hs && !on) hs.style.background = 'transparent';
-      if (on) document.querySelectorAll('[data-screen-label="Wubble"] h1, [data-hero-front] h1, [data-screen-label="Wubble"] [data-cg]').forEach((e) => { e.style.color = this.props.heroLightInk || '#ffffff'; e.style.textShadow = 'none'; }); }
+      if (on) document.querySelectorAll('[data-screen-label="Wubble"] h1, [data-hero-front] :is(h1,h2), [data-screen-label="Wubble"] [data-cg]').forEach((e) => { e.style.color = this.props.heroLightInk || '#ffffff'; e.style.textShadow = 'none'; }); }
     const QF = new URLSearchParams(location.search); window.__dbg = { noFoot: QF.has('nofoot'), noRobot: QF.has('norobot'), noLd: QF.has('nold'), noDis: QF.has('nodis'), noAdd: QF.has('noadd'), noShow: QF.has('noshow') };
     if (!(window.__dbg || {}).noFoot) setTimeout(() => this.initFooterFig && this.initFooterFig(), 3500);
     setTimeout(() => this.initCloudType && this.initCloudType(), 600);

@@ -4,7 +4,7 @@
 (window.WBM = window.WBM || {});
 Object.assign(window.WBM, {
   initCloudType() {
-    const els = [this.headlineRef && this.headlineRef.current, document.querySelector('[data-hero-front] h1')].filter(Boolean); const fns = [];
+    const els = [this.headlineRef && this.headlineRef.current, document.querySelector('[data-hero-front] :is(h1,h2)')].filter(Boolean); const fns = [];
     for (const h1 of els) { if (h1.__ct) continue; h1.__ct = 1; fns.push(this.cloudTypeOn(h1)); }
     this.refreshCloudType = () => fns.forEach((f) => f());
   },
