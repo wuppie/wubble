@@ -64,7 +64,7 @@ html.wb-svc-live .wb-svc-g,html.wb-svc-live .wb-svc-left a,html.wb-svc-live .wb-
 .wb-svc-about .wb-svc-right{padding:17vh 0 20vh 130px;will-change:auto}
 /* phones: one column. "Our Services" heads the list and scrolls with it, the index sits above each statement, Get in touch closes the list */
 @media (max-width:767px){
-html.wb-svcpin .home-services_block-2{grid-template-columns:minmax(0,1fr);padding:0 20px;-webkit-mask-image:linear-gradient(to bottom,transparent 0,transparent 96px,#000 150px,#000 calc(100% - 150px),transparent calc(100% - 96px));mask-image:linear-gradient(to bottom,transparent 0,transparent 96px,#000 150px,#000 calc(100% - 150px),transparent calc(100% - 96px))} /* text fades out before the top bar and the counter / chat button */
+html.wb-svcpin .home-services_block-2{grid-template-columns:minmax(0,1fr);padding:0 20px}
 .wb-svc-left{display:none!important}
 .wb-svc-right{padding:16vh 0 30vh}
 .wb-svc-mh{display:block;margin:0 0 7vh;font:700 20px/1.4 Switzer,Helvetica,Arial,sans-serif;color:#f2f1ee}
@@ -79,9 +79,12 @@ html.wb-svcpin .home-services_block-2{grid-template-columns:minmax(0,1fr);paddin
 .wb-svc-mc a{display:inline-flex;align-items:center;gap:.6em;font:400 26px/1 Switzer,Helvetica,Arial,sans-serif;color:#f2f1ee;text-decoration:none}
 .wb-svc-about{grid-template-columns:minmax(0,1fr)}
 .wb-svc-about .wb-svc-right{padding:8vh 0 10vh}
-/* homepage: the list scrolls natively with the page (smooth like a normal page), placed where the services panel is fully in */
-.wb-svc-track{position:absolute;left:20px;right:20px;top:0;z-index:6;opacity:0;pointer-events:none}
-.wb-svc-native{position:sticky;padding:16vh 0 22vh!important} /* sticky: once the last service and Get in touch are in view it stays there until the section ends (no empty panel) */
+/* homepage: section by section. One service at a time on the pinned panel; each gets its own stretch of scroll, the change between them is a smooth timed rise + fade (never stuck halfway, never skipped past) */
+html.wb-svcpin .wb-svc-right{position:absolute;inset:0 20px;padding:0;transform:none!important}
+html.wb-svcpin .wb-svc-mh{position:absolute;left:0;top:15vh;margin:0}
+html.wb-svcpin .wb-svc-g,html.wb-svcpin .wb-svc-mc{position:absolute;left:0;right:0;top:calc(15vh + 64px);margin:0;opacity:0;visibility:hidden;transform:translate3d(0,48px,0);transition:opacity .5s ease,transform .8s cubic-bezier(.2,.7,.2,1),visibility 0s .8s}
+html.wb-svcpin .wb-svc-g.out,html.wb-svcpin .wb-svc-mc.out{transform:translate3d(0,-48px,0)}
+html.wb-svcpin .wb-svc-g.on,html.wb-svcpin .wb-svc-mc.on{opacity:1;visibility:visible;transform:none;transition:opacity .7s ease .12s,transform 1s cubic-bezier(.2,.7,.2,1) .12s,visibility 0s}
 /* each service rises in as one block (a word-by-word reveal lagged behind the finger and looked half-written) */
 .wb-svc-i,.wb-svc-w,.wb-svc-p span{transition-duration:.6s}
 .wb-svc-g.in .wb-svc-w,.wb-svc-g.in .wb-svc-p span{transition-delay:0s}
@@ -94,10 +97,10 @@ html.wb-svcpin .home-services_block-2{grid-template-columns:minmax(0,1fr);paddin
   right.innerHTML = '<h2 class="wb-svc-mh">' + L.h + '</h2>' + S.map((s, i) => '<a class="wb-svc-g" href="' + pre + s.href + '"><div class="wb-svc-i" aria-hidden="true">' + String.fromCharCode(65 + i) + ' /</div><h3 class="wb-svc-t">' + esc(s.t).split(' ').map((w, k) => '<span class="wb-svc-w" style="--i:' + k + '">' + w + '</span>').join(' ') + '</h3><div class="wb-svc-p">' + s.p.map((x, k) => '<span style="--i:' + k + '">' + esc(x) + '</span>').join('') + '</div></a>').join('') +
     '<div class="wb-svc-mc"><p>' + L.p + '</p><a href="' + pre + '/contact">' + L.a + ' <span aria-hidden="true">→</span></a></div>';
   box.append(left, right);
-  /* phones (homepage): the list leaves the pinned panel and scrolls natively in the section: a JS-moved list always trails the finger by a frame and looked bumpy */
-  const NAT = HOME && matchMedia('(max-width:767px)').matches; const track = NAT && document.createElement('div'); if (NAT) { track.className = 'wb-svc-track'; right.classList.add('wb-svc-native'); track.appendChild(right); sec.appendChild(track); }
+  /* phones (homepage): section by section, one service at a time (see the CSS above) */
+  const STEP = HOME && matchMedia('(max-width:767px)').matches, steps = [...right.querySelectorAll('.wb-svc-g, .wb-svc-mc')]; let idx = -2;
   /* links open through the site ink page transition, like the work cards */
-  (NAT ? right : box).addEventListener('click', (e) => { const a = e.target.closest('.wb-svc-g, .wb-svc-left a, .wb-svc-mc a'); if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; const go = window.wbSwapGo || window.wbInkGo; if (!go) return; e.preventDefault(); go(a.getAttribute('href'), e.clientX, e.clientY); });
+  box.addEventListener('click', (e) => { const a = e.target.closest('.wb-svc-g, .wb-svc-left a, .wb-svc-mc a'); if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; const go = window.wbSwapGo || window.wbInkGo; if (!go) return; e.preventDefault(); go(a.getAttribute('href'), e.clientX, e.clientY); });
   const groups = right.querySelectorAll('.wb-svc-g');
   if (!HOME) { box.classList.add('wb-svc-about'); abs.style.overflow = 'clip'; /* hidden made it a scroll box, which breaks the sticky left block; clip cuts the same */ /* About: plain page flow, each service animates in as it scrolls into view */
     const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -12% 0px' });
@@ -112,21 +115,15 @@ html.wb-svcpin .home-services_block-2{grid-template-columns:minmax(0,1fr);paddin
   const vis = (e) => { let o = 1; for (; e && e !== document.body; e = e.parentElement) o *= +getComputedStyle(e).opacity; return o; };
   const io = new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting) return; const g = e.target; io.unobserve(g);
     const go = () => { if (vis(hero) < 0.6) return setTimeout(go, 120); g.classList.add('in'); }; go(); }), { rootMargin: '0px 0px -18% 0px' });
-  if (!PH.matches) groups.forEach((g) => io.observe(g)); /* phones: revealed from the scroll position in tick() instead */
+  if (STEP) groups.forEach((g) => g.classList.add('in')); else groups.forEach((g) => io.observe(g)); /* phones: each service moves in as one block (see STEP) */
   /* eased follow instead of jumping to the scroll position each frame: smooth even when the scroll arrives in steps */
   let live = null;
   const tick = (now) => { requestAnimationFrame(tick); const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
     const hop = +getComputedStyle(hero).opacity, lv = hop > 0.08; /* clickable as soon as the services start fading in */ if (lv !== live) { live = lv; document.documentElement.classList.toggle('wb-svc-live', lv); }
-    if (NAT) { /* phones: place the list where the engine has the services panel fully in, with the engine's own numbers (wb-ribbon: section rect from 100/965 of its height, screen = __svh, About->Services handover into 2.2 + 1.2 * ra, panel fully in at ra 0.95), so the first service is always the first you see */
-      const vhE = window.__svh || innerHeight, t0 = sec.offsetHeight * 100 / 965 + (2.2 + (window.__wbAboutDesk ? 0.75 : 0.95) * 1.2 + 0.3) * vhE; /* +0.3: the first service rests a moment once the panel is in */
-      const lh = right.offsetHeight, th = Math.max(lh, sec.offsetHeight - t0 - vhE), k = t0.toFixed(0) + '|' + th.toFixed(0) + '|' + lh + '|' + vhE;
-      if (k !== cur) { cur = k; track.style.top = t0.toFixed(0) + 'px'; track.style.height = th.toFixed(0) + 'px'; right.style.top = Math.min(0, vhE - lh).toFixed(0) + 'px'; }
-      const op = hop.toFixed(3); if (track.__op !== op) { track.__op = op; track.style.opacity = op; }
-      /* fade the list out under the top bar and above the counter / chat button: a mask in the track's own coordinates, moved with the scroll */
-      if (hop > 0.002) { const tt = track.getBoundingClientRect().top, V = innerHeight, m = 'linear-gradient(to bottom,transparent ' + (100 - tt).toFixed(0) + 'px,#000 ' + (160 - tt).toFixed(0) + 'px,#000 ' + (V - 150 - tt).toFixed(0) + 'px,transparent ' + (V - 95 - tt).toFixed(0) + 'px)';
-        if (track.__m !== m) { track.__m = m; track.style.webkitMaskImage = m; track.style.maskImage = m; } }
-      /* reveal from the position, so it is the same every time and also works scrolling back: in below 85% of the screen, out again below 95% */
-      if (hop > 0.6) groups.forEach((g) => { const t = g.getBoundingClientRect().top; if (t < 0.85 * VS) g.classList.add('in'); else if (t > 0.95 * VS) g.classList.remove('in'); });
+    if (STEP) { /* which service: from the scroll position, with the engine's own numbers (wb-ribbon: section rect from 100/965 of its height, screen = __svh, About->Services handover at into 2.2 + 1.2 * ra, panel fully in at ra 0.95). Service A comes in while the panel fades in, then every 0.75 screen of scroll the next one */
+      const vhE = window.__svh || innerHeight, s0 = sec.offsetHeight * 100 / 965 + (2.2 + (window.__wbAboutDesk ? 0.75 : 0.95) * 1.2) * vhE, p = (-sec.getBoundingClientRect().top - s0) / (0.75 * vhE);
+      const n = p < -0.35 ? -1 : Math.min(steps.length - 1, Math.floor(Math.max(0, p)));
+      if (n !== idx) { idx = n; steps.forEach((el, i) => { el.classList.toggle('on', i === n); el.classList.toggle('out', n >= 0 && i < n); }); }
       return; }
     const V = innerHeight, into = -sec.getBoundingClientRect().top / V, p = Math.max(0, Math.min(1, (into - START) / LEN)), tgt = -p * travel;
     if (Math.abs(tgt - cur) < 0.05) return; cur += (tgt - cur) * (1 - Math.exp(-dt * 9));

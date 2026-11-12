@@ -3656,7 +3656,7 @@ Object.assign(window.WBM, {
           const tr = fe > 0.0005 ? '0 ' + (-fe * vh0 * 0.7).toFixed(1) + 'px' : ''; if (fr.__tr !== tr) { fr.__tr = tr; fr.style.translate = tr; }
           fi.style.opacity = String((hin.style.opacity === '' ? 1 : +hin.style.opacity) * (1 - fe));
           { const cf = this._cfr || (this._cfr = document.querySelector('[data-clouds-front]')); if (cf) { if (cf.__tr !== tr) { cf.__tr = tr; cf.style.translate = tr; } } }
-          const bh = this._hb || (this._hb = document.querySelector('h1[data-gt="hero"]:not([aria-hidden])')), fh = fi.querySelector('h1');
+          const bh = this._hb || (this._hb = document.querySelector('h1[data-gt="hero"]:not([aria-hidden])')), fh = fi.querySelector('h1,h2'); /* the front copy is an h2 since the SEO pass (one h1 per page) */
           if (bh && fh) { const cs = getComputedStyle(bh); ['color', 'fontSize', 'fontFamily', 'fontWeight', 'letterSpacing', 'lineHeight', 'textShadow', 'top', 'transform', 'webkitTextStroke'].forEach((k) => { const v = k === 'transform' ? bh.style.transform : cs[k]; if (v != null && fh.style[k] !== v) fh.style[k] = v; });
             const bs = bh.querySelectorAll('span'), fs2 = fh.querySelectorAll('span');
             if (bs.length === fs2.length) for (let i = 0; i < bs.length; i++) { const x = bs[i].style, y = fs2[i].style;
