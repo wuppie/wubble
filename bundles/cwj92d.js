@@ -1041,6 +1041,8 @@ window.WBGlass = (T, sc, r, at) => {
   r.toneMappingExposure = +at('exposure', 1.1);
   const WORD = at('glass-word', '');
   if (!WORD) return gm;
+  /* glass-word-el="<selector>": the word fades with that element's opacity (homepage: the hero title), so the glass only shows it while the real title is on screen */
+  const WEL = at('glass-word-el', ''); let wK = 1, wEl = null;
   const wc = document.createElement('canvas'), wx = wc.getContext('2d'), wt = new T.CanvasTexture(wc); wt.colorSpace = T.SRGBColorSpace;
   // opaque on purpose: the transmission pass only draws opaque objects; the card is the glass's backdrop
   const wm = new T.MeshBasicMaterial({ map: wt, toneMapped: false, depthTest: false }), wq = new T.Mesh(new T.PlaneGeometry(1, 1), wm);
@@ -1059,12 +1061,14 @@ window.WBGlass = (T, sc, r, at) => {
         pg.font = `800 ${fs2}px Switzer, Helvetica, sans-serif`; pg.fillStyle = at('glass-word-color', '#e9eef2'); pg.textAlign = 'center'; pg.textBaseline = 'middle'; pg.fillText(LW, W / 2, H * +at('glass-live-word-y', 0.75)); } }
     wx.font = '800 100px Switzer, Helvetica, sans-serif'; const fs = 100 * W * 0.87 / Math.max(1, wx.measureText(WORD).width);
     wx.font = `800 ${fs}px Switzer, Helvetica, sans-serif`; wx.fillStyle = at('glass-word-color', '#e9eef2'); wx.textAlign = 'center'; wx.textBaseline = 'middle';
-    wx.fillText(WORD, W / 2, H * +at('glass-word-y', 0.22)); wt.needsUpdate = true;
+    wx.globalAlpha = wK; if (wK > 0.01) wx.fillText(WORD, W / 2, H * +at('glass-word-y', 0.22)); wx.globalAlpha = 1; wt.needsUpdate = true;
     if (LIVE) { base = base || document.createElement('canvas'); base.width = W; base.height = H; base.getContext('2d').drawImage(wc, 0, 0); liveOn = false; } };
   wq.frustumCulled = false; wq.renderOrder = -1; sc.add(wq);
   // exact check: draw the card only into the buffer this glass samples (three's transmission buffer), never into any other pass
   let GU = null; const pc = gm.onBeforeCompile; gm.onBeforeCompile = (s, r2) => { GU = s.uniforms; if (pc) pc(s, r2); };
   wq.onBeforeRender = (rr, s0, cam) => { const rt = rr.getRenderTarget(), ts = GU && GU.transmissionSamplerMap, inT = !!rt && !!ts && rt.texture === ts.value; wm.colorWrite = inT; wm.depthWrite = inT;
+    if (WEL && inT) { wEl = wEl || document.querySelector(WEL); const cs = wEl && getComputedStyle(wEl), k = cs ? (cs.visibility === 'hidden' || cs.display === 'none' ? 0 : Math.round(+cs.opacity * 20) / 20) : 1;
+      if (k !== wK) { wK = k; wAsp = 0; } } /* repaint only when the (stepped) fade changes */
     if (Math.abs(cam.aspect - wAsp) > 0.02) paint(cam.aspect);
     if (LIVE && inT && base) { const src = document.querySelector(LIVE), k = LVAR ? Math.max(0, Math.min(1, +window[LVAR] || 0)) : 1;
       if (src && k > 0.01) { wx.globalAlpha = 1; wx.drawImage(plain, 0, 0); wx.globalAlpha = 1 - k; wx.drawImage(base, 0, 0); wx.globalAlpha = k; wx.drawImage(src, 0, 0, wc.width, wc.height); /* the hero word cross-fades to the /work backdrop as the live canvas fades in, so it never shows through the cards */ wx.globalAlpha = 1; wt.needsUpdate = true; liveOn = true; }
