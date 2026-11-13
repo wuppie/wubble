@@ -963,8 +963,8 @@ window.WBGlass = (T, sc, r, at) => {
   r.toneMappingExposure = +at('exposure', 1.1);
   const WORD = at('glass-word', '');
   if (!WORD) return gm;
-  /* glass-word-el="<selector>": the word fades with that element's opacity (homepage: the hero title), so the glass only shows it while the real title is on screen */
-  const WEL = at('glass-word-el', ''); let wK = 1, wEl = null;
+  /* glass-word-var="<window var>": 0..1, the word fades with it (homepage: __wbHeroWord, how much of the hero title is on screen) */
+  const WVAR = at('glass-word-var', ''); let wK = 1;
   const wc = document.createElement('canvas'), wx = wc.getContext('2d'), wt = new T.CanvasTexture(wc); wt.colorSpace = T.SRGBColorSpace;
   // opaque on purpose: the transmission pass only draws opaque objects; the card is the glass's backdrop
   const wm = new T.MeshBasicMaterial({ map: wt, toneMapped: false, depthTest: false }), wq = new T.Mesh(new T.PlaneGeometry(1, 1), wm);
@@ -989,7 +989,7 @@ window.WBGlass = (T, sc, r, at) => {
   // exact check: draw the card only into the buffer this glass samples (three's transmission buffer), never into any other pass
   let GU = null; const pc = gm.onBeforeCompile; gm.onBeforeCompile = (s, r2) => { GU = s.uniforms; if (pc) pc(s, r2); };
   wq.onBeforeRender = (rr, s0, cam) => { const rt = rr.getRenderTarget(), ts = GU && GU.transmissionSamplerMap, inT = !!rt && !!ts && rt.texture === ts.value; wm.colorWrite = inT; wm.depthWrite = inT;
-    if (WEL && inT) { wEl = wEl || document.querySelector(WEL); const cs = wEl && getComputedStyle(wEl), k = cs ? (cs.visibility === 'hidden' || cs.display === 'none' ? 0 : Math.round(+cs.opacity * 20) / 20) : 1;
+    if (WVAR && inT) { const v = window[WVAR], k = v == null ? 1 : Math.round(Math.max(0, Math.min(1, +v)) * 20) / 20;
       if (k !== wK) { wK = k; wAsp = 0; } } /* repaint only when the (stepped) fade changes */
     if (Math.abs(cam.aspect - wAsp) > 0.02) paint(cam.aspect);
     if (LIVE && inT && base) { const src = document.querySelector(LIVE), k = LVAR ? Math.max(0, Math.min(1, +window[LVAR] || 0)) : 1;
@@ -3886,6 +3886,7 @@ Object.assign(window.WBM, {
         const WL = this.workLetters;
         if (t.prog === 'rp' && (this.props.titleMorph ?? true) && WL && WL.length) {
           const HS1 = this.props.heroStart ?? 0.04, mk = Math.max(0, Math.min(1, (raw - HS1 - 0.02) / 0.6));
+          window.__wbHeroWord = 1 - mk; /* how much of the hero title is on screen (the astronaut glass refracts it only that much) */
           const pre0 = Math.max(0, Math.min(1, (raw - HS1) / 0.1)), pre = pre0 < 0.02 ? 0 : pre0; if (t.scat0 === mk && t.pre0 === pre && !t.dirty) return; t.scat0 = mk; t.scat = mk; t.pre0 = pre;
           const open = mk > 0.001;
           if (!open || !t.base || t.baseW !== innerWidth) {
@@ -3922,6 +3923,7 @@ Object.assign(window.WBM, {
         const tn = performance.now(), tdt = Math.min(0.05, (tn - (t.lt || tn)) / 1000); t.lt = tn; const f = 1 - Math.exp(-tdt * 6);
         t.ki = t.ki == null ? tin : t.ki + (tin - t.ki) * f; t.ko = t.ko == null ? tout : t.ko + (tout - t.ko) * f;
         if (Math.abs(t.ki - tin) < 0.0004) t.ki = tin; if (Math.abs(t.ko - tout) < 0.0004) t.ko = tout;
+        if (t.prog === 'rp') window.__wbHeroWord = 1 - t.ko; /* how much of the hero title is on screen (the astronaut glass refracts it only that much) */
         const lk = t.ki.toFixed(4) + '|' + t.ko.toFixed(4); if (t.lk === lk) return; t.lk = lk;
         if (!t.mk) { t.mk = true; t.words.forEach((w) => { const m = w.parentElement; if (m) m.style.overflow = 'hidden'; }); t.chars.forEach((c) => { c.style.filter = ''; c.style.opacity = ''; c.style.transformOrigin = '0% 100%'; c.style.willChange = 'transform'; }); }
         const n = t.chars.length, st = Math.min(0.09, 0.55 / Math.max(1, n)), span = 1 - st * (n - 1);

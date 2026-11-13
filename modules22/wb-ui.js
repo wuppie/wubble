@@ -92,6 +92,7 @@ Object.assign(window.WBM, {
         const WL = this.workLetters;
         if (t.prog === 'rp' && (this.props.titleMorph ?? true) && WL && WL.length) {
           const HS1 = this.props.heroStart ?? 0.04, mk = Math.max(0, Math.min(1, (raw - HS1 - 0.02) / 0.6));
+          window.__wbHeroWord = 1 - mk; /* how much of the hero title is on screen (the astronaut glass refracts it only that much) */
           const pre0 = Math.max(0, Math.min(1, (raw - HS1) / 0.1)), pre = pre0 < 0.02 ? 0 : pre0; if (t.scat0 === mk && t.pre0 === pre && !t.dirty) return; t.scat0 = mk; t.scat = mk; t.pre0 = pre;
           const open = mk > 0.001;
           if (!open || !t.base || t.baseW !== innerWidth) {
@@ -128,6 +129,7 @@ Object.assign(window.WBM, {
         const tn = performance.now(), tdt = Math.min(0.05, (tn - (t.lt || tn)) / 1000); t.lt = tn; const f = 1 - Math.exp(-tdt * 6);
         t.ki = t.ki == null ? tin : t.ki + (tin - t.ki) * f; t.ko = t.ko == null ? tout : t.ko + (tout - t.ko) * f;
         if (Math.abs(t.ki - tin) < 0.0004) t.ki = tin; if (Math.abs(t.ko - tout) < 0.0004) t.ko = tout;
+        if (t.prog === 'rp') window.__wbHeroWord = 1 - t.ko; /* how much of the hero title is on screen (the astronaut glass refracts it only that much) */
         const lk = t.ki.toFixed(4) + '|' + t.ko.toFixed(4); if (t.lk === lk) return; t.lk = lk;
         if (!t.mk) { t.mk = true; t.words.forEach((w) => { const m = w.parentElement; if (m) m.style.overflow = 'hidden'; }); t.chars.forEach((c) => { c.style.filter = ''; c.style.opacity = ''; c.style.transformOrigin = '0% 100%'; c.style.willChange = 'transform'; }); }
         const n = t.chars.length, st = Math.min(0.09, 0.55 / Math.max(1, n)), span = 1 - st * (n - 1);
