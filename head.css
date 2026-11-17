@@ -54,3 +54,6 @@ html:has(.navbar_container:hover, .home-nav_block:hover) .home_ink, html:has(.na
 .wb-lang a { color: inherit; text-decoration: none; opacity: .45; transition: opacity .3s ease; }
 .wb-lang a:hover, .wb-lang a.is-on { opacity: 1; }
 .wb-lang span { opacity: .3; }
+/* background bands (wb-bands.js, monopo look): plain dark wrappers turn see-through so the bands behind them show; html keeps the dark colour */
+html.wb-bands-on body, html.wb-bands-on .page-wrapper.background-color-darkest, html.wb-bands-on .page-wrapper.background-color-black, html.wb-bands-on .home_page-wrapper, html.wb-bands-on .section_plans, html.wb-bands-on .section_faq { background-color: transparent !important; }
+html.wb-bands-on .bg-layer { display: none !important; } /* the bands replace the grey grainient / aurora / light rays (they pause when hidden) */

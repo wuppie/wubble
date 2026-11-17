@@ -51,3 +51,5 @@ addEventListener('click',function(e){var o=e.target.closest&&e.target.closest('[
 (function(){var on=0,f=function(){on=0;var de=document.documentElement,V=innerHeight,y=scrollY,c=function(x){return Math.min(1,Math.max(0,x));};de.style.setProperty('--wb-astro-up',c(1-(y-V*0.5)/V).toFixed(3));};
 var go=function(){if(!document.querySelector('.home_astronaut-layer'))return;f();addEventListener('scroll',function(){if(!on){on=1;requestAnimationFrame(f);}},{passive:true});addEventListener('resize',f);};
 document.readyState==='loading'?addEventListener('DOMContentLoaded',go):go();})();
+/* background bands on every page (wb-bands.js, monopo look) */
+(function(){var b=function(){WB_LOAD(['bands']);};document.readyState==='loading'?addEventListener('DOMContentLoaded',b):b();})();
