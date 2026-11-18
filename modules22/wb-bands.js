@@ -41,7 +41,8 @@ void main(){ vec2 uv = gl_FragCoord.xy / R, p = (uv - 0.5) * vec2(R.x / R.y, 1.0
   /* every 300 ms: is a plain dark area on screen (else skip drawing), and which section sits in the middle (its palette) */
   const check = () => { const V = innerHeight; show = [...document.querySelectorAll(HOSTS)].some((e) => { const r = e.getBoundingClientRect(); return r.bottom > 0 && r.top < V && r.height > 0; });
     const secs = [...document.querySelectorAll('section, footer')].filter((e) => e.offsetHeight > V * 0.3); let i = 0;
-    secs.forEach((e, k) => { if (e.getBoundingClientRect().top <= V * 0.5) i = k; }); tgt = PALS[i % PALS.length]; };
+    secs.forEach((e, k) => { if (e.getBoundingClientRect().top <= V * 0.5) i = k; }); tgt = isAbout() ? EMBER : PALS[i % PALS.length]; };
+  const EMBER = ['#2a0d07', '#5e130b', '#d9541e'].map((h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255)); /* About test: one colour, dark red edges, burnt orange core */
   const frame = (now) => { requestAnimationFrame(frame); const dt = Math.min(0.05, (now - last) / 1000); last = now;
     if (now - chk > 300) { chk = now; check(); if (isAbout() !== mode) mount(); } /* page swaps */
     if (!show) return; if (!cv.isConnected) mount();
