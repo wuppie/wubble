@@ -8,7 +8,7 @@
   const MOB = matchMedia('(pointer: coarse)').matches || innerWidth < 820, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (MOB && document.querySelector('.home_page-wrapper')) return;
   const HOSTS = '.page-wrapper.background-color-darkest, .page-wrapper.background-color-black, .home_page-wrapper, .section_plans, .section_faq';
-  const PALS = [['#ff4f12', '#2747c9', '#9ec9ef'], ['#b4502a', '#6f8a3e', '#f3ecb4'], ['#5b3fd1', '#ff6a3d', '#ffc6d9'], ['#0f8f8a', '#1f3fa0', '#c9f2e0']]
+  const PALS = [['#161618', '#26272a', '#3d3e42'], ['#141414', '#232325', '#38383b'], ['#171615', '#282624', '#3f3c39'], ['#131416', '#222428', '#393c41']] /* black / very dark grey, a slightly different tone per section */
     .map((p) => p.map((h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255)));
   const cv = document.createElement('canvas'); cv.setAttribute('aria-hidden', 'true');
   cv.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:block';
@@ -25,7 +25,7 @@ void main(){ vec2 uv = gl_FragCoord.xy / R, p = (uv - 0.5) * vec2(R.x / R.y, 1.0
   float b = fract((f * 0.9 + g * 0.8 + S * 0.15) * 0.55);
   vec3 c = mix(C1, C3, smoothstep(0.15, 0.42, b)); c = mix(c, C2, smoothstep(0.42, 0.7, b));
   float env = smoothstep(0.02, 0.32, b) * (1.0 - smoothstep(0.62, 0.95, b)); /* black gaps between the bands */
-  vec3 col = c * env * (0.88 + mk * 0.25) + (h(gl_FragCoord.xy + fract(T) * 97.0) - 0.5) * 0.09; /* film grain */
+  vec3 col = c * env * (0.9 + mk * 0.25) + (h(gl_FragCoord.xy + fract(T) * 97.0) - 0.5) * 0.05; /* film grain */
   gl_FragColor = vec4(col, 1.0); }`;
   const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); return o; };
   const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr);
