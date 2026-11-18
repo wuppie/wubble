@@ -56,3 +56,6 @@ html:has(.navbar_container:hover, .home-nav_block:hover) .home_ink, html:has(.na
 .wb-lang span { opacity: .3; }
 /* footer content sits lower on pages other than Home (desktop/tablet; phones have their own rule above) */
 @media (min-width: 768px) { .footer_wrap:not(:has(.home-footer_fig)) .footer_inner { padding-top: max(160px, 34vh) !important; } }
+
+/* menu buttons: white text on the black hover fill (the site footer code forces #0e0e0d on .navbar_menu-button) */
+.navbar_menu-button:hover { color: #fff !important; }
