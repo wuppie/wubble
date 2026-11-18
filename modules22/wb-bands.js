@@ -44,7 +44,7 @@ void main(){ vec2 uv = gl_FragCoord.xy / R, p = (uv - 0.5) * vec2(R.x / R.y, 1.0
     secs.forEach((e, k) => { if (e.getBoundingClientRect().top <= V * 0.5) i = k; }); tgt = isAbout() ? EMBER : PALS[i % PALS.length]; };
   const EMBER = ['#2a0d07', '#5e130b', '#d9541e'].map((h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255)); /* About test: one colour, dark red edges, burnt orange core */
   const frame = (now) => { requestAnimationFrame(frame); const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    if (now - chk > 300) { chk = now; check(); if (isAbout() !== mode) mount(); } /* page swaps */
+    if (now - chk > 300) { chk = now; check(); }
     if (!show) return; if (!cv.isConnected) mount();
     const k = 1 - Math.exp(-dt * 1.4); cur.forEach((c, j) => c.forEach((v, n) => (c[n] = v + (tgt[j][n] - v) * k)));
     { const km = 1 - Math.exp(-dt * 4), px = MS.x, py = MS.y; MS.x += (MS.tx - MS.x) * km; MS.y += (MS.ty - MS.y) * km;
@@ -52,12 +52,8 @@ void main(){ vec2 uv = gl_FragCoord.xy / R, p = (uv - 0.5) * vec2(R.x / R.y, 1.0
     gl.uniform2f(U.M, MS.x, MS.y); gl.uniform1f(U.MV, still ? 0 : MS.v);
     gl.uniform2f(U.R, cv.width, cv.height); gl.uniform1f(U.T, still ? 20 : now / 1000); gl.uniform1f(U.S, scrollY / innerHeight * 0.35);
     gl.uniform3fv(U.C1, cur[0]); gl.uniform3fv(U.C2, cur[1]); gl.uniform3fv(U.C3, cur[2]); gl.drawArrays(gl.TRIANGLES, 0, 3); };
-  /* test on About: keep the original background (.bg-layer effects) and blend the bands on top of it; other pages: bands replace it */
-  const isAbout = () => /^\/(nl\/)?about\/?$/.test(location.pathname); let mode = null;
-  const mount = () => { mode = isAbout(); const last = mode && [...document.querySelectorAll('.bg-layer')].pop();
-    document.documentElement.classList.toggle('wb-bands-on', !last);
-    if (last) { last.after(cv); cv.style.zIndex = '0'; cv.style.mixBlendMode = 'screen'; cv.style.opacity = '0.9'; } /* right after the bg layers: same stacking spot, on top of them */
-    else { document.body.prepend(cv); cv.style.zIndex = '-1'; cv.style.mixBlendMode = ''; cv.style.opacity = ''; } };
+  const isAbout = () => /^\/(nl\/)?about\/?$/.test(location.pathname);
+  const mount = () => { document.documentElement.classList.add('wb-bands-on'); document.body.prepend(cv); };
   const go = () => { mount(); size(); addEventListener('resize', size); requestAnimationFrame(frame); };
   document.body ? go() : addEventListener('DOMContentLoaded', go);
 })();
